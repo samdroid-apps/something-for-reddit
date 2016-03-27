@@ -1,0 +1,185 @@
+$gnome-gray: rgb(232, 232, 231);
+$blue: #4a90d9;
+$orange: #f57900;
+$purple: #75507b;
+$green: #73d216;
+$red: #cc0000;
+
+
+.comments-view:not(.first) {
+    margin-left: 3px;
+    padding-left: 3px;
+}
+
+.comments-view row > box .post-top-bar.linked > button {
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+.comments-view {
+    background: $gnome-gray;
+
+    row > box > label,
+    row > box .post-top-bar {
+        background: white;
+    }
+
+    /* Not the alert/info-bar buttons */
+    box.post-top-bar button,
+    button.load-more {
+        &:not(:hover) {
+            background: white;
+            text-shadow: none;
+
+            &.gilded { background: $orange; color: white; }
+            &.op { background: $blue; }
+            &.moderator { background: $green; }
+            &.admin { background: $red; }
+            &.special { background: $purple; }
+        }
+
+        &:disabled:not(:hover){
+            background: $gnome-gray;
+            color: darker($gnome-gray);
+        }
+
+        &:checked:not(:hover) {
+            background: black;
+            text-shadow: none;
+            color: white;
+        }
+    }
+
+
+    row  {
+        padding-top: 0;
+        padding-bottom: 0;
+    }
+
+    row > box > label {
+        padding-top: 3px;
+        padding-bottom: 3px;
+        padding-left: 5px;
+        border-bottom: none;
+    }
+
+
+    /*
+     * Left colored border for differing depths
+     */
+    &:not(.first) > row > box {
+        & > label, & > widget > .post-top-bar, & > button {
+            border-left: 5px solid orangered;
+        }
+    }
+
+    &.depth-1 > row > box {
+        & > label,  & > widget > .post-top-bar, & > button {
+            border-left-color: skyblue;
+        }
+    }
+
+    &.depth-2 > row > box {
+        & > label, & > widget > .post-top-bar, & > button {
+            border-left-color: violet;
+        }
+    }
+
+    &.depth-3 > row > box {
+        & > label, & > widget > .post-top-bar, & > button {
+            border-left-color: limegreen;
+        }
+    }
+
+    &.depth-4 > row > box {
+        & > label, & > widget > .post-top-bar, & > button {
+            border-left-color: goldenrod;
+        }
+    }
+}
+
+
+/*
+ * (Left) list styling
+ */
+
+row {
+    box > label, box > button {
+        border-bottom: 1px solid darker($gnome-gray);
+    }
+
+    &.read {
+        background: $gnome-gray;
+    }
+
+    &.read:selected {
+        background: $blue;
+    }
+}
+
+@mixin button-bg($base-color) {
+    color: white;
+
+    background: linear-gradient($base-color, shade($base-color, 0.8));
+
+    &:hover {
+        background: linear-gradient(lighter($base-color), $base-color);
+    }
+    &:active {
+        background: linear-gradient(darker($base-color), $base-color);
+    }
+}
+
+button {
+    &.fullscreen {
+        -gtk-icon-source: -gtk-icontheme('list-add-symbolic');
+    }
+
+    &.upvoted {
+        color: $orange;
+    }
+
+    &.downvoted {
+        color: $purple;
+    }
+
+    &.gilded {
+        box-shadow: inset 0 0 5px $orange;
+    }
+
+    &.unread:not(:checked) {
+        @include button-bg($orange);
+        text-shadow: none;
+    }
+
+    /*
+     * author distinguished colors,
+     * made more specific than the comments-view styles
+     */
+    &.op.reddit.text-button {
+        @include button-bg($blue);
+    }
+
+    &.moderator.reddit.text-button {
+        @include button-bg($green);
+    }
+
+    &.admin.reddit.text-button {
+        @include button-bg($red);
+    }
+
+    &.special.reddit.text-button {
+        @include button-bg($purple);
+    }
+}
+
+/*
+ * Misc
+ */
+popover textview {
+    margin-bottom: 5px;
+}
+
+.error-label {
+    color: red;
+}

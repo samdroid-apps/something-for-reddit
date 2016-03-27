@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop">
+  <id>reddit-is-gtk.desktop</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0+</project_license>
+  <_name>Reddit is Gtk+</_name>
+  <_summary>Waste time with a beautiful GUI</_summary>
+  <description>
+    <_p>
+        Reddit is Gtk+ is a brand new reddit client for GNOME, built from
+        the ground up using the Qt5 GUI framework (obviously).
+    </_p>
+  </description>
+  <screenshots>
+    <screenshot type="default" width="750" height="469">
+      <image>http://www.omgubuntu.co.uk/wp-content/uploads/2013/08/music_album.jpeg</image>
+    </screenshot>
+  </screenshots>
+  <url type="homepage">https://wiki.gnome.org/Apps/Music</url>
+  <url type="bugtracker">https://bugzilla.gnome.org/enter_bug.cgi?product=gnome-music</url>
+  <url type="donation">http://www.gnome.org/friends/</url>
+  <url type="help">https://help.gnome.org/users/gnome-music/stable/</url>
+  <update_contact>sam@sam.today</update_contact>
+</component>

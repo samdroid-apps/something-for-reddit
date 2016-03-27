@@ -1,0 +1,10 @@
+[Desktop Entry]
+_Name=Reddit is Gtk+
+_GenericName=Reddit Browser
+_Comment=Waste time with a nice GUI
+Exec=reddit-is-gtk
+Terminal=false
+Type=Application
+Categories=GNOME;GTK;
+_Keywords=Reddit;GTK;
+StartupNotify=true

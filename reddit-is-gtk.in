@@ -1,0 +1,13 @@
+#!/usr/bin/python3
+import sys
+
+# Make sure that where we installed it to, python for look
+# important for eg. /usr/local
+sys.path.insert(1, '@pythondir@')
+
+from gi.repository import Gio
+r = Gio.resource_load('@pkgdatadir@/reddit-is-gtk.gresource')
+Gio.Resource._register(r)
+
+import redditisgtk.main
+redditisgtk.main.run()
