@@ -40,7 +40,7 @@ I did this ages ago, so I don't really remember.
 2.  Install the `python3-arrow`  and `python3-markdown`
 3.  Install a SCSS compiler (eg. sass ruby gem or `python-scss`).  This is very
     important because otherwise it will fail to build.
-3.  Install this obscure package via pip!
+3.  Install this obscure package via pip:  `pip3 install git+https://github.com/r0wb0t/markdown-urlize`
 4.  `autoconf` then `./configure`
 4.  `make`
 5.  `sudo make install`
