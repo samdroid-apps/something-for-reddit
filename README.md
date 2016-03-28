@@ -63,6 +63,8 @@ Short
 
 Medium
 
+* **Any app icon suggestions/designs are appreciated**
+    - The current one isn't great at all
 * Better handle private messages
 * Fix up the info sidebar for the /u/ pages
 * Keyboard shortcuts for the header bar buttons
