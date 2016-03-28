@@ -41,6 +41,10 @@ I did this ages ago, so I don't really remember.
 3.  Install a SCSS compiler (eg. sass ruby gem or `python-scss`).  This is very
     important because otherwise it will fail to build.
 3.  Install this obscure package via pip:  `pip3 install git+https://github.com/r0wb0t/markdown-urlize`
+
+Then you can just install it like any usual program.
+
+1.  Download the source code (eg. `git clone https://github.com/samdroid-apps/reddit-is-gtk; cd reddit-is-gtk`)
 4.  `autoconf` then `./configure`
 4.  `make`
 5.  `sudo make install`
