@@ -45,9 +45,9 @@ I did this ages ago, so I don't really remember.
 Then you can just install it like any usual program.
 
 1.  Download the source code (eg. `git clone https://github.com/samdroid-apps/reddit-is-gtk; cd reddit-is-gtk`)
-4.  `autoconf` then `./configure`
-4.  `make`
-5.  `sudo make install`
+2.  `./autogen.sh`
+3.  `make`
+4.  `sudo make install`
 
 There is a .desktop file, but it is also `reddit-is-gtk` command
 
