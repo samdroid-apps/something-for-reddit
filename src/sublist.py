@@ -48,10 +48,8 @@ class SubList(Gtk.ScrolledWindow):
         self.add(self._spinner)
         self._spinner.show()
 
-    def get_sub_name(self):
-        '''Returns the sub name, eg. "gnu" or "all" or "funny"'''
-        # /r/[name]?t=whatever -> name
-        return self._sub.split('/')[2].split('?')[0]
+    def get_uri(self):
+        return self._sub
 
     def goto(self, sub):
         '''

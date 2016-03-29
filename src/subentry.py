@@ -20,7 +20,8 @@ from gi.repository import GObject
 
 from redditisgtk.api import get_reddit_api, PREPEND_SUBS, is_special_sub, \
                             SORTINGS, SPECIAL_SUBS
-from redditisgtk.infopopover import VScrollingPopover
+from redditisgtk.infopopover import VScrollingPopover, InfoPalette
+
 
 class SubEntry(Gtk.Entry):
     '''
@@ -34,6 +35,9 @@ class SubEntry(Gtk.Entry):
         Gtk.Entry.__init__(
             self,
             text='/r/all',
+            primary_icon_name='open-menu-symbolic',
+            primary_icon_sensitive=True,
+            primary_icon_tooltip_text='Open Sidebar or Information',
             secondary_icon_name='go-down-symbolic',
             secondary_icon_sensitive=True,
             secondary_icon_tooltip_text='View List'
@@ -45,6 +49,19 @@ class SubEntry(Gtk.Entry):
         self.connect('icon-press', SubEntry.do_icon_press)
 
     def do_icon_press(self, position, event):
+        if position == Gtk.EntryIconPosition.PRIMARY:
+            self._show_info()
+        else:
+            self._show_palette()
+
+    def _show_info(self):
+        current = self.get_toplevel().get_sublist().get_uri()
+        # /r/[name]?t=whatever -> name
+        current_sub = current.split('/')[2].split('?')[0]
+        palette = InfoPalette(current_sub, relative_to=self)
+        palette.show()
+
+    def _show_palette(self):
         if self._palette is None:
             self._palette = _ListPalette(self, relative_to=self)
             self._palette.selected.connect(self.__selected_cb)

@@ -32,7 +32,6 @@ from gi.repository import Gio
 from redditisgtk.sublist import SubList
 from redditisgtk.subentry import SubEntry
 from redditisgtk.submit import SubmitWindow
-from redditisgtk.infopopover import InfoPalette
 from redditisgtk.api import get_reddit_api, is_special_sub
 from redditisgtk.webviews import FullscreenableWebview, WebviewToolbar
 from redditisgtk.readcontroller import get_read_controller
@@ -135,12 +134,6 @@ class RedditWindow(Gtk.Window):
         self._header.pack_start(self._submit)
         self._submit.show()
 
-        # TODO:  Can we have a real sidebar icon
-        self._info = Gtk.Button(label='ℹ')
-        self._info.connect('clicked', self.__info_cb)
-        self._header.pack_start(self._info)
-        self._info.show()
-
         self._stack_switcher = Gtk.StackSwitcher(stack=self._stack)
         self._header.pack_end(self._stack_switcher)
         self._stack_switcher.show()
@@ -166,10 +159,8 @@ class RedditWindow(Gtk.Window):
     def __submit_done_cb(self, window, sub_name, uri):
         self._sublist.goto('/r/' + sub_name)
 
-    def __info_cb(self, button):
-        current_sub = self._sublist.get_sub_name()
-        palette = InfoPalette(current_sub, relative_to=button)
-        palette.show()
+    def get_sublist(self):
+        return self._sublist
 
     def goto_sublist(self, to):
         '''
