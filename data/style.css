@@ -5,10 +5,12 @@ $purple: #75507b;
 $green: #73d216;
 $red: #cc0000;
 
+.root-comments-view {
+    margin-left: 12px;
+}
 
 .comments-view:not(.first) {
-    margin-left: 3px;
-    padding-left: 3px;
+    padding-left: 6px;
 }
 
 .comments-view row > box .post-top-bar.linked > button {
@@ -18,6 +20,14 @@ $red: #cc0000;
 
 .comments-view {
     background: $gnome-gray;
+
+    row {
+        padding-right: 0;
+    }
+
+    revealer list {
+        margin: 0;
+    }
 
     row > box > label,
     row > box .post-top-bar {
@@ -69,7 +79,7 @@ $red: #cc0000;
      */
     &:not(.first) > row > box {
         & > label, & > widget > .post-top-bar, & > button {
-            border-left: 5px solid orangered;
+            border-left: 6px solid orangered;
         }
     }
 

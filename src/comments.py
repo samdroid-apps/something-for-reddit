@@ -50,6 +50,7 @@ class CommentsView(Gtk.ScrolledWindow):
 
     def __init__(self, post, comments=None):
         Gtk.ScrolledWindow.__init__(self)
+        self.get_style_context().add_class('root-comments-view')
         self.props.hscrollbar_policy = Gtk.PolicyType.NEVER
         self._post = post
         self._msg = None
