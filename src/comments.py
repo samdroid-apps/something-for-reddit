@@ -82,6 +82,9 @@ class CommentsView(Gtk.ScrolledWindow):
         else:
             self.__refresh_cb()
 
+    def get_link_name(self):
+        return self._post['name']
+
     def get_header_height(self):
         return self._comments.get_allocation().y
 
@@ -174,7 +177,11 @@ class _CommentsView(Gtk.ListBox):
     def __refresh_cb(self, caller):
         self.refresh.emit()
 
-    def __got_more_comments_cb(self, caller, more_comments):
+    def __got_more_comments_cb(self, caller_button, more_comments):
+        caller_button.hide()
+        self.remove(caller_button)
+        caller_button.destroy()
+
         self._add_comments(more_comments)
 
 
@@ -471,10 +478,12 @@ class CommentRow(Gtk.ListBoxRow):
 
     def __load_more_cb(self, button):
         button.props.sensitive = False
-        get_reddit_api().load_more(self.data, self.__loaded_more_cb)
+        comments = self.get_toplevel().get_comments_view()
+        get_reddit_api().load_more(
+            comments.get_link_name(), self.data, self.__loaded_more_cb)
 
     def __loaded_more_cb(self, comments):
-        comments = comments['data']['children']
+        comments = comments['json']['data']['things']
         self.got_more_comments.emit(comments)
 
     def _show_normal_comment(self):

@@ -162,6 +162,9 @@ class RedditWindow(Gtk.Window):
     def get_sublist(self):
         return self._sublist
 
+    def get_comments_view(self):
+        return self._comments
+
     def goto_sublist(self, to):
         '''
         Public api for children:

@@ -279,16 +279,19 @@ class RedditAPI(GObject.GObject):
         return self.send_request('POST', '/api/read_message', None,
                                  post_data={'id': name})
 
-    def load_more(self, more_children, callback):
+    def load_more(self, link_name, more_children, callback):
         '''
         Args:
-            id (str):  id of the comment (eg. d1wzlwp)
+            link_name (str):  fullname of the link
+            more_children (dict):  more comments object reddit gave you
             callback (func):  same kind of callback as rest of api
         '''
         data = urllib.parse.urlencode({
-            'id': more_children['parent_id']
+            'api_type': 'json',
+            'children': ','.join(more_children['children']),
+            'link_id': link_name
         })
-        return self.send_request('GET', '/api/info?' + data, callback)
+        return self.send_request('GET', '/api/morechildren?' + data, callback)
 
     def download_thumb(self, url, callback):
         '''
