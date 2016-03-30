@@ -294,8 +294,6 @@ class RedditAPI(GObject.GObject):
         return self.send_request('GET', '/api/morechildren?' + data,
                                  self.__load_more_cb, user_data=callback)
 
-        comments = comments['json']['data']['things']
-
     def __load_more_cb(self, data, callback):
         '''
         Ok, so reddit here returns the comments as a list, rather than being
@@ -320,7 +318,7 @@ class RedditAPI(GObject.GObject):
         for c in comments:
             while True:
                 top = stack[-1]
-                if top == None:
+                if top is None:
                     new_comments.append(c)
                     stack.append(new_comments[-1])
                     # print('Adding to end')
