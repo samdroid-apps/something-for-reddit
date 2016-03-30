@@ -38,6 +38,33 @@ class FullscreenableWebview(WebKit2.WebView):
         self._fullscreen.destroy()
         del self._fullscreen
 
+
+class ProgressContainer(Gtk.Overlay):
+    '''
+    Overlays a progress bar on a webview passed to the constructor
+    '''
+    def __init__(self, webview):
+        Gtk.Overlay.__init__(self)
+        self._webview = webview
+        self.add(self._webview)
+        self._webview.show()
+
+        self._progress = Gtk.ProgressBar(halign=Gtk.Align.FILL,
+                                         valign=Gtk.Align.START)
+        self.add_overlay(self._progress)
+
+        self._webview.connect('notify::estimated-load-progress',
+                              self.__notify_progress_cb)
+
+    def __notify_progress_cb(self, webview, pspec):
+        progress = webview.props.estimated_load_progress
+        if progress == 1.0:
+            self._progress.hide()
+        else:
+            self._progress.show()
+            self._progress.set_fraction(progress)
+
+
 class WebviewToolbar(Gtk.Bin):
     def __init__(self, webview):
         Gtk.Bin.__init__(self)

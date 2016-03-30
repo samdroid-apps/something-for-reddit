@@ -33,7 +33,8 @@ from redditisgtk.sublist import SubList
 from redditisgtk.subentry import SubEntry
 from redditisgtk.submit import SubmitWindow
 from redditisgtk.api import get_reddit_api, is_special_sub
-from redditisgtk.webviews import FullscreenableWebview, WebviewToolbar
+from redditisgtk.webviews import (FullscreenableWebview, ProgressContainer,
+                                  WebviewToolbar)
 from redditisgtk.readcontroller import get_read_controller
 from redditisgtk.identity import IdentityCombo
 
@@ -60,11 +61,8 @@ class RedditWindow(Gtk.Window):
         self.add(self._paned)
         self._paned.show()
 
-        # Should be a bin, but it can be a box if it wants
-        self._webview_bin = Gtk.EventBox()
         self._webview = FullscreenableWebview()
-        self._webview_bin.add(self._webview)
-        self._webview.show()
+        self._webview_bin = ProgressContainer(self._webview)
         self._comments = None
         self._stack = Gtk.Stack()
         self._stack.connect('notify::visible-child', self.__stack_child_cb)
