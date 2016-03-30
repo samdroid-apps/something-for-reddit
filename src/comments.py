@@ -484,7 +484,6 @@ class CommentRow(Gtk.ListBoxRow):
             comments.get_link_name(), self.data, self.__loaded_more_cb)
 
     def __loaded_more_cb(self, comments):
-        comments = comments['json']['data']['things']
         self.got_more_comments.emit(comments)
 
     def _show_normal_comment(self):

@@ -291,7 +291,54 @@ class RedditAPI(GObject.GObject):
             'children': ','.join(more_children['children']),
             'link_id': link_name
         })
-        return self.send_request('GET', '/api/morechildren?' + data, callback)
+        return self.send_request('GET', '/api/morechildren?' + data,
+                                 self.__load_more_cb, user_data=callback)
+
+        comments = comments['json']['data']['things']
+
+    def __load_more_cb(self, data, callback):
+        '''
+        Ok, so reddit here returns the comments as a list, rather than being
+        nested like normally.  This is really annoying.  Since it is such
+        a special case, we will fix up the data here and the view code
+        can assume that it is normal data.
+
+        We need to connect the comments via their 'parent_id'->'name'.  We
+        also know that the list will be sorted.  So basically, we make a stack
+        which stores the last comment we added.  Then:
+
+        * If the parent_id matches the top of the stack's name, add it in
+            (and add myself to the top of the stack)
+        * Otherwise, remove the top of the stack and retry step #1
+        * If we reach the bottom of the stack, just add a root level comment
+            (and of course add myself to the top of the stack)
+        '''
+        comments = data['json']['data']['things']
+        new_comments = []
+        stack = [None]
+
+        for c in comments:
+            while True:
+                top = stack[-1]
+                if top == None:
+                    new_comments.append(c)
+                    stack.append(new_comments[-1])
+                    # print('Adding to end')
+                    break
+                if top['data']['name'] == c['data']['parent_id']:
+                    # Why don't you use null reddit???
+                    if top['data']['replies'] == '':
+                        top['data']['replies'] = \
+                            {'data': {'children': []}}
+                    kids = top['data']['replies']['data']['children']
+                    kids.append(c)
+                    stack.append(kids[-1])
+                    # print('Adding as child')
+                    break
+                else:
+                    stack.pop(-1)
+                    # print('Popping stack')
+        callback(new_comments)
 
     def download_thumb(self, url, callback):
         '''
