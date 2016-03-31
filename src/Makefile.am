@@ -11,6 +11,7 @@ app_PYTHON = \
 	Makefile \
 	Makefile.am \
 	Makefile.in \
+	palettebutton.py \
 	markdownpango.py \
 	mediapreview.py \
 	readcontroller.py \

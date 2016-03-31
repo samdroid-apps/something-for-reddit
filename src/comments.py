@@ -23,6 +23,7 @@ from gi.repository import Gtk
 from gi.repository import GLib
 
 from redditisgtk.markdownpango import markdown_to_pango
+from redditisgtk.palettebutton import connect_palette
 from redditisgtk.api import get_reddit_api
 
 class SaneLabel(Gtk.Label):
@@ -219,8 +220,6 @@ class _PostTopBar(Gtk.Bin):
                  refreshable=False):
         Gtk.Bin.__init__(self)
         self.data = data
-        self._palette = None
-        self._time_palette = None
 
         self._b = Gtk.Builder.new_from_resource(
             '/today/sam/reddit-is-gtk/post-top-bar.ui')
@@ -259,6 +258,7 @@ class _PostTopBar(Gtk.Bin):
             ctx.add_class('op')
 
         self._score_button = self._b.get_object('score')
+        connect_palette(self._score_button, self._make_score_palette)
         self._score_button.props.visible = 'score' in data
         if 'score' in data:
             self._update_score_button()
@@ -266,6 +266,11 @@ class _PostTopBar(Gtk.Bin):
         self._time_button = self._b.get_object('time')
         time = arrow.get(self.data['created_utc'])
         self._time_button.props.label = time.humanize()
+        connect_palette(self._time_button, self._make_time_palette)
+
+        self._reply_button = self._b.get_object('reply')
+        connect_palette(self._reply_button, self._make_reply_palette,
+                        recycle_palette=True)
 
         self._b.connect_signals(self)
 
@@ -308,11 +313,6 @@ class _PostTopBar(Gtk.Bin):
     def hide_toggled_cb(self, toggle):
         self.hide_toggled.emit(not toggle.props.active)
 
-    def show_score_palette_cb(self, button):
-        palette = Gtk.Popover(relative_to=button)
-        palette.add(self._make_score_palette())
-        palette.show()
-
     def _make_score_palette(self):
         bb = Gtk.ButtonBox(orientation=Gtk.Orientation.VERTICAL,
                            layout_style=Gtk.ButtonBoxStyle.EXPAND)
@@ -336,7 +336,10 @@ class _PostTopBar(Gtk.Bin):
         upvote.connect('toggled', self.__vote_toggled_cb, +1)
         novote.connect('toggled', self.__vote_toggled_cb, 0)
         downvote.connect('toggled', self.__vote_toggled_cb, -1)
-        return bb
+
+        palette = Gtk.Popover()
+        palette.add(bb)
+        return palette
 
     def __vote_toggled_cb(self, toggle, direction):
         if toggle.props.active:
@@ -358,22 +361,20 @@ class _PostTopBar(Gtk.Bin):
             self.data['score'] = new_score
             self._update_score_button()
 
-    def reply_clicked_cb(self, button):
-        if self._palette is not None:
-            self._palette.show_all()
-        else:
-            self._palette = _ReplyPopover(self.data, relative_to=button)
-            self._palette.refresh.connect(self.__palette_refresh_cb)
-            self._palette.show_all()
+    def _make_reply_palette(self):
+        palette = _ReplyPopover(self.data)
+        palette.get_child().show_all()
+        palette.refresh.connect(self.__palette_refresh_cb)
+        return palette
 
     def favorite_toggled_cb(self, button):
         get_reddit_api().set_saved(self.data['name'], button.props.active,
                                    None)
 
-    def time_clicked_cb(self, button):
-        if self._time_palette is None:
-            self._time_palette = _TimePalette(self.data, relative_to=button)
-        self._time_palette.show_all()
+    def _make_time_palette(self):
+        t = _TimePalette(self.data)
+        t.get_child().show_all()
+        return t
 
     def __palette_refresh_cb(self, caller):
         self.refresh.emit()
