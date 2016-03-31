@@ -63,6 +63,9 @@ class IdentityController(GObject.GObject):
     def get_active(self):
         return self._active
 
+    def get_token(self, id):
+        return self._tokens[id]
+
     def switch_account(self, id):
         if self._active == id:
             return
@@ -73,6 +76,15 @@ class IdentityController(GObject.GObject):
         else:
             self.token_changed.emit(None)
         self.save()
+
+    def remove_account(self, id):
+        if self._active == id:
+            self._active = None
+        del self._tokens[id]
+        if self._active is not None:
+            self.token_changed.emit(self._tokens[self._active])
+        else:
+            self.token_changed.emit(None)
 
     def sign_in_got_code(self, code, callback):
         id = str(uuid4())
@@ -217,49 +229,89 @@ class SignInWindow(Gtk.Window):
         self._close.connect('clicked', self.destroy)
         box.add(self._close)
 
-class IdentityCombo(Gtk.ComboBoxText):
-    def __init__(self):
-        Gtk.ComboBoxText.__init__(self)
-        self._combo = None
-        self._rebuilding = False
-        self._update()
 
+class IdentityButton(Gtk.MenuButton):
+    def __init__(self):
+        Gtk.MenuButton.__init__(self, popover=IdentityPopover())
+        self.__token_cb(get_identity_controller(), None)
         get_identity_controller().token_changed.connect(self.__token_cb)
 
     def __token_cb(self, ctrl, token):
-        self._update()
-
-    def _update(self):
-        self._rebuilding = True
-        ctrl = get_identity_controller()
-
-        self.remove_all()
-        self.append('ANNON', 'Anonymous')
-        for name, id in ctrl.loop_names_ids_tuple():
-            self.append(id, name)
-        self.append('NEW', '+ Add new account')
-
-        self._set_active_as_active_account()
-        self._rebuilding = False
-
-    def _set_active_as_active_account(self):
-        ctrl = get_identity_controller()
         if ctrl.get_active() is None:
-            self.set_active_id('ANNON')
+            self.props.label = 'Anonymous'
         else:
-            self.set_active_id(ctrl.get_active())
+            token = ctrl.get_token(ctrl.get_active())
+            self.props.label = token.get('username', '...')
 
-    def do_changed(self):
-        if self._rebuilding:
-            return
 
-        id = self.get_active_id()
-        if id == 'NEW':
-            self._set_active_as_active_account()
-            w = SignInWindow()
-            w.show()
-            return
+class IdentityPopover(Gtk.Popover):
+    def __init__(self):
+        Gtk.Popover.__init__(self)
+        self.__token_cb(get_identity_controller(), None)
+        get_identity_controller().token_changed.connect(self.__token_cb)
 
-        if id == 'ANNON':
-            id = None
-        get_identity_controller().switch_account(id)
+    def __token_cb(self, ctrl, token):
+        if self.get_child() is not None:
+            c = self.get_child()
+            self.remove(c)
+            c.destroy()
+
+        listbox = Gtk.ListBox()
+        self.add(listbox)
+        listbox.show()
+
+        anon = _AccountRow(None, 'Anonymous', removeable=False)
+        listbox.add(anon)
+        anon.show()
+        if ctrl.get_active() is None:
+            listbox.select_row(anon)
+
+        for name, id in ctrl.loop_names_ids_tuple():
+            row = _AccountRow(id, name)
+            listbox.add(row)
+            row.show()
+            if id == ctrl.get_active():
+                listbox.select_row(row)
+
+        add = Gtk.Button(label='Add new account',
+                         always_show_image=True)
+        add.connect('clicked', self.__add_clicked_cb)
+        add.add(Gtk.Image.new_from_icon_name(
+            'list-add-symbolic', Gtk.IconSize.MENU))
+        add.get_style_context().add_class('flat')
+        listbox.add(add)
+        add.show()
+
+        listbox.connect('row-selected', self.__row_selected_cb)
+
+    def __add_clicked_cb(self, button):
+        w = SignInWindow()
+        w.show()
+
+    def __row_selected_cb(self, listbox, row):
+        if row is not None:
+            get_identity_controller().switch_account(row.id)
+            return True
+
+
+class _AccountRow(Gtk.ListBoxRow):
+    def __init__(self, id, name, removeable=True):
+        Gtk.ListBoxRow.__init__(self)
+        self.id = id
+        self.name = name
+
+        box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        self.add(box)
+        box.add(Gtk.Label(label=name))
+
+        if removeable:
+            remove = Gtk.Button()
+            remove.connect('clicked', self.__remove_cb)
+            remove.get_style_context().add_class('flat')
+            remove.add(Gtk.Image.new_from_icon_name(
+                'edit-delete-symbolic', Gtk.IconSize.MENU))
+            box.pack_end(remove, False, False, 0)
+        self.show_all()
+
+    def __remove_cb(self, button):
+        get_identity_controller().remove_account(self.id)

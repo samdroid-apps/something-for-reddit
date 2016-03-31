@@ -36,7 +36,7 @@ from redditisgtk.api import get_reddit_api, is_special_sub
 from redditisgtk.webviews import (FullscreenableWebview, ProgressContainer,
                                   WebviewToolbar)
 from redditisgtk.readcontroller import get_read_controller
-from redditisgtk.identity import IdentityCombo
+from redditisgtk.identity import IdentityButton
 
 
 VIEW_WEB = 0
@@ -123,7 +123,7 @@ class RedditWindow(Gtk.Window):
         self.set_titlebar(self._header)
         self._header.show()
 
-        self._identity = IdentityCombo()
+        self._identity = IdentityButton()
         self._header.pack_start(self._identity)
         self._identity.show()
 
