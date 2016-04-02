@@ -12,6 +12,7 @@ app_PYTHON = \
 	Makefile.am \
 	Makefile.in \
 	palettebutton.py \
+	buttons.py \
 	markdownpango.py \
 	mediapreview.py \
 	readcontroller.py \

@@ -66,3 +66,5 @@ reddit-is-gtk
 Makefile.in
 /data/reddit-is-gtk.appdata.xml
 /data/.sass-cache
+/data/style.css.out
+/data/style.css.out.map

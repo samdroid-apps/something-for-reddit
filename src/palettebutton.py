@@ -41,3 +41,4 @@ class _PaletteButton(GObject.GObject):
 def connect_palette(button, create_palette_func, recycle_palette=False):
     p = _PaletteButton(button, recycle_palette)
     p.create_palette = create_palette_func
+    return p

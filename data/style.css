@@ -113,17 +113,25 @@ $red: #cc0000;
  * (Left) list styling
  */
 
-row {
-    box > label, box > button {
-        border-bottom: 1px solid darker($gnome-gray);
-    }
+.link-row {
+    border-bottom: 1px solid black;
 
     &.read {
         background: $gnome-gray;
     }
 
-    &.read:selected {
+    &.sticky {
+        background: lighter(lighter($green));
+    }
+
+    &:selected {
         background: $blue;
+
+        button.flat:hover, button.flat:checked, button.flat:active {
+            label {
+                color: black;
+            }
+        }
     }
 }
 
@@ -132,6 +140,9 @@ row {
 
     background: linear-gradient($base-color, shade($base-color, 0.8));
 
+    &.flat {
+        background: $base-color;
+    }
     &:hover {
         background: linear-gradient(lighter($base-color), $base-color);
     }

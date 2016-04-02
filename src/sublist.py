@@ -25,7 +25,9 @@ from gi.repository import Soup
 from gi.repository import GObject
 
 from redditisgtk.comments import CommentsView, CommentRow, MessageRow
-from redditisgtk.api import get_reddit_api, is_special_sub
+from redditisgtk.buttons import (ScoreButtonBehaviour, AuthorButtonBehaviour,
+                                 SubButtonBehaviour, TimeButtonBehaviour)
+from redditisgtk.api import get_reddit_api
 from redditisgtk.readcontroller import get_read_controller
 from redditisgtk.mediapreview import get_preview_palette
 
@@ -36,7 +38,15 @@ class SubList(Gtk.ScrolledWindow):
     '''
 
     new_other_pane = GObject.Signal(
-        'new-other-pane', arg_types=[str, object])
+        'new-other-pane', arg_types=[str, object, bool])
+    '''
+    Args:
+        link (str):  Link to put in webview or None
+        comments_view (Gtk.Widget):  New comments view
+        link_first (bool):  if True the link should be the default view
+            - if a link is available - whereas False makes the comments
+            the default view
+    '''
 
     def __init__(self):
         Gtk.ScrolledWindow.__init__(self)
@@ -71,7 +81,7 @@ class SubList(Gtk.ScrolledWindow):
         self._listbox = Gtk.ListBox()
         self._listbox.connect('row-selected', self.__row_selected_cb)
         # THINK:  Hidden refresh function?
-        self._listbox.connect('row-activated', self.__row_selected_cb)
+        # self._listbox.connect('row-activated', self.__row_selected_cb)
         self._listbox.props.selection_mode = Gtk.SelectionMode.BROWSE
         self.add(self._listbox)
         self._listbox.show()
@@ -84,6 +94,7 @@ class SubList(Gtk.ScrolledWindow):
         for post in j['data']['children']:
             if post['kind'] == 't3':
                 row = SubItemRow(post)
+                row.goto_comments.connect(self.__row_goto_comments_cb)
             elif post['kind'] == 't1':
                 row = CommentRow(post['data'], 0)
             elif post['kind'] == 't4':
@@ -110,7 +121,8 @@ class SubList(Gtk.ScrolledWindow):
         if row is None:
             return
 
-        row.get_style_context().add_class('read')
+        if hasattr(row, 'read'):
+            row.read()
         if 'context' in row.data:
             # We need to download first
             # TODO: Progress indicator for user
@@ -123,14 +135,19 @@ class SubList(Gtk.ScrolledWindow):
         self._handle_activate(data[0]['data']['children'][0]['data'],
                               comments=data)
 
-    def _handle_activate(self, data, comments=None):
+    def _handle_activate(self, data, comments=None, link_first=True):
         link = None
         get_read_controller().read(data['name'])
 
         if not data.get('is_self') and 'url' in data:
             link = data['url']
         comments = CommentsView(data, comments=comments)
-        self.new_other_pane.emit(link, comments)
+        self.new_other_pane.emit(link, comments, link_first)
+
+    def __row_goto_comments_cb(self, row):
+        row.read()
+        self._handle_activate(row.data, link_first=False)
+
 
 class MoreItemRow(Gtk.ListBoxRow):
 
@@ -155,91 +172,62 @@ class MoreItemRow(Gtk.ListBoxRow):
         self.destroy()
 
 
-# from the 'distinguished' attribute
-AUTHOR_COLORS = {
-    None: '',
-    'moderator': 'lightgreen',
-    'admin': 'red',
-    'special': 'purple'
-}
-
-
 class SubItemRow(Gtk.ListBoxRow):
+
+    goto_comments = GObject.Signal('goto-comments')
+
     def __init__(self, data):
         Gtk.ListBoxRow.__init__(self)
+        self.get_style_context().add_class('link-row')
         self.data = data['data']
-        self._pbl = None
         self._msg = None
 
-        if get_read_controller().is_read(self.data['name']):
-            self.get_style_context().add_class('read')
+        self._builder = Gtk.Builder.new_from_resource(
+            '/today/sam/reddit-is-gtk/row-link.ui')
+        self._g = self._builder.get_object
+        self.add(self._g('box'))
 
-        box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
-        self.add(box)
-        box.show()
+        read = get_read_controller().is_read(self.data['name'])
+        if read:
+            self.read()
 
-        l = Gtk.Label()
-        l.props.xalign = 0
-        l.props.justify = Gtk.Justification.LEFT
-        l.set_line_wrap(True)
+        # Keep a reference so the GC doesn't collect them
+        self._sbb = ScoreButtonBehaviour(self._g('score'), self.data)
+        self._abb = AuthorButtonBehaviour(self._g('author'), self.data)
+        self._srbb = SubButtonBehaviour(self._g('subreddit'), self.data)
+        self._tbb = TimeButtonBehaviour(self._g('time'), self.data)
 
-        self.data['score'] = self.data['score'] if 'score' in self.data else ''
-        self.data['num_comments'] = self.data.get('num_comments') or 'no'
+        self._g('nsfw').props.visible = self.data.get('over_18')
+        self._g('saved').props.visible = self.data.get('saved')
+        self._g('sticky').props.visible = self.data.get('stickied')
+        if self.data.get('stickied'):
+            self.get_style_context().add_class('sticky')
 
-        edited_string = ''
-        if self.data.get('edited'):
-            edited_string = '(edited {})'.format(
-                arrow.get(self.data['edited']).humanize())
-        score_color = {True: 'color="darkorange"',
-                       False: 'color="darkorchid"'}.get(
-                        self.data.get('likes'), '')
+        if self.data['num_comments']:
+            self._g('comments').props.label = \
+                '{}c'.format(self.data['num_comments'])
+        else:
+            self._g('comments').props.label = 'no c'
+        self._g('comments').connect('clicked', self.__comments_clicked_cb)
 
-        nsfw_tag = ''
-        if self.data.get('over18'):
-            # One day, we will pipe this through gettext
-            nsfw_tag = ' <span color="red">{}</span>'.format('NSFW')
-
-        gilded_tag = ''
-        if self.data.get('gilded') > 0:
-            gilded_tag = ('<span bgcolor="darkorange" color="white"><b>'
-                          '★{}</b></span> ').format(self.data['gilded'])
-
-        author_color = '' if not self.data['distinguished'] else \
-            'bgcolor="{}"'.format(AUTHOR_COLORS[self.data['distinguished']])
-        
-        l.set_markup(
-            '<span {color}><big>{gilded_tag}'
-            '<span weight="heavy" {score_color}>{score}</span></big>'
-            ' <span {author_color}>{author}</span> in'
-            ' /r/{subreddit}{nsfw_tag}\n'
-            '<big>{title}</big>\n'
-            '{num_comments} comments · {domain}'
-            ' · {created_string} {edited_string}'
-            '</span>'.format(
-                color='color="green"' if self.data.get('stickied') else '',
-                score_color=score_color,
-                edited_string=edited_string,
-                created_string=arrow.get(self.data['created_utc']).humanize(),
-                nsfw_tag=nsfw_tag,
-                gilded_tag=gilded_tag,
-                author_color=author_color,
-                **self.data))
-        box.add(l)
-        l.show()
+        self._g('title').props.label = self.data['title']
+        self._g('domain').props.label = self.data['domain']
 
         self._fetch_thumbnail(self.data.get('thumbnail'))
-        self._image_button = Gtk.Button()
-        self._image = Gtk.Image()
-        self._image_button.set_image(self._image)
-        box.add(self._image_button)
         self._preview_palette = None
+
+    def read(self):
+        self.get_style_context().add_class('read')
+        self._g('unread').props.visible = False
+
+    def __comments_clicked_cb(self, button):
+        self.goto_comments.emit()
 
     def _fetch_thumbnail(self, url):
         if not url or url in ['default', 'self', 'nsfw']:
             return
-
-        self._msg = get_reddit_api().download_thumb(url,
-                                                    self.__message_done_cb)
+        self._msg = get_reddit_api().download_thumb(
+            url, self.__message_done_cb)
 
     def do_unrealize(self):
         if self._msg is not None:
@@ -247,10 +235,9 @@ class SubItemRow(Gtk.ListBoxRow):
 
     def __message_done_cb(self, pixbuf):
         self._msg = None
-        self._image.props.pixbuf = pixbuf
-        self._image.show()
-        self._image_button.show()
-        self._image_button.connect('clicked', self.__image_clicked_cb)
+        self._g('preview').props.pixbuf = pixbuf
+        self._g('preview-button').show()
+        self._g('preview-button').connect('clicked', self.__image_clicked_cb)
 
     def __image_clicked_cb(self, button):
         if self._preview_palette is None:

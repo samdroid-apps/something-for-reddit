@@ -18,6 +18,9 @@
 import re
 import markdown
 
+from gi.repository import Gtk
+
+
 def markdown_to_pango(text):
     '''
     Convert a string of reddit markdown to a string
@@ -51,3 +54,23 @@ def markdown_to_pango(text):
     text = re.sub('∙\s+', '∙ ', text, flags=re.MULTILINE)
 
     return text.strip()
+
+
+class SaneLabel(Gtk.Label):
+    '''
+    A GtkLabel that is mulit-line and left aligned.
+
+    Args:
+        markup (str): Gtk markup
+    '''
+
+    def __init__(self, markup):
+        Gtk.Label.__init__(self)
+        self.props.xalign = 0
+        self.props.justify = Gtk.Justification.LEFT
+        self.set_line_wrap(True)
+        self.set_markup(markup)
+
+    def do_activate_link(self, uri):
+        window = self.get_toplevel()
+        window.load_uri_from_label(uri)

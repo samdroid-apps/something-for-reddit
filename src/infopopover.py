@@ -17,9 +17,9 @@
 
 from gi.repository import Gtk
 
-from redditisgtk.comments import SaneLabel
-from redditisgtk.markdownpango import markdown_to_pango
+from redditisgtk.markdownpango import markdown_to_pango, SaneLabel
 from redditisgtk.api import get_reddit_api
+
 
 class VScrollingPopover(Gtk.Popover):
     def __init__(self, **kwargs):

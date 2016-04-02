@@ -95,7 +95,7 @@ class RedditWindow(Gtk.Window):
             get_reddit_api().resend_message(msg)
         dialog.destroy()
 
-    def __new_other_pane_cb(self, sublist, link, comments):
+    def __new_other_pane_cb(self, sublist, link, comments, link_first):
         if self._comments is not None:
             self._stack.remove(self._comments)
         self._stack.remove(self._webview_bin)
@@ -103,7 +103,6 @@ class RedditWindow(Gtk.Window):
         self._comments = comments
         if self._comments is not None:
             self._stack.add_titled(self._comments, 'comments', 'Comments')
-            self._stack.set_visible_child(self._comments)
             self._comments.show()
 
         self._stack.add_titled(self._webview_bin, 'web', 'Web')
@@ -112,6 +111,11 @@ class RedditWindow(Gtk.Window):
         if link is not None:
             self.load_uri_from_label(link)
         self._paned.position = 400  # TODO: constant
+
+        if link_first and link:
+            self._stack.set_visible_child(self._webview_bin)
+        else:
+            self._stack.set_visible_child(self._comments)
 
     def load_uri_from_label(self, uri):
         self._stack.set_visible_child(self._webview_bin)

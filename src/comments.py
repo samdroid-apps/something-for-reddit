@@ -20,30 +20,12 @@ import arrow
 from gi.repository import GObject
 from gi.repository import Soup
 from gi.repository import Gtk
-from gi.repository import GLib
 
-from redditisgtk.markdownpango import markdown_to_pango
+from redditisgtk.markdownpango import markdown_to_pango, SaneLabel
 from redditisgtk.palettebutton import connect_palette
 from redditisgtk.api import get_reddit_api
-
-class SaneLabel(Gtk.Label):
-    '''
-    A GtkLabel that is mulit-line and left aligned.
-
-    Args:
-        markup (str): Gtk markup
-    '''
-
-    def __init__(self, markup):
-        Gtk.Label.__init__(self)
-        self.props.xalign = 0
-        self.props.justify = Gtk.Justification.LEFT
-        self.set_line_wrap(True)
-        self.set_markup(markup)
-
-    def do_activate_link(self, uri):
-        window = self.get_toplevel()
-        window.load_uri_from_label(uri)
+from redditisgtk.buttons import (ScoreButtonBehaviour, AuthorButtonBehaviour,
+                                 TimeButtonBehaviour)
 
 
 class CommentsView(Gtk.ScrolledWindow):
@@ -248,25 +230,16 @@ class _PostTopBar(Gtk.Bin):
                 self._read.props.label = 'Read'
 
         self._name_button = self._b.get_object('name')
-        self._name_button.props.label = self.data['author']
-        ctx = self._name_button.get_style_context()
-        if self.data['distinguished'] is not None:
-            ctx.add_class('reddit')
-            ctx.add_class(self.data['distinguished'])
-        if self.data['author'] == original_poster:
-            ctx.add_class('reddit')
-            ctx.add_class('op')
+        self._abb = AuthorButtonBehaviour(self._name_button, self.data,
+                                          original_poster)
 
         self._score_button = self._b.get_object('score')
-        connect_palette(self._score_button, self._make_score_palette)
         self._score_button.props.visible = 'score' in data
         if 'score' in data:
-            self._update_score_button()
+            self._sbb = ScoreButtonBehaviour(self._score_button, self.data)
 
         self._time_button = self._b.get_object('time')
-        time = arrow.get(self.data['created_utc'])
-        self._time_button.props.label = time.humanize()
-        connect_palette(self._time_button, self._make_time_palette)
+        self._tbb = TimeButtonBehaviour(self._time_button, self.data)
 
         self._reply_button = self._b.get_object('reply')
         connect_palette(self._reply_button, self._make_reply_palette,
@@ -274,33 +247,8 @@ class _PostTopBar(Gtk.Bin):
 
         self._b.connect_signals(self)
 
-    def _update_score_button(self):
-        score = self.data['score']
-        likes = self.data['likes']
-        hidden = self.data.get('score_hidden')
-
-        gold = ''
-        if self.data.get('gilded') > 0:
-            gold = '[★{}] '.format(self.data.get('gilded'))
-        score_string = 'score hidden' if hidden else '{} points'.format(score)
-        self._score_button.props.label = gold + score_string
-
-        ctx = self._score_button.get_style_context()
-        ctx.remove_class('upvoted')
-        ctx.remove_class('downvoted')
-        if likes == True:
-            ctx.add_class('upvoted')
-        elif likes == False:
-            ctx.add_class('downvoted')
-        if self.data.get('gilded') > 0:
-            ctx.add_class('gilded')
-
     def refresh_clicked_cb(self, button):
         self.refresh.emit()
-
-    def name_clicked_cb(self, button):
-        window = self.get_toplevel()
-        window.goto_sublist('/u/{}/overview'.format(self.data['author']))
 
     def read_toggled_cb(self, toggle):
         if toggle.props.active:
@@ -313,54 +261,6 @@ class _PostTopBar(Gtk.Bin):
     def hide_toggled_cb(self, toggle):
         self.hide_toggled.emit(not toggle.props.active)
 
-    def _make_score_palette(self):
-        bb = Gtk.ButtonBox(orientation=Gtk.Orientation.VERTICAL,
-                           layout_style=Gtk.ButtonBoxStyle.EXPAND)
-        upvote = Gtk.RadioToolButton(label='⇧')
-        upvote.get_style_context().add_class('upvote')
-        bb.add(upvote)
-        novote = Gtk.RadioToolButton(label='○', group=upvote)
-        bb.add(novote)
-        downvote = Gtk.RadioToolButton(label='⇩', group=upvote)
-        downvote.get_style_context().add_class('downvote')
-        bb.add(downvote)
-        bb.show_all()
-
-        if self.data.get('likes') == True:
-            upvote.props.active = True
-        elif self.data.get('likes') == False:
-            downvote.props.active = True
-        else:
-            novote.props.active = True
-
-        upvote.connect('toggled', self.__vote_toggled_cb, +1)
-        novote.connect('toggled', self.__vote_toggled_cb, 0)
-        downvote.connect('toggled', self.__vote_toggled_cb, -1)
-
-        palette = Gtk.Popover()
-        palette.add(bb)
-        return palette
-
-    def __vote_toggled_cb(self, toggle, direction):
-        if toggle.props.active:
-            get_reddit_api().vote(self.data['name'], direction)
-
-            new_score = self.data['score'] + direction
-            if self.data['likes'] == True:
-                new_score -= 1  # Undo the previous like
-            elif self.data['likes'] == False:
-                new_score += 1
-            if direction == 0:
-                likes = None
-            elif direction == +1:
-                likes = True
-            elif direction == -1:
-                likes = False
-
-            self.data['likes'] = likes
-            self.data['score'] = new_score
-            self._update_score_button()
-
     def _make_reply_palette(self):
         palette = _ReplyPopover(self.data)
         palette.get_child().show_all()
@@ -371,47 +271,8 @@ class _PostTopBar(Gtk.Bin):
         get_reddit_api().set_saved(self.data['name'], button.props.active,
                                    None)
 
-    def _make_time_palette(self):
-        t = _TimePalette(self.data)
-        t.get_child().show_all()
-        return t
-
     def __palette_refresh_cb(self, caller):
         self.refresh.emit()
-
-
-class _TimePalette(Gtk.Popover):
-    def __init__(self, data, **kwargs):
-        Gtk.Popover.__init__(self, **kwargs)
-        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        self.add(box)
-        box.show()
-
-        created = arrow.get(data['created_utc'])
-        s = 'Created {} ({})'.format(created.format('hh:mm a, MMM YY'),
-                                     created.humanize())
-        if data['edited'] == True:
-            s = s + '\nEdited ages ago'
-        elif data['edited']:
-            edited = arrow.get(data['edited'])
-            s = s + '\nEdited {} ({})'.format(edited.format('hh:mm a, MMM YY'),
-                                              edited.humanize())
-        label = SaneLabel(s)
-        box.add(label)
-        label.show()
-
-        if data.get('permalink') is not None:
-            uri = data['permalink']
-        elif data.get('link_id') is not None:
-            uri = '/r/{}/comments/{}//{}'.format(
-                data['subreddit'], data['link_id'][len('t3_'):], data['id'])
-        else:
-            uri = '/r/{}/comments/{}'.format(
-                data['subreddit'], data['id'])
-        lb = Gtk.LinkButton(uri='https://www.reddit.com' + uri,
-                            label='Permalink in External Browser')
-        box.add(lb)
-        lb.show()
 
 
 class _ReplyPopover(Gtk.Popover):
