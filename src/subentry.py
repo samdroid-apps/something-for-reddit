@@ -16,6 +16,7 @@
 # along with Reddit is Gtk+.  If not, see <http://www.gnu.org/licenses/>.
 
 from gi.repository import Gtk
+from gi.repository import Gdk
 from gi.repository import GObject
 
 from redditisgtk.api import get_reddit_api, PREPEND_SUBS, is_special_sub, \
@@ -47,6 +48,12 @@ class SubEntry(Gtk.Entry):
 
         # FIXME:  There is no do_icon_press by gobject
         self.connect('icon-press', SubEntry.do_icon_press)
+
+    def do_event(self, event):
+        if event.type != Gdk.EventType.KEY_PRESS:
+            return
+        if event.keyval == Gdk.KEY_Down:
+            self._show_palette()
 
     def do_icon_press(self, position, event):
         if position == Gtk.EntryIconPosition.PRIMARY:
@@ -123,7 +130,7 @@ class _ListPalette(VScrollingPopover):
         self.set_scrolled_child(self._box)
         self._box.show()
 
-        self._add_subs(PREPEND_SUBS)
+        self._add_subs(PREPEND_SUBS, first=True)
 
         sub = self._parent.get_real_sub()
         if sub.startswith('/r/'):
@@ -147,9 +154,12 @@ class _ListPalette(VScrollingPopover):
         self._box.add(l)
         l.show()
 
-    def _add_subs(self, subs):
+    def _add_subs(self, subs, first=True):
         for sub in subs:
             b = Gtk.Button(label=sub)
+            if first:
+                b.grab_focus()
+                first = False
             b.get_style_context().add_class('flat')
             b.props.xalign = 0
             b.connect('clicked', self.__sub_button_clicked)
