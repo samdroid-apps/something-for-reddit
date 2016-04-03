@@ -61,7 +61,7 @@ Please try and use Flake8!
 
 Short
 
-* [ ] Fix the GNOME app menu (please help!  It is all disabled)
+* [x] Fix the GNOME app menu (please help!  It is all disabled)
 * [ ] Test if it needs to refresh tokens for background accounts
 * [x] Loading bar in the webview
 

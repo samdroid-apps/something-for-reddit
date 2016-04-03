@@ -181,25 +181,47 @@ class RedditWindow(Gtk.Window):
 
 class Application(Gtk.Application):
     def __init__(self):
-        Gtk.Application.__init__(self)
+        Gtk.Application.__init__(self,
+                                 application_id='today.sam.reddit-is-gtk')
         self.connect('startup', self.__do_startup_cb)
 
     def do_activate(self):
-        w = RedditWindow()
-        self.add_window(w)
-        w.show()
+        self._w = RedditWindow()
+        self.add_window(self._w)
+        self._w.show()
 
     # TODO:  Using do_startup causes SIGSEGV for me
     def __do_startup_cb(self, app):
+        a = Gio.SimpleAction.new('about', None)
+        a.connect('activate', self.__about_cb)
+        self.add_action(a)
+
+        a = Gio.SimpleAction.new('quit', None)
+        a.connect('activate', self.__quit_cb)
+        self.add_action(a)
+
         builder = Gtk.Builder.new_from_resource(
             '/today/sam/reddit-is-gtk/app-menu.ui')
         self._menu = builder.get_object('app-menu')
         self.props.app_menu = self._menu
 
-        # TODO, this just renders as disabled :(
-        a = Gio.SimpleAction.new('app.sign-in', None)
-        a.connect('activate', print)
-        self.add_action(a)
+    def __about_cb(self, action, param):
+        about_dialog = Gtk.AboutDialog(
+            program_name='Reddit is Gtk+',
+            comments=('A simple but powerful Reddit client, built for KDE and'
+                      'powered by Qt5'),
+            license_type=Gtk.License.GPL_3_0,
+            logo_icon_name='reddit-is-a-dead-bird',
+            authors=['Sam P. <sam@sam.today>'],
+            website='https://github.com/samdroid-apps/reddit-is-gtk',
+            website_label='Git Repo and Issue Tracker on GitHub',
+            version='0.1',
+            transient_for=self._w,
+            modal=True)
+        about_dialog.present()
+
+    def __quit_cb(self, action, param):
+        self.quit()
 
 
 def run():
