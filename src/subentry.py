@@ -21,7 +21,6 @@ from gi.repository import GObject
 
 from redditisgtk.api import get_reddit_api, PREPEND_SUBS, is_special_sub, \
                             SORTINGS, SPECIAL_SUBS
-from redditisgtk.infopopover import VScrollingPopover, InfoPalette
 
 
 class SubEntry(Gtk.Entry):
@@ -92,6 +91,29 @@ class SubEntry(Gtk.Entry):
 
     def do_activate(self):
         self.activate.emit(self.get_real_sub())
+
+
+class VScrollingPopover(Gtk.Popover):
+    def __init__(self, **kwargs):
+        Gtk.Popover.__init__(self, vexpand=True, **kwargs)
+        self._sw = Gtk.ScrolledWindow(
+            hscrollbar_policy=Gtk.PolicyType.NEVER,
+            height_request=400)
+        self.add(self._sw)
+        self._sw.show()
+
+    def set_scrolled_child(self, child):
+        '''
+        Sets the child of the scrolled window.
+
+        Destroys any child if it is already in the scrolled window
+        '''
+        c = self._sw.get_child()
+        if c is not None:
+            self._sw.remove(c)
+            c.destroy()
+        self._sw.add(child)
+
 
 class _ListPalette(VScrollingPopover):
     '''
