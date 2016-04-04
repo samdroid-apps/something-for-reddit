@@ -26,7 +26,9 @@ from gi.repository import GObject
 
 from redditisgtk.comments import CommentsView, CommentRow, MessageRow
 from redditisgtk.buttons import (ScoreButtonBehaviour, AuthorButtonBehaviour,
-                                 SubButtonBehaviour, TimeButtonBehaviour)
+                                 SubButtonBehaviour, TimeButtonBehaviour,
+                                 SubscribeButtonBehaviour)
+from redditisgtk.markdownpango import markdown_to_pango, set_markup_sane
 from redditisgtk.api import get_reddit_api
 from redditisgtk.readcontroller import get_read_controller
 from redditisgtk.mediapreview import get_preview_palette
@@ -85,6 +87,13 @@ class SubList(Gtk.ScrolledWindow):
         self._listbox.props.selection_mode = Gtk.SelectionMode.BROWSE
         self.add(self._listbox)
         self._listbox.show()
+
+        row = get_about_row(self._sub)
+        if row is not None:
+            row.get_style_context().add_class('about-row')
+            self._listbox.insert(row, -1)
+            row.show()
+
         self.insert_data(j)
 
     def insert_data(self, j):
@@ -244,3 +253,70 @@ class SubItemRow(Gtk.ListBoxRow):
             self._preview_palette = get_preview_palette(
                 self.data, relative_to=button)
         self._preview_palette.show()
+
+
+class _SubredditAboutRow(Gtk.ListBoxRow):
+    def __init__(self, subreddit_name):
+        Gtk.ListBoxRow.__init__(self, selectable=False)
+
+        self._subreddit_name = subreddit_name
+        self._loaded = False
+
+        self._builder = Gtk.Builder.new_from_resource(
+            '/today/sam/reddit-is-gtk/subreddit-about.ui')
+        self._g = self._builder.get_object
+
+        self.add(self._g('box'))
+        self._g('subreddit').props.label = self._subreddit_name
+        self._sbb = SubscribeButtonBehaviour(
+            self._g('subscribe'), self._subreddit_name)
+        self._g('expander').connect(
+            'notify::expanded', self.__notify_expanded_cb)
+
+    def __notify_expanded_cb(self, expander, pspec):
+        if not self._loaded:
+            get_reddit_api().get_subreddit_info(
+                self._subreddit_name, self.__got_info_cb)
+            self._loaded = True
+
+    def __got_info_cb(self, data):
+        data = data['data']
+        set_markup_sane(self._g('sidebar'),
+                        markdown_to_pango(data['description']))
+
+class _UserAboutRow(Gtk.ListBoxRow):
+    def __init__(self, name):
+        Gtk.ListBoxRow.__init__(self, selectable=False)
+
+        self._name = name
+
+        self._builder = Gtk.Builder.new_from_resource(
+            '/today/sam/reddit-is-gtk/user-about.ui')
+        self._g = self._builder.get_object
+
+        self.add(self._g('box'))
+        self._g('name').props.label = self._name
+
+        get_reddit_api().get_user_info(
+            self._name, self.__got_info_cb)
+
+    def __got_info_cb(self, data):
+        data = data['data']
+        self._g('karma').props.label = \
+            '{link_karma}l / {comment_karma}c'.format(**data)
+
+
+def get_about_row(sub):
+    # Disregard leading slash
+    url_parts = sub[1:].split('/')
+
+    # Show if it is like /r/sub
+    if url_parts[0] == 'r' and url_parts[1] != 'all':
+        return _SubredditAboutRow(url_parts[1])
+
+    # Eg. /user/name/overview
+    if url_parts[0] == 'user' and len(url_parts) == 3 \
+       and url_parts[2] == 'overview':
+        return _UserAboutRow(url_parts[1])
+
+    return None

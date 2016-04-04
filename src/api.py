@@ -78,6 +78,7 @@ class RedditAPI(GObject.GObject):
     subs_changed = GObject.Signal('subs-changed')
     user_changed = GObject.Signal('user-changed')
     user_subs = DEFAULT_SUBS
+    lower_user_subs = [x.lower() for x in DEFAULT_SUBS]
     user_name = None
 
     '''
@@ -109,6 +110,7 @@ class RedditAPI(GObject.GObject):
             self.user_name = None
             self.user_changed.emit()
             self.user_subs = DEFAULT_SUBS
+            self.lower_user_subs = [x.lower() for x in self.user_subs]
             self.subs_changed.emit()
 
     def __whoami_cb(self, msg):
@@ -134,6 +136,7 @@ class RedditAPI(GObject.GObject):
                 self.__collect_subs_cb, user_data=subs)
         else:
             self.user_subs = subs
+            self.lower_user_subs = [x.lower() for x in self.user_subs]
             self.subs_changed.emit()
 
     def resend_message(self, message):
@@ -226,8 +229,16 @@ class RedditAPI(GObject.GObject):
             callback (def(json_decoded_data))
         '''
         return self.send_request(
-            'GET', '/r/{}/about'.format(subreddit_name), callback,
-            handle_errors=False)
+            'GET', '/r/{}/about'.format(subreddit_name), callback)
+
+    def get_user_info(self, name, callback):
+        '''
+        Args:
+            name (str):  name like 'person', or 'samtoday'
+            callback (def(json_decoded_data))
+        '''
+        return self.send_request(
+            'GET', '/user/{}/about'.format(name), callback)
 
     def get_list(self, sub, callback):
         '''

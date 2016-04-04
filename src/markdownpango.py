@@ -66,11 +66,16 @@ class SaneLabel(Gtk.Label):
 
     def __init__(self, markup):
         Gtk.Label.__init__(self)
-        self.props.xalign = 0
-        self.props.justify = Gtk.Justification.LEFT
-        self.set_line_wrap(True)
-        self.set_markup(markup)
+        set_markup_sane(self, markup)
 
-    def do_activate_link(self, uri):
-        window = self.get_toplevel()
-        window.load_uri_from_label(uri)
+def set_markup_sane(label, markup):
+    label.props.xalign = 0
+    label.props.justify = Gtk.Justification.LEFT
+    label.set_line_wrap(True)
+    label.set_markup(markup)
+    label.connect('activate-link', __activate_link_cb)
+
+def __activate_link_cb(label, uri):
+    window = label.get_toplevel()
+    window.load_uri_from_label(uri)
+    return True

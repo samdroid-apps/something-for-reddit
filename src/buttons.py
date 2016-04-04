@@ -164,3 +164,33 @@ class _TimePalette(Gtk.Popover):
                             label='Permalink in External Browser')
         box.add(lb)
         lb.show()
+
+
+class SubscribeButtonBehaviour():
+    def __init__(self, button, subreddit_name):
+        self._button = button
+        self._subreddit_name = subreddit_name
+
+        self._button.props.active = \
+            '/r/{}/'.format(subreddit_name.lower()) \
+            in get_reddit_api().lower_user_subs
+        self._button.connect('toggled', self.__toggled_cb)
+        self._set_label()
+
+    def _set_label(self):
+        self._button.props.label = 'Subscribed' \
+            if self._button.props.active else 'Subscribe'
+
+    def __toggled_cb(self, toggle):
+        self._button.props.label = 'Subscribing...'  \
+            if self._button.props.active else 'Unsubscribing...'
+        self._button.props.sensitive = False
+
+        get_reddit_api().set_subscribed(self._subreddit_name,
+                                        self._button.props.active,
+                                        self.__subscribe_cb)
+
+    def __subscribe_cb(self, j):
+        self._button.props.sensitive = True
+        self._set_label()
+        get_reddit_api().update_subscriptions()

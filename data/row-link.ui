@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Generated with glade 3.20.0 -->
 <interface>
+  <requires lib="gtk+" version="3.0"/>
   <object class="GtkBox" id="box">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
@@ -12,15 +13,15 @@
         <property name="can_focus">False</property>
         <property name="orientation">vertical</property>
         <child>
-          <object class="GtkImage" id="unread">
+          <object class="GtkImage" id="nsfw">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="icon_name">mail-unread-symbolic</property>
+            <property name="icon_name">face-devilish</property>
           </object>
           <packing>
             <property name="expand">False</property>
             <property name="fill">True</property>
-            <property name="position">3</property>
+            <property name="position">0</property>
           </packing>
         </child>
         <child>
@@ -48,15 +49,15 @@
           </packing>
         </child>
         <child>
-          <object class="GtkImage" id="nsfw">
+          <object class="GtkImage" id="unread">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="icon_name">face-devilish</property>
+            <property name="icon_name">mail-unread-symbolic</property>
           </object>
           <packing>
             <property name="expand">False</property>
             <property name="fill">True</property>
-            <property name="position">0</property>
+            <property name="position">3</property>
           </packing>
         </child>
       </object>
@@ -208,6 +209,7 @@
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="label" translatable="yes">i.imgur.com</property>
+                <property name="ellipsize">start</property>
               </object>
               <packing>
                 <property name="expand">True</property>

@@ -135,6 +135,12 @@ $red: #cc0000;
     }
 }
 
+.about-row {
+    background: $gnome-gray;
+    padding: 0 5px 10px 5px;
+}
+
+
 @mixin button-bg($base-color) {
     color: white;
 

@@ -4,8 +4,10 @@
     <file alias="style.css">style.css.out</file>
     <file preprocess="xml-stripblanks">app-menu.ui</file>
     <file preprocess="xml-stripblanks">row-link.ui</file>
+    <file preprocess="xml-stripblanks">user-about.ui</file>
     <file preprocess="xml-stripblanks">post-top-bar.ui</file>
     <file preprocess="xml-stripblanks">submit-window.ui</file>
+    <file preprocess="xml-stripblanks">subreddit-about.ui</file>
     <file preprocess="xml-stripblanks">webview-toolbar.ui</file>
   </gresource>
 </gresources>
