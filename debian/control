@@ -1,0 +1,12 @@
+Source: reddit-is-gtk
+Maintainer: samdroid-apps <sam@sam.today>
+Section: web
+Priority: optional
+Standards-Version: 3.9.5
+Build-Depends: debhelper (>= 9), libgtk-3-dev (>= 3.10), libglib2.0-dev (>= 2.28)
+
+Package: reddit-is-gtk
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, libc6, libgtk-3-0 (>= 3.10), libglib2.0-0 (>= 2.28), python3-arrow, python3-markdown, ruby-sass
+Description: Reddit is GTK
+ A simple Reddit client for GNOME, built for touch and mouse.
