@@ -32,6 +32,7 @@ from redditisgtk.markdownpango import markdown_to_pango, set_markup_sane
 from redditisgtk.api import get_reddit_api
 from redditisgtk.readcontroller import get_read_controller
 from redditisgtk.mediapreview import get_preview_palette
+from redditisgtk.submit import SubmitWindow
 
 
 class SubList(Gtk.ScrolledWindow):
@@ -270,8 +271,13 @@ class _SubredditAboutRow(Gtk.ListBoxRow):
         self._g('subreddit').props.label = self._subreddit_name
         self._sbb = SubscribeButtonBehaviour(
             self._g('subscribe'), self._subreddit_name)
+        self._g('submit').connect('clicked', self.__submit_clicked_cb)
         self._g('expander').connect(
             'notify::expanded', self.__notify_expanded_cb)
+
+    def __submit_clicked_cb(self, button):
+        w = SubmitWindow(sub=self._subreddit_name)
+        w.show()
 
     def __notify_expanded_cb(self, expander, pspec):
         if not self._loaded:

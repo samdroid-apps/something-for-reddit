@@ -31,7 +31,6 @@ from gi.repository import Gio
 
 from redditisgtk.sublist import SubList
 from redditisgtk.subentry import SubEntry
-from redditisgtk.submit import SubmitWindow
 from redditisgtk.api import get_reddit_api, is_special_sub
 from redditisgtk.webviews import (FullscreenableWebview, ProgressContainer,
                                   WebviewToolbar)
@@ -131,11 +130,6 @@ class RedditWindow(Gtk.Window):
         self._header.pack_start(self._identity)
         self._identity.show()
 
-        self._submit = Gtk.Button(label='Submit')
-        self._submit.connect('clicked', self.__submit_cb)
-        self._header.pack_start(self._submit)
-        self._submit.show()
-
         self._stack_switcher = Gtk.StackSwitcher(stack=self._stack)
         self._header.pack_end(self._stack_switcher)
         self._stack_switcher.show()
@@ -152,14 +146,6 @@ class RedditWindow(Gtk.Window):
     def __stack_child_cb(self, stack, pspec):
         self._webview_toolbar.props.visible = \
             stack.props.visible_child == self._webview_bin
-
-    def __submit_cb(self, button):
-        w = SubmitWindow(sub=self._sublist.get_sub_name())
-        w.done.connect(self.__submit_done_cb)
-        w.show()
-
-    def __submit_done_cb(self, window, sub_name, uri):
-        self._sublist.goto('/r/' + sub_name)
 
     def get_sublist(self):
         return self._sublist
