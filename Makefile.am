@@ -6,7 +6,6 @@ bin_SCRIPTS = reddit-is-gtk
 SUBDIRS = src data
 
 EXTRA_DIST = \
-	AUTHORS.in \
 	$(NULL)
 
 CLEANFILES = \
@@ -14,7 +13,6 @@ CLEANFILES = \
 	$(NULL)
 
 MAINTAINERCLEANFILES = \
-	$(srcdir)/AUTHORS \
 	$(srcdir)/INSTALL \
 	$(srcdir)/aclocal.m4 \
 	$(srcdir)/autoscan.log \
@@ -33,16 +31,6 @@ MAINTAINERCLEANFILES = \
 GITIGNOREFILES = \
 	m4 \
 	$(NULL)
-
-dist-hook: gen-AUTHORS
-
-gen-AUTHORS:
-	$(AM_V_GEN)if test -d $(srcdir)/.git; then                      \
-	   out="`cd $(srcdir) && git log --pretty=format:'%aN <%aE>' | sort -u`" && \
-	   perl -p -e "s/#authorslist#// and print '$$out'"            \
-	     < $(srcdir)/AUTHORS.in > $(distdir)/AUTHORS-tmp &&        \
-	   mv -f $(distdir)/AUTHORS-tmp $(distdir)/AUTHORS ;           \
-	fi
 
 reddit-is-gtk: reddit-is-gtk.in Makefile
 	$(AM_V_GEN)sed						\
