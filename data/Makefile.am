@@ -29,6 +29,7 @@ EXTRA_DIST = \
 	reddit-is-gtk.desktop.in \
 	reddit-is-gtk.appdata.xml.in \
 	reddit-is-gtk.gresource.xml \
+	style.css \
 	$(NULL)
 
 CLEANFILES = \
