@@ -68,3 +68,7 @@ Makefile.in
 /data/.sass-cache
 /data/style.css.out
 /data/style.css.out.map
+/debian/autoreconf.*
+/debian/files
+/debian/reddit-is-gtk.debhelper.log
+/debian/reddit-is-gtk.substvars

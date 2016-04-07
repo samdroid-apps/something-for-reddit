@@ -1,5 +1,5 @@
 style.css.out: style.css
-	$(AM_V_GEN) scss style.css style.css.out
+	$(AM_V_GEN) scss -C style.css style.css.out
 
 resource_files = $(shell $(GLIB_COMPILE_RESOURCES) --sourcedir=$(srcdir) --sourcedir=$(builddir) --generate-dependencies $(builddir)/reddit-is-gtk.gresource.xml)
 reddit-is-gtk.gresource: reddit-is-gtk.gresource.xml style.css.out $(resource_files)
