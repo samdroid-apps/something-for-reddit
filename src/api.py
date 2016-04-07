@@ -39,7 +39,11 @@ SPECIAL_SUBS = [
 SORTINGS = [
     'hot', 'new', 'random', 'top?t=all', 'controversial?t=all'
 ]
+SORTING_TIMES = [
+    'hour', 'day', 'week', 'month', 'year', 'all'
+]
 DEBUG = 'REDDIT_IS_GTK_DEBUG' in os.environ
+
 
 def is_special_sub(sub):
     for s in SPECIAL_SUBS:
