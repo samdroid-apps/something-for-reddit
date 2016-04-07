@@ -7,6 +7,6 @@ Build-Depends: debhelper (>= 9), dh-autoreconf, intltool (>= 0.28), gettext, lib
 
 Package: reddit-is-gtk
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, libc6, libgtk-3-0 (>= 3.10), libglib2.0-0 (>= 2.28), libsoup2.4-1, python3-arrow, python3-markdown
+Depends: ${shlibs:Depends}, ${misc:Depends}, libc6, gir1.2-webkit2-3.0, libgtk-3-0 (>= 3.10), libglib2.0-0 (>= 2.28), libsoup2.4-1, python3-arrow, python3-markdown
 Description: Reddit is GTK
  A simple Reddit client for GNOME, built for touch and mouse.

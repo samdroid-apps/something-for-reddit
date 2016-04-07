@@ -43,6 +43,5 @@ AC_CONFIG_FILES([
   data/Makefile
   src/Makefile
   po/Makefile.in
-  reddit-is-gtk
 ])
 AC_OUTPUT
