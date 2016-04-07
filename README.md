@@ -62,7 +62,8 @@ Please try and use Flake8!
 Short
 
 * [x] Fix the GNOME app menu (please help!  It is all disabled)
-* [ ] Test if it needs to refresh tokens for background accounts
+* [x] Test if it needs to refresh tokens for background accounts
+    * Don't seem to need to
 * [x] Loading bar in the webview
 
 Medium
@@ -70,11 +71,11 @@ Medium
 * **Any app icon suggestions/designs are appreciated**
     - The current one isn't great at all
 * Better handle private messages
-* Fix up the info sidebar for the /u/ pages
+* [x] Fix up the info sidebar for the /u/ pages
 * Keyboard shortcuts for the header bar buttons
 * Keyboard navigation for the comments list (vim style?)
-* Keyboard navigation for the URL bar
-* Make the URL bar autocomplete style
+* [x] Keyboard navigation for the URL bar
+* [x] Make the URL bar autocomplete style
 * Manage subreddits dialog
 * Multireddits in the urlbar list (you can already just type the urls if you want)
 * Mutlireddit add/remove subreddits
