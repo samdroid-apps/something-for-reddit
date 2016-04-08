@@ -172,6 +172,11 @@ button {
 
     &.gilded {
         box-shadow: inset 0 0 5px $orange;
+        &.flat:not(:hover):not(:active):not(:checked) {
+            background: $orange;
+            color: white;
+            box-shadow: none;
+        }
     }
 
     &.unread:not(:checked) {
