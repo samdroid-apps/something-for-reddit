@@ -25,7 +25,7 @@ from redditisgtk.markdownpango import markdown_to_pango, SaneLabel
 from redditisgtk.palettebutton import connect_palette
 from redditisgtk.api import get_reddit_api
 from redditisgtk.buttons import (ScoreButtonBehaviour, AuthorButtonBehaviour,
-                                 TimeButtonBehaviour)
+                                 TimeButtonBehaviour, SubButtonBehaviour)
 
 
 class CommentsView(Gtk.ScrolledWindow):
@@ -42,21 +42,17 @@ class CommentsView(Gtk.ScrolledWindow):
         self.add(self._box)
         self._box.show()
 
-        self._top = _PostTopBar(self._post, hideable=False, refreshable=True)
+        self._top = _PostTopBar(self._post, hideable=False, refreshable=True,
+                                show_subreddit=True)
         self._top.refresh.connect(self.__refresh_cb)
         self._box.add(self._top)
         self._top.show()
 
-        edited_string = ''
-        if post['edited']:
-            edited_string = '(edited {edited})'.format(**post)
         selfpost_label = SaneLabel(
             '<big>{title}</big>\n'
-            '<i>/r/{subreddit} · '
-            '{num_comments} comments · {domain}</i>\n\n'
             '{selftext_pango}'.format(
-               selftext_pango = markdown_to_pango(post.get('selftext')),
-               edited_string=edited_string, **post))
+               selftext_pango=markdown_to_pango(post.get('selftext')),
+               title=post['title']))
         self._box.add(selfpost_label)
         selfpost_label.show()
 
@@ -199,7 +195,7 @@ class _PostTopBar(Gtk.Bin):
     refresh = GObject.Signal('refresh')
 
     def __init__(self, data, hideable=True, pm=False, original_poster=None,
-                 refreshable=False):
+                 refreshable=False, show_subreddit=False):
         Gtk.Bin.__init__(self)
         self.data = data
 
@@ -244,6 +240,11 @@ class _PostTopBar(Gtk.Bin):
         self._reply_button = self._b.get_object('reply')
         connect_palette(self._reply_button, self._make_reply_palette,
                         recycle_palette=True)
+
+        self._sub_button = self._b.get_object('sub')
+        self._sub_button.props.visible = show_subreddit
+        if show_subreddit:
+            self._subbb = SubButtonBehaviour(self._sub_button, self.data)
 
         self._b.connect_signals(self)
 

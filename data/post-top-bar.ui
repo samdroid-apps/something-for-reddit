@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Generated with glade 3.20.0 -->
 <interface>
+  <requires lib="gtk+" version="3.0"/>
   <object class="GtkBox" id="box">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
@@ -109,6 +110,19 @@
       </packing>
     </child>
     <child>
+      <object class="GtkButton" id="sub">
+        <property name="label" translatable="yes">[subreddit]</property>
+        <property name="visible">True</property>
+        <property name="can_focus">True</property>
+        <property name="receives_default">True</property>
+      </object>
+      <packing>
+        <property name="expand">False</property>
+        <property name="fill">True</property>
+        <property name="position">7</property>
+      </packing>
+    </child>
+    <child>
       <object class="GtkToggleButton" id="reply">
         <property name="visible">True</property>
         <property name="can_focus">True</property>
@@ -124,7 +138,7 @@
       <packing>
         <property name="expand">False</property>
         <property name="fill">True</property>
-        <property name="position">7</property>
+        <property name="position">8</property>
       </packing>
     </child>
     <child>
@@ -144,7 +158,7 @@
       <packing>
         <property name="expand">False</property>
         <property name="fill">True</property>
-        <property name="position">8</property>
+        <property name="position">9</property>
       </packing>
     </child>
     <style>
@@ -160,6 +174,7 @@
       <widget name="name"/>
       <widget name="score"/>
       <widget name="time"/>
+      <widget name="sub"/>
     </widgets>
   </object>
 </interface>
