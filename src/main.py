@@ -45,7 +45,8 @@ VIEW_COMMENTS = 1
 class RedditWindow(Gtk.Window):
 
     def __init__(self, start_sub='/r/all'):
-        Gtk.Window.__init__(self, title='Reddit is Gtk+')
+        Gtk.Window.__init__(self, title='Reddit is Gtk+',
+                            icon_name='reddit-is-a-dead-bird')
 
         self.set_default_size(600, 600)
         screen = Gdk.Screen.get_default()
