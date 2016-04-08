@@ -106,7 +106,7 @@ class SubList(Gtk.ScrolledWindow):
                 row = SubItemRow(post)
                 row.goto_comments.connect(self.__row_goto_comments_cb)
             elif post['kind'] == 't1':
-                row = CommentRow(post['data'], 0)
+                row = SingleCommentRow(post)
             elif post['kind'] == 't4':
                 row = MessageRow(post['data'])
                 pprint(post['data'])
@@ -133,7 +133,15 @@ class SubList(Gtk.ScrolledWindow):
 
         if hasattr(row, 'read'):
             row.read()
-        if 'context' in row.data:
+        if isinstance(row, SingleCommentRow):
+            if 'context' not in row.data:
+                # Bloody reddit api, /inbox responses include the context
+                # link, but for /u/X/overview we need to make a url
+                # AND WORST OF ALL, WE CAN'T MAKE THE PROPER URL BECAUSE WE
+                # DON'T HAVE THE DATA :(
+                row.data['context'] = '/r/{subreddit}/comments/{link}/'.format(
+                    subreddit=row.data['subreddit'],
+                    link=row.data['link_id'][len('t4_'):])
             # We need to download first
             # TODO: Progress indicator for user
             get_reddit_api().get_list(row.data['context'],
@@ -143,7 +151,8 @@ class SubList(Gtk.ScrolledWindow):
 
     def __got_context_list_cb(self, data):
         self._handle_activate(data[0]['data']['children'][0]['data'],
-                              comments=data)
+                              comments=data,
+                              link_first=False)
 
     def _handle_activate(self, data, comments=None, link_first=True):
         link = None
@@ -254,6 +263,42 @@ class SubItemRow(Gtk.ListBoxRow):
             self._preview_palette = get_preview_palette(
                 self.data, relative_to=button)
         self._preview_palette.show()
+
+
+class SingleCommentRow(Gtk.ListBoxRow):
+    def __init__(self, data):
+        Gtk.ListBoxRow.__init__(self)
+        self.get_style_context().add_class('link-row')
+        self.data = data['data']
+        self._msg = None
+
+        self._builder = Gtk.Builder.new_from_resource(
+            '/today/sam/reddit-is-gtk/row-comment.ui')
+        self._g = self._builder.get_object
+        self.add(self._g('box'))
+
+        read = not self.data.get('new', True)
+        if read:
+            self.read()
+
+        # Keep a reference so the GC doesn't collect them
+        self._abb = AuthorButtonBehaviour(self._g('author'), self.data)
+        self._srbb = SubButtonBehaviour(self._g('subreddit'), self.data)
+        self._tbb = TimeButtonBehaviour(self._g('time'), self.data)
+
+        self._g('nsfw').props.visible = self.data.get('over_18')
+        self._g('saved').props.visible = self.data.get('saved')
+
+        self._g('title').props.label = self.data['link_title']
+        body_pango = markdown_to_pango(self.data['body'])
+        set_markup_sane(self._g('text'), body_pango)
+
+    def read(self):
+        if 'new' in self.data and self.data['new']:
+            get_reddit_api().read_message(self.data['name'])
+            self.data['new'] = False
+        self.get_style_context().add_class('read')
+        self._g('unread').props.visible = False
 
 
 class _SubredditAboutRow(Gtk.ListBoxRow):

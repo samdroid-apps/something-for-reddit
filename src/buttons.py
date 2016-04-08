@@ -142,9 +142,9 @@ class _TimePalette(Gtk.Popover):
         created = arrow.get(data['created_utc'])
         s = 'Created {} ({})'.format(created.format('hh:mm a, MMM YY'),
                                      created.humanize())
-        if data['edited'] is True:
+        if data.get('edited') is True:
             s = s + '\nEdited ages ago'
-        elif data['edited']:
+        elif data.get('edited'):
             edited = arrow.get(data['edited'])
             s = s + '\nEdited {} ({})'.format(edited.format('hh:mm a, MMM YY'),
                                               edited.humanize())

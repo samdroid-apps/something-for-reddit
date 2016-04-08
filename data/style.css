@@ -135,6 +135,15 @@ $red: #cc0000;
     }
 }
 
+.reply-to-what {
+    background: $gnome-gray;
+    border-radius: 3px;
+    margin-bottom: 5px;
+}
+row:selected .reply-to-what {
+    background: darker($blue);
+}
+
 .about-row {
     background: $gnome-gray;
     padding: 0 5px 10px 5px;

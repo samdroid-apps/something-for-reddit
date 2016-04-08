@@ -358,13 +358,9 @@ class CommentRow(Gtk.ListBoxRow):
         self._top.show()
 
         body_pango = markdown_to_pango(self.data['body'])
-        if 'link_title' in self.data:  # Inbox reply mode
-            body_pango = '<i>Reply on thread {} in /r/{}</i>\n\n{}'.format(
-                self.data['link_title'], self.data['subreddit'], body_pango)
         self._label = SaneLabel(body_pango)
         self._box.add(self._label)
         self._label.show()
-
 
         self._sub = None
         self._revealer = None
