@@ -103,7 +103,7 @@ class RedditWindow(Gtk.Window):
 
         if event.state & Gdk.ModifierType.CONTROL_MASK:
             if event.keyval == Gdk.KEY_1:
-                # TODO:  Focus the sublist
+                self._sublist.focus()
                 return True
             if event.keyval == Gdk.KEY_2:
                 self._stack.set_visible_child(self._comments)

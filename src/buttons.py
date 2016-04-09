@@ -49,25 +49,28 @@ class ScoreButtonBehaviour():
         palette.add(bb)
         return palette
 
+    def vote(self, direction):
+        get_reddit_api().vote(self._data['name'], direction)
+
+        new_score = self._data['score'] + direction
+        if self._data['likes'] is True:
+            new_score -= 1  # Undo the previous like
+        elif self._data['likes'] is False:
+            new_score += 1
+        if direction == 0:
+            likes = None
+        elif direction == +1:
+            likes = True
+        elif direction == -1:
+            likes = False
+
+        self._data['likes'] = likes
+        self._data['score'] = new_score
+        self._update_score_button()
+
     def __vote_toggled_cb(self, toggle, direction):
         if toggle.props.active:
-            get_reddit_api().vote(self._data['name'], direction)
-
-            new_score = self._data['score'] + direction
-            if self._data['likes'] is True:
-                new_score -= 1  # Undo the previous like
-            elif self._data['likes'] is False:
-                new_score += 1
-            if direction == 0:
-                likes = None
-            elif direction == +1:
-                likes = True
-            elif direction == -1:
-                likes = False
-
-            self._data['likes'] = likes
-            self._data['score'] = new_score
-            self._update_score_button()
+            self.vote(direction)
 
     def _update_score_button(self):
         score = self._data['score']

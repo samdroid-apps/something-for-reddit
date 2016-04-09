@@ -21,6 +21,7 @@ import arrow
 from pprint import pprint
 
 from gi.repository import Gtk
+from gi.repository import Gdk
 from gi.repository import Soup
 from gi.repository import GObject
 
@@ -82,6 +83,7 @@ class SubList(Gtk.ScrolledWindow):
         self._msg = None
         self.remove(self.get_child())
         self._listbox = Gtk.ListBox()
+        self._listbox.connect('event', self.__listbox_event_cb)
         self._listbox.connect('row-selected', self.__row_selected_cb)
         # THINK:  Hidden refresh function?
         # self._listbox.connect('row-activated', self.__row_selected_cb)
@@ -89,13 +91,34 @@ class SubList(Gtk.ScrolledWindow):
         self.add(self._listbox)
         self._listbox.show()
 
+        self._first_row = None
         row = get_about_row(self._sub)
         if row is not None:
             row.get_style_context().add_class('about-row')
             self._listbox.insert(row, -1)
             row.show()
+            self._first_row = row
 
         self.insert_data(j)
+        self.focus()
+
+    def __listbox_event_cb(self, listbox, event):
+        def move(direction):
+            s = listbox.get_selected_row() or self._first_row
+            r = listbox.get_row_at_index(s.get_index() + direction)
+            if r is not None:
+                listbox.select_row(r)
+
+        shortcuts = {
+            Gdk.KEY_j: (move, [-1]),
+            Gdk.KEY_k: (move, [+1]),
+            Gdk.KEY_0: (listbox.select_row, [self._first_row])
+        }
+        return _process_shortcuts(shortcuts, event)
+
+    def focus(self):
+        s = self._listbox.get_selected_row() or self._first_row
+        s.grab_focus()
 
     def insert_data(self, j):
         if 'data' not in j:
@@ -115,6 +138,8 @@ class SubList(Gtk.ScrolledWindow):
                 row.set_line_wrap(True)
             self._listbox.insert(row, -1)
             row.show()
+            if self._first_row is None:
+                self._first_row = row
 
         row = MoreItemRow(j['data']['after'])
         row.load_more.connect(self.__load_more_cb)
@@ -130,6 +155,7 @@ class SubList(Gtk.ScrolledWindow):
     def __row_selected_cb(self, listbox, row):
         if row is None:
             return
+        row.grab_focus()  # For keyboard shortcuts to work
 
         if hasattr(row, 'read'):
             row.read()
@@ -197,6 +223,7 @@ class SubItemRow(Gtk.ListBoxRow):
 
     def __init__(self, data):
         Gtk.ListBoxRow.__init__(self)
+        self.add_events(Gdk.EventMask.KEY_PRESS_MASK)
         self.get_style_context().add_class('link-row')
         self.data = data['data']
         self._msg = None
@@ -239,6 +266,19 @@ class SubItemRow(Gtk.ListBoxRow):
         self.get_style_context().add_class('read')
         self._g('unread').props.visible = False
 
+    def do_event(self, event):
+        shortcuts = {
+            Gdk.KEY_u: (self._sbb.vote, [+1]),
+            Gdk.KEY_d: (self._sbb.vote, [-1]),
+            Gdk.KEY_n: (self._sbb.vote, [0]),
+            Gdk.KEY_c: (self.goto_comments.emit, []),
+            Gdk.KEY_a: (self.get_toplevel().goto_sublist,
+                        ['/u/{}'.format(self.data['author'])]),
+            Gdk.KEY_s: (self.get_toplevel().goto_sublist,
+                        ['/r/{}'.format(self.data['subreddit'])]),
+        }
+        return _process_shortcuts(shortcuts, event)
+
     def __comments_clicked_cb(self, button):
         self.goto_comments.emit()
 
@@ -269,6 +309,7 @@ class SingleCommentRow(Gtk.ListBoxRow):
     def __init__(self, data):
         Gtk.ListBoxRow.__init__(self)
         self.get_style_context().add_class('link-row')
+        self.add_events(Gdk.EventMask.KEY_PRESS_MASK)
         self.data = data['data']
         self._msg = None
 
@@ -293,12 +334,35 @@ class SingleCommentRow(Gtk.ListBoxRow):
         body_pango = markdown_to_pango(self.data['body'])
         set_markup_sane(self._g('text'), body_pango)
 
+    def do_event(self, event):
+        shortcuts = {
+            Gdk.KEY_a: (self.get_toplevel().goto_sublist,
+                        ['/u/{}'.format(self.data['author'])]),
+            Gdk.KEY_s: (self.get_toplevel().goto_sublist,
+                        ['/r/{}'.format(self.data['subreddit'])]),
+        }
+        return _process_shortcuts(shortcuts, event)
+
     def read(self):
         if 'new' in self.data and self.data['new']:
             get_reddit_api().read_message(self.data['name'])
             self.data['new'] = False
         self.get_style_context().add_class('read')
         self._g('unread').props.visible = False
+
+
+def _process_shortcuts(shortcuts, event):
+    '''
+    Shortcuts is a dict of:
+        Gdk.KEY_x: (self._function, [arguments])
+    Event is the GdkEvent
+    '''
+    if event.type != Gdk.EventType.KEY_PRESS:
+        return
+    if event.keyval in shortcuts:
+        func, args = shortcuts[event.keyval]
+        func(*args)
+        return True
 
 
 class _SubredditAboutRow(Gtk.ListBoxRow):

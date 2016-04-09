@@ -77,6 +77,68 @@
             </child>
           </object>
         </child>
+        <child>
+          <object class="GtkShortcutsGroup">
+            <property name="visible">1</property>
+            <property name="title" translatable="yes">SubList (Left Panel)</property>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="visible">1</property>
+                <property name="accelerator">Down k</property>
+                <property name="title" translatable="yes">Select Next Row Below</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="visible">1</property>
+                <property name="accelerator">Up j</property>
+                <property name="title" translatable="yes">Select Previous Row Above</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="visible">1</property>
+                <property name="accelerator">u</property>
+                <property name="title" translatable="yes">Upvote Selected</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="visible">1</property>
+                <property name="accelerator">d</property>
+                <property name="title" translatable="yes">Downvote Selected</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="visible">1</property>
+                <property name="accelerator">n</property>
+                <property name="title" translatable="yes">Clear Vote for Selected Row</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="visible">1</property>
+                <property name="accelerator">a</property>
+                <property name="title" translatable="yes">Goto the Selected's Author's Overview Page</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="visible">1</property>
+                <property name="accelerator">s</property>
+                <property name="title" translatable="yes">Goto the Selected's Subreddit</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="visible">1</property>
+                <property name="accelerator">c</property>
+                <property name="title" translatable="yes">Goto the Selected's Comments Page</property>
+              </object>
+            </child>
+          </object>
+        </child>
       </object>
     </child>
   </object>

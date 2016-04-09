@@ -113,6 +113,12 @@ $red: #cc0000;
  * (Left) list styling
  */
 
+@keyframes pulse {
+    from { box-shadow: inset 0 0 3px $blue; }
+    50% { box-shadow: inset 0 0 6px $blue; }
+    to { box-shadow: inset 0 0 3px $blue; }
+}
+
 .link-row {
     border-bottom: 1px solid black;
 
@@ -122,6 +128,10 @@ $red: #cc0000;
 
     &.sticky {
         background: lighter(lighter($green));
+    }
+
+    &:focus:not(:selected) {
+        animation: pulse 1s linear infinite;
     }
 
     &:selected {
