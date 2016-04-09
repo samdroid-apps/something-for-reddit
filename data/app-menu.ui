@@ -3,6 +3,10 @@
   <menu id="app-menu">
     <section>
       <item>
+        <attribute name="action">app.shortcuts</attribute>
+        <attribute name="label" translatable="yes">Keyboard Shortcuts</attribute>
+      </item>
+      <item>
         <attribute name="action">app.about</attribute>
         <attribute name="label" translatable="yes">About</attribute>
       </item>

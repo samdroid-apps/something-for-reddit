@@ -23,8 +23,6 @@ import urllib.parse
 from uuid import uuid4
 
 from gi.repository import GObject
-from gi.repository import WebKit2
-from gi.repository import Soup
 from gi.repository import Gtk
 from gi.repository import Gdk
 from gi.repository import Gio
@@ -47,6 +45,7 @@ class RedditWindow(Gtk.Window):
     def __init__(self, start_sub='/r/all'):
         Gtk.Window.__init__(self, title='Reddit is Gtk+',
                             icon_name='reddit-is-a-dead-bird')
+        self.add_events(Gdk.EventMask.KEY_PRESS_MASK)
 
         self.set_default_size(600, 600)
         screen = Gdk.Screen.get_default()
@@ -94,6 +93,34 @@ class RedditWindow(Gtk.Window):
         if response == Gtk.ResponseType.ACCEPT:
             get_reddit_api().resend_message(msg)
         dialog.destroy()
+
+    def do_event(self, event):
+        if event.type != Gdk.EventType.KEY_PRESS:
+            return
+        if event.keyval == Gdk.KEY_F6:
+            self._subentry.grab_focus()
+            return True
+
+        if event.state & Gdk.ModifierType.CONTROL_MASK:
+            if event.keyval == Gdk.KEY_1:
+                # TODO:  Focus the sublist
+                return True
+            if event.keyval == Gdk.KEY_2:
+                self._stack.set_visible_child(self._comments)
+                self._comments.grab_focus()
+                return True
+            if event.keyval == Gdk.KEY_3:
+                self._stack.set_visible_child(self._webview_bin)
+                self._webview_bin.grab_focus()
+                return True
+
+        if event.state & Gdk.ModifierType.MOD1_MASK:
+            if event.keyval == Gdk.KEY_Left:
+                self._webview.go_back()
+                return True
+            if event.keyval == Gdk.KEY_Right:
+                self._webview.go_forward()
+                return True
 
     def __new_other_pane_cb(self, sublist, link, comments, link_first):
         if self._comments is not None:
@@ -164,6 +191,7 @@ class RedditWindow(Gtk.Window):
 
     def __subentry_activate_cb(self, entry, sub):
         self._sublist.goto(sub)
+        self._sublist.grab_focus()
 
 
 class Application(Gtk.Application):
@@ -179,13 +207,12 @@ class Application(Gtk.Application):
 
     # TODO:  Using do_startup causes SIGSEGV for me
     def __do_startup_cb(self, app):
-        a = Gio.SimpleAction.new('about', None)
-        a.connect('activate', self.__about_cb)
-        self.add_action(a)
-
-        a = Gio.SimpleAction.new('quit', None)
-        a.connect('activate', self.__quit_cb)
-        self.add_action(a)
+        actions = [('about', self.__about_cb), ('quit', self.__quit_cb),
+                   ('shortcuts', self.__shortcuts_cb)]
+        for name, cb in actions:
+            a = Gio.SimpleAction.new(name, None)
+            a.connect('activate', cb)
+            self.add_action(a)
 
         builder = Gtk.Builder.new_from_resource(
             '/today/sam/reddit-is-gtk/app-menu.ui')
@@ -209,6 +236,11 @@ class Application(Gtk.Application):
 
     def __quit_cb(self, action, param):
         self.quit()
+
+    def __shortcuts_cb(self, action, param):
+        builder = Gtk.Builder.new_from_resource(
+            '/today/sam/reddit-is-gtk/shortcuts-window.ui')
+        builder.get_object('window').show()
 
 
 def run():
