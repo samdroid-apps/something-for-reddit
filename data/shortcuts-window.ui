@@ -85,56 +85,63 @@
               <object class="GtkShortcutsShortcut">
                 <property name="visible">1</property>
                 <property name="accelerator">Down k</property>
-                <property name="title" translatable="yes">Select Next Row Below</property>
+                <property name="title" translatable="yes">Focus Row Below</property>
               </object>
             </child>
             <child>
               <object class="GtkShortcutsShortcut">
                 <property name="visible">1</property>
                 <property name="accelerator">Up j</property>
-                <property name="title" translatable="yes">Select Previous Row Above</property>
+                <property name="title" translatable="yes">Focus Row Above</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="visible">1</property>
+                <property name="accelerator">return</property>
+                <property name="title" translatable="yes">Show Focused Row's Link</property>
               </object>
             </child>
             <child>
               <object class="GtkShortcutsShortcut">
                 <property name="visible">1</property>
                 <property name="accelerator">u</property>
-                <property name="title" translatable="yes">Upvote Selected</property>
+                <property name="title" translatable="yes">Upvote Focused</property>
               </object>
             </child>
             <child>
               <object class="GtkShortcutsShortcut">
                 <property name="visible">1</property>
                 <property name="accelerator">d</property>
-                <property name="title" translatable="yes">Downvote Selected</property>
+                <property name="title" translatable="yes">Downvote Focused</property>
               </object>
             </child>
             <child>
               <object class="GtkShortcutsShortcut">
                 <property name="visible">1</property>
                 <property name="accelerator">n</property>
-                <property name="title" translatable="yes">Clear Vote for Selected Row</property>
+                <property name="title" translatable="yes">Clear Vote for Focused Row</property>
               </object>
             </child>
             <child>
               <object class="GtkShortcutsShortcut">
                 <property name="visible">1</property>
                 <property name="accelerator">a</property>
-                <property name="title" translatable="yes">Goto the Selected's Author's Overview Page</property>
+                <property name="title" translatable="yes">Goto the Focused's Author's Overview Page</property>
               </object>
             </child>
             <child>
               <object class="GtkShortcutsShortcut">
                 <property name="visible">1</property>
                 <property name="accelerator">s</property>
-                <property name="title" translatable="yes">Goto the Selected's Subreddit</property>
+                <property name="title" translatable="yes">Goto the Focused's Subreddit</property>
               </object>
             </child>
             <child>
               <object class="GtkShortcutsShortcut">
                 <property name="visible">1</property>
                 <property name="accelerator">c</property>
-                <property name="title" translatable="yes">Goto the Selected's Comments Page</property>
+                <property name="title" translatable="yes">Goto the Focused's Comments Page</property>
               </object>
             </child>
           </object>

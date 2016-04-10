@@ -23,6 +23,7 @@ from pprint import pprint
 from gi.repository import Gtk
 from gi.repository import Gdk
 from gi.repository import Soup
+from gi.repository import GLib
 from gi.repository import GObject
 
 from redditisgtk.comments import CommentsView, CommentRow, MessageRow
@@ -85,8 +86,7 @@ class SubList(Gtk.ScrolledWindow):
         self._listbox = Gtk.ListBox()
         self._listbox.connect('event', self.__listbox_event_cb)
         self._listbox.connect('row-selected', self.__row_selected_cb)
-        # THINK:  Hidden refresh function?
-        # self._listbox.connect('row-activated', self.__row_selected_cb)
+        self._listbox.connect('row-activated', self.__row_selected_cb)
         self._listbox.props.selection_mode = Gtk.SelectionMode.BROWSE
         self.add(self._listbox)
         self._listbox.show()
@@ -104,14 +104,27 @@ class SubList(Gtk.ScrolledWindow):
 
     def __listbox_event_cb(self, listbox, event):
         def move(direction):
-            s = listbox.get_selected_row() or self._first_row
-            r = listbox.get_row_at_index(s.get_index() + direction)
-            if r is not None:
-                listbox.select_row(r)
+            focused = listbox.get_toplevel().get_focus()
+            if focused.get_parent() == listbox:
+                s = focused
+            else:
+                s = listbox.get_selected_row() or self._first_row
+            row = listbox.get_row_at_index(s.get_index() + direction)
+            if row is not None:
+                row.grab_focus()
+            else:
+                # We went too far!
+                s.get_style_context().add_class('angry')
+                GLib.timeout_add(
+                    500,
+                    s.get_style_context().remove_class,
+                    'angry')
 
         shortcuts = {
             Gdk.KEY_j: (move, [-1]),
             Gdk.KEY_k: (move, [+1]),
+            Gdk.KEY_Up: (move, [-1]),
+            Gdk.KEY_Down: (move, [+1]),
             Gdk.KEY_0: (listbox.select_row, [self._first_row])
         }
         return _process_shortcuts(shortcuts, event)
