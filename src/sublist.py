@@ -114,6 +114,7 @@ class SubList(Gtk.ScrolledWindow):
                 row.grab_focus()
             else:
                 # We went too far!
+                s.get_style_context().remove_class('angry')
                 s.get_style_context().add_class('angry')
                 GLib.timeout_add(
                     500,
@@ -121,8 +122,8 @@ class SubList(Gtk.ScrolledWindow):
                     'angry')
 
         shortcuts = {
-            Gdk.KEY_j: (move, [-1]),
-            Gdk.KEY_k: (move, [+1]),
+            Gdk.KEY_k: (move, [-1]),
+            Gdk.KEY_j: (move, [+1]),
             Gdk.KEY_Up: (move, [-1]),
             Gdk.KEY_Down: (move, [+1]),
             Gdk.KEY_0: (listbox.select_row, [self._first_row])
