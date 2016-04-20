@@ -1,11 +1,9 @@
-# Reddit is Gtk+
+# Something For Reddit
 
 A simple Reddit client for GNOME, built for touch and mouse (and maybe
 even keyboard in the future).
 
-![Screenshot](http://i.imgur.com/8ImzOqH.png)
-
-Screenshot album:  http://imgur.com/a/WGvV3
+![Screenshot](http://i.imgur.com/pV8eHkp.png)
 
 # Features
 
@@ -44,7 +42,7 @@ I did this ages ago, so I don't really remember.
 
 Then you can just install it like any usual program.
 
-1.  Download the source code (eg. `git clone https://github.com/samdroid-apps/reddit-is-gtk; cd reddit-is-gtk`)
+1.  Download the source code (eg. `git clone https://github.com/samdroid-apps/something-for-reddit; cd something-for-reddit`)
 2.  `./autogen.sh`
 3.  `make`
 4.  `sudo make install`
@@ -59,20 +57,11 @@ Feel free to contribute and do whatever you want.
 
 Please try and use Flake8!
 
-Short
-
-* [x] Fix the GNOME app menu (please help!  It is all disabled)
-* [x] Test if it needs to refresh tokens for background accounts
-    * Don't seem to need to
-* [x] Loading bar in the webview
-
-Medium
-
 * **Any app icon suggestions/designs are appreciated**
     - The current one isn't great at all
 * Better handle private messages
 * [x] Fix up the info sidebar for the /u/ pages
-* Keyboard shortcuts for the header bar buttons
+* [x] Keyboard shortcuts for the header bar buttons
 * Keyboard navigation for the comments list (vim style?)
 * [x] Keyboard navigation for the URL bar
 * [x] Make the URL bar autocomplete style
@@ -85,7 +74,7 @@ Medium
     - what are other common sites?
     - put some readability like thing in there?
 
-Long
+Long Term
 
 * Optimise the comments view performance
 * Separate the reddit json parsing from the view components

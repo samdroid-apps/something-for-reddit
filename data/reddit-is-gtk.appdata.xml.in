@@ -3,17 +3,17 @@
   <id>reddit-is-gtk.desktop</id>
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>GPL-3.0+</project_license>
-  <_name>Reddit is Gtk+</_name>
+  <_name>Something For Reddit+</_name>
   <_summary>Waste time with a beautiful GUI</_summary>
   <description>
     <_p>
-        Reddit is Gtk+ is a brand new reddit client for GNOME, built from
-        the ground up using the Qt5 GUI framework (obviously).
+        Something for Reddit is a brand new reddit client for GNOME, built from
+        the ground up using the Gtk+ 3 gui framework.
     </_p>
   </description>
   <screenshots>
     <screenshot type="default" width="750" height="469">
-      <image>http://www.omgubuntu.co.uk/wp-content/uploads/2013/08/music_album.jpeg</image>
+      <image>http://i.imgur.com/pV8eHkp.png</image>
     </screenshot>
   </screenshots>
   <url type="homepage">https://wiki.gnome.org/Apps/Music</url>
