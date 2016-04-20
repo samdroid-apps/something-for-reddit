@@ -7,11 +7,20 @@
     <property name="can_focus">False</property>
     <child>
       <object class="GtkToggleButton" id="expand">
-        <property name="label" translatable="yes">Hide</property>
         <property name="visible">True</property>
         <property name="can_focus">True</property>
         <property name="receives_default">True</property>
         <signal name="toggled" handler="hide_toggled_cb" swapped="no"/>
+        <child>
+          <object class="GtkImage">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="icon_name">pan-down-symbolic</property>
+          </object>
+        </child>
+        <style>
+          <class name="expand"/>
+        </style>
       </object>
       <packing>
         <property name="expand">False</property>
@@ -168,7 +177,6 @@
   </object>
   <object class="GtkSizeGroup">
     <widgets>
-      <widget name="expand"/>
       <widget name="pm"/>
       <widget name="unread"/>
       <widget name="name"/>

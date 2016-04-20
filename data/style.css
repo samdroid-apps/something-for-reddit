@@ -5,61 +5,56 @@ $purple: #75507b;
 $green: #73d216;
 $red: #cc0000;
 
-.root-comments-view {
+/* Some more Tango colors, used for the comments */
+$lightskyblue: #daeeff;
+$lightplum: #fce0ff;
+$lightchameleon: #e4ffc7;
+$lightchocolate: #faf0d7;
+$lightbutter: #fff0d7;
+
+@mixin button-bg($base-color) {
+    &, &:backdrop {
+        color: white;
+        text-shadow: none;
+    }
+    background: linear-gradient($base-color, shade($base-color, 0.8));
+
+    &.flat, &:backdrop {
+        background: $base-color;
+    }
+    &:hover {
+        background: linear-gradient(lighter($base-color), $base-color);
+    }
+    &:active, &:checked {
+        background: linear-gradient(darker($base-color), $base-color);
+    }
+    &:disabled {
+        background: linear-gradient(darker($base-color), shade($base-color, 0.3));
+        color: white;
+    }
+}
+
+.root-comments-bar, .root-comments-label {
     margin-left: 12px;
 }
 
-.comments-view:not(.first) {
-    padding-left: 6px;
-}
-
-.comments-view row > box .post-top-bar.linked > button {
-    padding-top: 0;
-    padding-bottom: 0;
-}
-
 .comments-view {
-    background: $gnome-gray;
+    &.first {
+        padding-left: 12px;
+    }
+
+    &:not(.first) {
+        margin-left: 6px;
+    }
 
     row {
         padding-right: 0;
+        padding-left: 0;
     }
 
     revealer list {
         margin: 0;
     }
-
-    row > box > label,
-    row > box .post-top-bar {
-        background: white;
-    }
-
-    /* Not the alert/info-bar buttons */
-    box.post-top-bar button,
-    button.load-more {
-        &:not(:hover) {
-            background: white;
-            text-shadow: none;
-
-            &.gilded { background: $orange; color: white; }
-            &.op { background: $blue; }
-            &.moderator { background: $green; }
-            &.admin { background: $red; }
-            &.special { background: $purple; }
-        }
-
-        &:disabled:not(:hover){
-            background: $gnome-gray;
-            color: darker($gnome-gray);
-        }
-
-        &:checked:not(:hover) {
-            background: black;
-            text-shadow: none;
-            color: white;
-        }
-    }
-
 
     row  {
         padding-top: 0;
@@ -73,38 +68,33 @@ $red: #cc0000;
         border-bottom: none;
     }
 
+    @mixin row($bg) {
+        background: $bg;
 
-    /*
-     * Left colored border for differing depths
-     */
-    &:not(.first) > row > box {
-        & > label, & > widget > .post-top-bar, & > button {
-            border-left: 6px solid orangered;
+        & > row > box > widget > .post-top-bar.linked > button,
+        & > row > box > button {
+            @include button-bg(darker($bg));
         }
     }
 
-    &.depth-1 > row > box {
-        & > label,  & > widget > .post-top-bar, & > button {
-            border-left-color: skyblue;
-        }
+    &.depth-0 {
+        @include row($lightskyblue);
     }
 
-    &.depth-2 > row > box {
-        & > label, & > widget > .post-top-bar, & > button {
-            border-left-color: violet;
-        }
+    &.depth-1 {
+        @include row($lightplum);
     }
 
-    &.depth-3 > row > box {
-        & > label, & > widget > .post-top-bar, & > button {
-            border-left-color: limegreen;
-        }
+    &.depth-2 {
+        @include row($lightchameleon);
     }
 
-    &.depth-4 > row > box {
-        & > label, & > widget > .post-top-bar, & > button {
-            border-left-color: goldenrod;
-        }
+    &.depth-3 {
+        @include row($lightchocolate);
+    }
+
+    &.depth-4 {
+        @include row($lightbutter);
     }
 }
 
@@ -151,45 +141,9 @@ $red: #cc0000;
     }
 }
 
-@keyframes angry {
-    from { box-shadow: inset 0 0 6px $red; }
-}
-
-.link-row, .about-row {
-    &:focus {
-        box-shadow: inset 0 0 6px $blue;
-    }
-
-    &:selected:focus {
-        box-shadow: inset 0 0 6px white;
-    }
-
-    &.angry {
-        animation: 0.5s angry ease-out;
-    }
-}
-
-
 .about-row {
     background: $gnome-gray;
     padding: 0 5px 10px 5px;
-}
-
-
-@mixin button-bg($base-color) {
-    color: white;
-
-    background: linear-gradient($base-color, shade($base-color, 0.8));
-
-    &.flat {
-        background: $base-color;
-    }
-    &:hover {
-        background: linear-gradient(lighter($base-color), $base-color);
-    }
-    &:active {
-        background: linear-gradient(darker($base-color), $base-color);
-    }
 }
 
 button {
@@ -237,6 +191,13 @@ button {
 
     &.special.reddit.text-button {
         @include button-bg($purple);
+    }
+
+    &.expand image {
+        transition: 0.2s all linear;
+    }
+    &.expand:checked image {
+        -gtk-icon-transform: rotate(180deg);
     }
 }
 

@@ -44,6 +44,7 @@ class CommentsView(Gtk.ScrolledWindow):
 
         self._top = _PostTopBar(self._post, hideable=False, refreshable=True,
                                 show_subreddit=True)
+        self._top.get_style_context().add_class('root-comments-bar')
         self._top.refresh.connect(self.__refresh_cb)
         self._box.add(self._top)
         self._top.show()
@@ -53,6 +54,7 @@ class CommentsView(Gtk.ScrolledWindow):
             '{selftext_pango}'.format(
                selftext_pango=markdown_to_pango(post.get('selftext')),
                title=post['title']))
+        selfpost_label.get_style_context().add_class('root-comments-label')
         self._box.add(selfpost_label)
         selfpost_label.show()
 
@@ -383,7 +385,7 @@ class CommentRow(Gtk.ListBoxRow):
             revealer_box.add(self._sub)
             self._sub.show()
         else:
-            self._top.expand.props.sensitive = False
+            self._top.expand.hide()
 
     def __refresh_cb(self, caller):
         self.refresh.emit()
