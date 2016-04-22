@@ -114,6 +114,10 @@ $lightbutter: #fff0d7;
 
     &.read {
         background: $gnome-gray;
+
+        .reply-to-what {
+            background: white;
+        }
     }
 
     &.sticky {
