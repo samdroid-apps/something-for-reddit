@@ -100,19 +100,17 @@ class RedditWindow(Gtk.Window):
         if event.keyval == Gdk.KEY_F6:
             self._subentry.grab_focus()
             return True
-
-        if event.state & Gdk.ModifierType.CONTROL_MASK:
-            if event.keyval == Gdk.KEY_1:
-                self._sublist.focus()
-                return True
-            if event.keyval == Gdk.KEY_2:
-                self._stack.set_visible_child(self._comments)
-                self._comments.grab_focus()
-                return True
-            if event.keyval == Gdk.KEY_3:
-                self._stack.set_visible_child(self._webview_bin)
-                self._webview_bin.grab_focus()
-                return True
+        if event.keyval == Gdk.KEY_1:
+            self._sublist.focus()
+            return True
+        if event.keyval == Gdk.KEY_2:
+            self._stack.set_visible_child(self._comments)
+            self._comments.focus()
+            return True
+        if event.keyval == Gdk.KEY_3:
+            self._stack.set_visible_child(self._webview_bin)
+            self._webview.grab_focus()
+            return True
 
         if event.state & Gdk.ModifierType.MOD1_MASK:
             if event.keyval == Gdk.KEY_Left:

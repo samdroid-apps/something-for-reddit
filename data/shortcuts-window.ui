@@ -23,21 +23,21 @@
             <child>
               <object class="GtkShortcutsShortcut">
                 <property name="visible">1</property>
-                <property name="accelerator">&lt;ctrl&gt;1</property>
+                <property name="accelerator">1</property>
                 <property name="title" translatable="yes">Focus SubList (Left Panel)</property>
               </object>
             </child>
             <child>
               <object class="GtkShortcutsShortcut">
                 <property name="visible">1</property>
-                <property name="accelerator">&lt;ctrl&gt;2</property>
+                <property name="accelerator">2</property>
                 <property name="title" translatable="yes">Focus Comments View</property>
               </object>
             </child>
             <child>
               <object class="GtkShortcutsShortcut">
                 <property name="visible">1</property>
-                <property name="accelerator">&lt;ctrl&gt;3</property>
+                <property name="accelerator">3</property>
                 <property name="title" translatable="yes">Focus Web View</property>
               </object>
             </child>
@@ -84,21 +84,21 @@
             <child>
               <object class="GtkShortcutsShortcut">
                 <property name="visible">1</property>
-                <property name="accelerator">Down k</property>
+                <property name="accelerator">Down j</property>
                 <property name="title" translatable="yes">Focus Row Below</property>
               </object>
             </child>
             <child>
               <object class="GtkShortcutsShortcut">
                 <property name="visible">1</property>
-                <property name="accelerator">Up j</property>
+                <property name="accelerator">Up k</property>
                 <property name="title" translatable="yes">Focus Row Above</property>
               </object>
             </child>
             <child>
               <object class="GtkShortcutsShortcut">
                 <property name="visible">1</property>
-                <property name="accelerator">return</property>
+                <property name="accelerator">Enter</property>
                 <property name="title" translatable="yes">Show Focused Row's Link</property>
               </object>
             </child>
@@ -142,6 +142,40 @@
                 <property name="visible">1</property>
                 <property name="accelerator">c</property>
                 <property name="title" translatable="yes">Goto the Focused's Comments Page</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkShortcutsGroup">
+            <property name="visible">1</property>
+            <property name="title" translatable="yes">Comments View</property>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="visible">1</property>
+                <property name="accelerator">Down j</property>
+                <property name="title" translatable="yes">Focus Comment Below</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="visible">1</property>
+                <property name="accelerator">Up k</property>
+                <property name="title" translatable="yes">Focus Comment Above</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="visible">1</property>
+                <property name="accelerator">Left h</property>
+                <property name="title" translatable="yes">Focus Previous Root Level Comment</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="visible">1</property>
+                <property name="accelerator">Right l</property>
+                <property name="title" translatable="yes">Focus Next Root Level Comment</property>
               </object>
             </child>
           </object>

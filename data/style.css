@@ -38,27 +38,27 @@ $lightbutter: #fff0d7;
     margin-left: 12px;
 }
 
+@keyframes angry-comment {
+    from { box-shadow: inset 0 0 20px $red; }
+}
+
 .comments-view {
-    &.first {
+    background: transparent;
+
+    &.first > row {
         padding-left: 12px;
     }
 
-    &:not(.first) {
-        margin-left: 6px;
+    &:not(.first) > row {
+        margin-left: 12px;
     }
 
     row {
-        padding-right: 0;
-        padding-left: 0;
+        padding: 0;
     }
 
     revealer list {
         margin: 0;
-    }
-
-    row  {
-        padding-top: 0;
-        padding-bottom: 0;
     }
 
     row > box > label {
@@ -68,8 +68,19 @@ $lightbutter: #fff0d7;
         border-bottom: none;
     }
 
+    row.angry {
+        animation: 0.5s angry-comment ease-out;
+    }
+
     @mixin row($bg) {
-        background: $bg;
+        & > row {
+            background: $bg;
+            transition: background 0.25s linear;
+        }
+
+        & > row:focus {
+            background: darker($bg);
+        }
 
         & > row > box > widget > .post-top-bar.linked > button,
         & > row > box > button {
@@ -98,7 +109,6 @@ $lightbutter: #fff0d7;
     }
 }
 
-
 /*
  * (Left) list styling
  */
@@ -108,6 +118,11 @@ $lightbutter: #fff0d7;
     50% { box-shadow: inset 0 0 6px $blue; }
     to { box-shadow: inset 0 0 3px $blue; }
 }
+
+@keyframes angry {
+    from { box-shadow: inset 0 0 6px $red; }
+}
+
 
 .link-row {
     border-bottom: 1px solid black;
@@ -142,6 +157,18 @@ $lightbutter: #fff0d7;
         background: $gnome-gray;
         border-radius: 3px;
         margin-bottom: 5px;
+    }
+
+    &:focus {
+        box-shadow: inset 0 0 6px $blue;
+    }
+
+    &:selected:focus {
+        box-shadow: inset 0 0 6px white;
+    }
+
+    &.angry {
+        animation: 0.5s angry ease-out;
     }
 }
 

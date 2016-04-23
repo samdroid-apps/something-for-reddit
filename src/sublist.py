@@ -29,7 +29,7 @@ from gi.repository import GObject
 from redditisgtk.comments import CommentsView, CommentRow, MessageRow
 from redditisgtk.buttons import (ScoreButtonBehaviour, AuthorButtonBehaviour,
                                  SubButtonBehaviour, TimeButtonBehaviour,
-                                 SubscribeButtonBehaviour)
+                                 SubscribeButtonBehaviour, process_shortcuts)
 from redditisgtk.markdownpango import markdown_to_pango, set_markup_sane
 from redditisgtk.api import get_reddit_api
 from redditisgtk.readcontroller import get_read_controller
@@ -128,7 +128,7 @@ class SubList(Gtk.ScrolledWindow):
             Gdk.KEY_Down: (move, [+1]),
             Gdk.KEY_0: (listbox.select_row, [self._first_row])
         }
-        return _process_shortcuts(shortcuts, event)
+        return process_shortcuts(shortcuts, event)
 
     def focus(self):
         s = self._listbox.get_selected_row() or self._first_row
@@ -291,7 +291,7 @@ class SubItemRow(Gtk.ListBoxRow):
             Gdk.KEY_s: (self.get_toplevel().goto_sublist,
                         ['/r/{}'.format(self.data['subreddit'])]),
         }
-        return _process_shortcuts(shortcuts, event)
+        return process_shortcuts(shortcuts, event)
 
     def __comments_clicked_cb(self, button):
         self.goto_comments.emit()
@@ -355,7 +355,7 @@ class SingleCommentRow(Gtk.ListBoxRow):
             Gdk.KEY_s: (self.get_toplevel().goto_sublist,
                         ['/r/{}'.format(self.data['subreddit'])]),
         }
-        return _process_shortcuts(shortcuts, event)
+        return process_shortcuts(shortcuts, event)
 
     def read(self):
         if 'new' in self.data and self.data['new']:
@@ -363,20 +363,6 @@ class SingleCommentRow(Gtk.ListBoxRow):
             self.data['new'] = False
         self.get_style_context().add_class('read')
         self._g('unread').props.visible = False
-
-
-def _process_shortcuts(shortcuts, event):
-    '''
-    Shortcuts is a dict of:
-        Gdk.KEY_x: (self._function, [arguments])
-    Event is the GdkEvent
-    '''
-    if event.type != Gdk.EventType.KEY_PRESS:
-        return
-    if event.keyval in shortcuts:
-        func, args = shortcuts[event.keyval]
-        func(*args)
-        return True
 
 
 class _SubredditAboutRow(Gtk.ListBoxRow):

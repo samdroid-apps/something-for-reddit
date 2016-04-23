@@ -20,12 +20,15 @@ import arrow
 from gi.repository import GObject
 from gi.repository import Soup
 from gi.repository import Gtk
+from gi.repository import Gdk
+from gi.repository import GLib
 
 from redditisgtk.markdownpango import markdown_to_pango, SaneLabel
 from redditisgtk.palettebutton import connect_palette
 from redditisgtk.api import get_reddit_api
 from redditisgtk.buttons import (ScoreButtonBehaviour, AuthorButtonBehaviour,
-                                 TimeButtonBehaviour, SubButtonBehaviour)
+                                 TimeButtonBehaviour, SubButtonBehaviour,
+                                 process_shortcuts)
 
 
 class CommentsView(Gtk.ScrolledWindow):
@@ -33,6 +36,7 @@ class CommentsView(Gtk.ScrolledWindow):
 
     def __init__(self, post, comments=None):
         Gtk.ScrolledWindow.__init__(self)
+        self.add_events(Gdk.EventMask.KEY_PRESS_MASK)
         self.get_style_context().add_class('root-comments-view')
         self.props.hscrollbar_policy = Gtk.PolicyType.NEVER
         self._post = post
@@ -59,10 +63,15 @@ class CommentsView(Gtk.ScrolledWindow):
         selfpost_label.show()
 
         self._comments = None
+        self._all_comments = [self._top]
+        self._selected = self._top
         if comments is not None:
             self.__message_done_cb(comments, is_full_comments=False)
         else:
             self.__refresh_cb()
+
+    def focus(self):
+        self._selected.grab_focus()
 
     def get_link_name(self):
         return self._post['name']
@@ -80,6 +89,8 @@ class CommentsView(Gtk.ScrolledWindow):
 
     def __message_done_cb(self, j, is_full_comments=True):
         self._msg = None
+        self._all_comments = [self._top]
+        self._selected = self._top
         if self._comments is not None:
             self._box.remove(self._comments)
             self._comments.hide()
@@ -88,10 +99,58 @@ class CommentsView(Gtk.ScrolledWindow):
         # The 1st one is just the self post
         self._comments = _CommentsView(j[1]['data']['children'], first=True,
                                        original_poster=self._post['author'],
-                                       is_full_comments=is_full_comments)
+                                       is_full_comments=is_full_comments,
+                                       all_list=self._all_comments)
         self._comments.refresh.connect(self.__refresh_cb)
         self._box.add(self._comments)
         self._comments.show()
+
+    def do_event(self, event):
+        def move(direction, jump):
+            if jump:
+                row = self._selected
+                while isinstance(row, CommentRow) and row.depth > 0:
+                    # Me > List > Box > Revealer > Box > Next Row!!
+                    row = row.get_parent().get_parent().get_parent().get_parent().get_parent()
+                kids = [self._top] + self._comments.get_children()
+                i = kids.index(row)
+                if 0 <= i + direction < len(kids):
+                    row = kids[i+direction]
+            else:
+                i = self._all_comments.index(self._selected)
+                row = None
+                while 0 <= i + direction < len(self._all_comments):
+                    row = self._all_comments[i+direction]
+                    if row.get_mapped():
+                        break
+                    else:
+                        i += direction
+                        row = None
+
+            if row is not None:
+                row.grab_focus()
+                self._selected = row
+            else:
+                # We went too far!
+                self._selected.get_style_context().remove_class('angry')
+                self._selected.get_style_context().add_class('angry')
+                GLib.timeout_add(
+                    500,
+                    self._selected.get_style_context().remove_class,
+                    'angry')
+
+        shortcuts = {
+            Gdk.KEY_k: (move, [-1, False]),
+            Gdk.KEY_j: (move, [+1, False]),
+            Gdk.KEY_Up: (move, [-1, False]),
+            Gdk.KEY_Down: (move, [+1, False]),
+            Gdk.KEY_h: (move, [-1, True]),
+            Gdk.KEY_l: (move, [+1, True]),
+            Gdk.KEY_Left: (move, [-1, True]),
+            Gdk.KEY_Right: (move, [+1, True]),
+        }
+        return process_shortcuts(shortcuts, event)
+
 
 class _CommentsView(Gtk.ListBox):
     '''
@@ -109,11 +168,13 @@ class _CommentsView(Gtk.ListBox):
     refresh = GObject.Signal('refresh')
 
     def __init__(self, data, first=False, depth=0, original_poster=None,
-                 is_full_comments=True):
+                 is_full_comments=True, all_list=[]):
         Gtk.ListBox.__init__(self)
+        self._first_row = None
         self._is_first = first
         self._original_poster = original_poster
         self._depth = depth
+        self._all_list = all_list
 
         ctx = self.get_style_context()
         ctx.add_class('comments-view')
@@ -132,7 +193,10 @@ class _CommentsView(Gtk.ListBox):
         for comment in data:
             comment_data = comment['data']
             row = CommentRow(comment_data, self._depth,
-                             original_poster=self._original_poster)
+                             original_poster=self._original_poster,
+                             all_list=self._all_list)
+            self._all_list.append(row)
+            row.recurse()
             row.refresh.connect(self.__refresh_cb)
             row.got_more_comments.connect(self.__got_more_comments_cb)
             self.insert(row, -1)
@@ -198,7 +262,7 @@ class _PostTopBar(Gtk.Bin):
 
     def __init__(self, data, hideable=True, pm=False, original_poster=None,
                  refreshable=False, show_subreddit=False):
-        Gtk.Bin.__init__(self)
+        Gtk.Bin.__init__(self, can_focus=True)
         self.data = data
 
         self._b = Gtk.Builder.new_from_resource(
@@ -320,23 +384,23 @@ class CommentRow(Gtk.ListBoxRow):
     refresh = GObject.Signal('refresh')
     got_more_comments = GObject.Signal('got-more-comments', arg_types=[object])
 
-    def __init__(self, data, depth, original_poster=None):
+    def __init__(self, data, depth, original_poster=None, all_list=None):
         Gtk.ListBoxRow.__init__(self, selectable=False)
         self.data = data
-        self._depth = depth
+        self.depth = depth
         self._original_poster = original_poster
+        self._all_list = all_list
 
         self._box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.add(self._box)
         self._box.show()
 
-        if 'body' in data:
+    def recurse(self):
+        if 'body' in self.data:
             self._show_normal_comment()
         else:
-            # TODO: There is a list of ids in the 'children' (id)
-            #       and also the 'parent_id' (fullname) and 'count'
             b = Gtk.Button.new_with_label(
-                'Show {} more comments...'.format(data['count']))
+                'Show {} more comments...'.format(self.data['count']))
             b.connect('clicked', self.__load_more_cb)
             b.get_style_context().add_class('load-more')
             self._box.add(b)
@@ -379,8 +443,9 @@ class CommentRow(Gtk.ListBoxRow):
 
             self._sub = _CommentsView( \
                 self.data['replies']['data']['children'],
-                depth=self._depth + 1,
-                original_poster=self._original_poster)
+                depth=self.depth + 1,
+                original_poster=self._original_poster,
+                all_list=self._all_list)
             self._sub.refresh.connect(self.__refresh_cb)
             revealer_box.add(self._sub)
             self._sub.show()

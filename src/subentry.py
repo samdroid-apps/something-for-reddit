@@ -92,7 +92,6 @@ class SubEntry(Gtk.Entry):
     def __selected_cb(self, palette, sub):
         self.props.text = sub
         self.do_activate()
-        self._palette.hide()
 
     def get_real_sub(self):
         sub = self.props.text
@@ -100,6 +99,7 @@ class SubEntry(Gtk.Entry):
 
     def do_activate(self):
         self.activate.emit(self.get_real_sub())
+        self._palette.hide()
 
 
 class VScrollingPopover(Gtk.Popover):
