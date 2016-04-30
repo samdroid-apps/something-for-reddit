@@ -48,6 +48,7 @@ class IdentityController(GObject.GObject):
                 j = json.load(f)
                 self._tokens = j['tokens']
                 self._active = j['active']
+        self.token_changed.emit(None)
         if self._active is not None:
             self._refresh_token(self._active)
 
@@ -125,6 +126,8 @@ class IdentityController(GObject.GObject):
             self._tokens[id] = {}
         # We must keep some things we only get the 1st time, eg.
         # the refresh token
+        from redditisgtk.api import describe_soup_transport_error
+        print(data, msg.props.status_code, describe_soup_transport_error(msg.props.status_code, msg))
         self._tokens[id].update(json.loads(data))
         self._tokens[id]['time'] = time.time()
 

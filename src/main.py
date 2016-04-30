@@ -17,10 +17,6 @@
 
 import os
 import sys
-import json
-import time
-import urllib.parse
-from uuid import uuid4
 
 from gi.repository import GObject
 from gi.repository import Gtk
@@ -46,11 +42,15 @@ class RedditWindow(Gtk.Window):
         Gtk.Window.__init__(self, title='Reddit is Gtk+',
                             icon_name='reddit-is-a-dead-bird')
         self.add_events(Gdk.EventMask.KEY_PRESS_MASK)
-
         self.set_default_size(600, 600)
+
+        settings = Gtk.Settings()
         screen = Gdk.Screen.get_default()
         css_provider = Gtk.CssProvider.get_default()
-        css_provider.load_from_resource('/today/sam/reddit-is-gtk/style.css')
+        if settings.props.gtk_application_prefer_dark_theme:
+            css_provider.load_from_resource('/today/sam/reddit-is-gtk/style.dark.css')
+        else:
+            css_provider.load_from_resource('/today/sam/reddit-is-gtk/style.css')
         context = Gtk.StyleContext()
         context.add_provider_for_screen(screen, css_provider,
                                         Gtk.STYLE_PROVIDER_PRIORITY_USER)

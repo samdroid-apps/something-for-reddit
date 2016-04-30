@@ -1,3 +1,6 @@
+style.dark.css.out: style.css
+	$(AM_V_GEN) echo "$dark true" | cat - style.css | scss -s -C style.dark.css.out
+
 style.css.out: style.css
 	$(AM_V_GEN) scss -C style.css style.css.out
 

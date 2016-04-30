@@ -1,4 +1,4 @@
-$gnome-gray: rgb(232, 232, 231);
+$gnome-gray: if($dark, black, rgb(232, 232, 231));
 $blue: #4a90d9;
 $orange: #f57900;
 $purple: #75507b;
