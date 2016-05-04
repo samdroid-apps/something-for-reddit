@@ -124,10 +124,17 @@ class IdentityController(GObject.GObject):
         data = msg.props.response_body.data
         if id not in self._tokens:
             self._tokens[id] = {}
+        if data is None:
+            # TODO:  Show this error to the user
+            print('Token refresh failed')
+            from redditisgtk.api import describe_soup_transport_error
+            print(data,
+                  msg.props.status_code,
+                  describe_soup_transport_error(msg.props.status_code, msg))
+            return
+
         # We must keep some things we only get the 1st time, eg.
         # the refresh token
-        from redditisgtk.api import describe_soup_transport_error
-        print(data, msg.props.status_code, describe_soup_transport_error(msg.props.status_code, msg))
         self._tokens[id].update(json.loads(data))
         self._tokens[id]['time'] = time.time()
 
