@@ -97,6 +97,9 @@ class RedditWindow(Gtk.Window):
     def do_event(self, event):
         if event.type != Gdk.EventType.KEY_PRESS:
             return
+        if isinstance(self.get_focus(), (Gtk.TextView, Gtk.Entry)):
+            return
+
         if event.keyval == Gdk.KEY_F6:
             self._subentry.grab_focus()
             return True
@@ -166,6 +169,7 @@ class RedditWindow(Gtk.Window):
 
         self._subentry = SubEntry()
         self._subentry.activate.connect(self.__subentry_activate_cb)
+        self._subentry.escape_me.connect(self.__subentry_escape_me_cb)
         self._header.props.custom_title = self._subentry
         self._subentry.show()
 
@@ -189,7 +193,10 @@ class RedditWindow(Gtk.Window):
 
     def __subentry_activate_cb(self, entry, sub):
         self._sublist.goto(sub)
-        self._sublist.grab_focus()
+        self._sublist.focus()
+
+    def __subentry_escape_me_cb(self, entry):
+        self._sublist.focus()
 
 
 class Application(Gtk.Application):

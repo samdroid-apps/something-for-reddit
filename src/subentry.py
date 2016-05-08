@@ -49,6 +49,7 @@ class SubEntry(Gtk.Entry):
     '''
 
     activate = GObject.Signal('reddit-activate', arg_types=[str])
+    escape_me = GObject.Signal('escape-me')
 
     def __init__(self):
         Gtk.Entry.__init__(
@@ -75,6 +76,8 @@ class SubEntry(Gtk.Entry):
             else:
                 self._show_palette()
             return True
+        if event.keyval == Gdk.KEY_Escape:
+            self.escape_me.emit()
 
     def __notify_text_cb(self, entry, pspec):
         if self.is_focus():
