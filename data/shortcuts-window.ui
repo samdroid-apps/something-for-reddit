@@ -178,6 +178,55 @@
                 <property name="title" translatable="yes">Focus Next Root Level Comment</property>
               </object>
             </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="visible">1</property>
+                <property name="accelerator">u</property>
+                <property name="title" translatable="yes">Upvote Focused Comment</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="visible">1</property>
+                <property name="accelerator">d</property>
+                <property name="title" translatable="yes">Downvote Focused Comment</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="visible">1</property>
+                <property name="accelerator">n</property>
+                <property name="title" translatable="yes">Clear Vote for Focused Comment</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="visible">1</property>
+                <property name="accelerator">a</property>
+                <property name="title" translatable="yes">Goto the Focused Comment's Author's Overview Page</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="visible">1</property>
+                <property name="accelerator">r</property>
+                <property name="title" translatable="yes">Reply to Focused Comment</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="visible">1</property>
+                <property name="accelerator">f</property>
+                <property name="title" translatable="yes">Save/Favorite Focused Comment</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="visible">1</property>
+                <property name="accelerator">t</property>
+                <property name="title" translatable="yes">Show Time Palette</property>
+              </object>
+            </child>
           </object>
         </child>
       </object>

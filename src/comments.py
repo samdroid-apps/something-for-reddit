@@ -263,6 +263,7 @@ class _PostTopBar(Gtk.Bin):
     def __init__(self, data, hideable=True, pm=False, original_poster=None,
                  refreshable=False, show_subreddit=False):
         Gtk.Bin.__init__(self, can_focus=True)
+        self.add_events(Gdk.EventMask.KEY_PRESS_MASK)
         self.data = data
 
         self._b = Gtk.Builder.new_from_resource(
@@ -276,7 +277,7 @@ class _PostTopBar(Gtk.Bin):
         self._b.get_object('refresh').props.visible = refreshable
 
         self._favorite = self._b.get_object('favorite')
-        self._favorite.props.visible= 'saved' in self.data
+        self._favorite.props.visible = 'saved' in self.data
         self._favorite.props.active = self.data.get('saved')
 
         self._read = self._b.get_object('unread')
@@ -304,8 +305,8 @@ class _PostTopBar(Gtk.Bin):
         self._tbb = TimeButtonBehaviour(self._time_button, self.data)
 
         self._reply_button = self._b.get_object('reply')
-        connect_palette(self._reply_button, self._make_reply_palette,
-                        recycle_palette=True)
+        self._reply_pb = connect_palette(
+            self._reply_button, self._make_reply_palette, recycle_palette=True)
 
         self._sub_button = self._b.get_object('sub')
         self._sub_button.props.visible = show_subreddit
@@ -313,6 +314,28 @@ class _PostTopBar(Gtk.Bin):
             self._subbb = SubButtonBehaviour(self._sub_button, self.data)
 
         self._b.connect_signals(self)
+
+    def do_event(self, event):
+        def toggle(button):
+            button.props.active = not button.props.active
+
+        def activate(button):
+            button.props.active = True
+
+        shortcuts = {
+            Gdk.KEY_u: (self._sbb.vote, [+1]),
+            Gdk.KEY_d: (self._sbb.vote, [-1]),
+            Gdk.KEY_n: (self._sbb.vote, [0]),
+            Gdk.KEY_minus: (toggle, [self.expand]),
+            Gdk.KEY_f: (toggle, [self._favorite]),
+            Gdk.KEY_r: (activate, [self._reply_button]),
+            Gdk.KEY_t: (activate, [self._time_button]),
+            Gdk.KEY_a: (self.get_toplevel().goto_sublist,
+                        ['/u/{}'.format(self.data['author'])]),
+            Gdk.KEY_s: (self.get_toplevel().goto_sublist,
+                        ['/r/{}'.format(self.data['subreddit'])]),
+        }
+        return process_shortcuts(shortcuts, event)
 
     def refresh_clicked_cb(self, button):
         self.refresh.emit()
@@ -386,10 +409,12 @@ class CommentRow(Gtk.ListBoxRow):
 
     def __init__(self, data, depth, original_poster=None, all_list=None):
         Gtk.ListBoxRow.__init__(self, selectable=False)
+        self.add_events(Gdk.EventMask.KEY_PRESS_MASK)
         self.data = data
         self.depth = depth
         self._original_poster = original_poster
         self._all_list = all_list
+        self._top = None
 
         self._box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.add(self._box)
@@ -399,12 +424,21 @@ class CommentRow(Gtk.ListBoxRow):
         if 'body' in self.data:
             self._show_normal_comment()
         else:
-            b = Gtk.Button.new_with_label(
+            self._more_button = Gtk.Button.new_with_label(
                 'Show {} more comments...'.format(self.data['count']))
-            b.connect('clicked', self.__load_more_cb)
-            b.get_style_context().add_class('load-more')
-            self._box.add(b)
-            b.show()
+            self._more_button.connect('clicked', self.__load_more_cb)
+            self._more_button.get_style_context().add_class('load-more')
+            self._box.add(self._more_button)
+            self._more_button.show()
+
+    def do_event(self, event):
+        if self._top is not None:
+            return self._top.do_event(event)
+        else:
+            shortcuts = {
+                Gdk.KEY_return: (self.__load_more_cb, [self._more_button])
+            }
+            return process_shortcuts(shortcuts, event)
 
     def __load_more_cb(self, button):
         button.props.sensitive = False
