@@ -2,7 +2,7 @@
 <gresources>
   <gresource prefix="/today/sam/reddit-is-gtk">
     <file alias="style.css">style.css.out</file>
-    <file alias="style.dark.css">style.css.dark.out</file>
+    <file alias="style.dark.css">style.dark.css.out</file>
     <file preprocess="xml-stripblanks">app-menu.ui</file>
     <file preprocess="xml-stripblanks">row-link.ui</file>
     <file preprocess="xml-stripblanks">user-about.ui</file>

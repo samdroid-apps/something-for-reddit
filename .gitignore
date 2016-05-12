@@ -67,6 +67,7 @@ Makefile.in
 /data/reddit-is-gtk.appdata.xml
 /data/.sass-cache
 /data/style.css.out
+/data/style.dark.css.out
 /data/style.css.out.map
 /debian/autoreconf.*
 /debian/files
