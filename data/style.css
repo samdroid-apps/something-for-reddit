@@ -182,11 +182,11 @@ button {
         -gtk-icon-source: -gtk-icontheme('list-add-symbolic');
     }
 
-    &.upvoted {
+    &.upvoted label {
         color: $orange;
     }
 
-    &.downvoted {
+    &.downvoted label {
         color: $purple;
     }
 
@@ -208,20 +208,26 @@ button {
      * author distinguished colors,
      * made more specific than the comments-view styles
      */
-    &.op.reddit.text-button {
-        @include button-bg($blue);
+    label {
+        border-radius: 3px;
+        padding-left: 3px;
+        padding-right: 3px;
     }
 
-    &.moderator.reddit.text-button {
-        @include button-bg($green);
+    &.op label {
+        background: $blue;
     }
 
-    &.admin.reddit.text-button {
-        @include button-bg($red);
+    &.moderator label {
+        background: $green;
     }
 
-    &.special.reddit.text-button {
-        @include button-bg($purple);
+    &.admin label {
+        background: $red;
+    }
+
+    &.special label {
+        background: $purple;
     }
 
     &.expand image {
