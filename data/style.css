@@ -1,16 +1,17 @@
-$gnome-gray: if($dark, black, rgb(232, 232, 231));
-$blue: #4a90d9;
-$orange: #f57900;
-$purple: #75507b;
-$green: #73d216;
-$red: #cc0000;
+$gnome-gray: if($dark, rgb(51, 57, 59), rgb(232, 232, 231));
+$blue: if($dark, #215D9C, #4a90d9);
+$white: if($dark, black, white);
+$orange: if($dark, #ce5c00, #f57900);
+$purple: if($dark, #5c3566, #75507b);
+$green: if($dark, #4e9a06, #73d216);
+$red: if($dark, #a40000, #cc0000);
 
 /* Some more Tango colors, used for the comments */
-$lightskyblue: #daeeff;
-$lightplum: #fce0ff;
-$lightchameleon: #e4ffc7;
-$lightchocolate: #faf0d7;
-$lightbutter: #fff0d7;
+$lightskyblue: if($dark, #0a3050, #daeeff);
+$lightplum: if($dark, #371740, #fce0ff);
+$lightchameleon: if($dark, #2a5703, #e4ffc7);
+$lightchocolate: if($dark, #503000, #faf0d7);
+$lightorange: if($dark, #8c3700, #fff0d7);
 
 @mixin button-bg($base-color) {
     &, &:backdrop {
@@ -84,7 +85,11 @@ $lightbutter: #fff0d7;
 
         & > row > box > widget > .post-top-bar.linked > button,
         & > row > box > button {
-            @include button-bg(darker($bg));
+            @if $dark {
+                @include button-bg(lighter($bg));
+            } @else {
+                @include button-bg(darker($bg));
+            }
         }
     }
 
@@ -105,7 +110,7 @@ $lightbutter: #fff0d7;
     }
 
     &.depth-4 {
-        @include row($lightbutter);
+        @include row($lightorange);
     }
 }
 
@@ -131,12 +136,16 @@ $lightbutter: #fff0d7;
         background: $gnome-gray;
 
         .reply-to-what {
-            background: white;
+            background: $white;
         }
     }
 
     &.sticky {
-        background: lighter(lighter($green));
+        @if $dark {
+            background: darker(darker($green));
+        } @else {
+            background: lighter(lighter($green));
+        }
     }
 
     &:selected {
@@ -164,7 +173,7 @@ $lightbutter: #fff0d7;
     }
 
     &:selected:focus {
-        box-shadow: inset 0 0 6px white;
+        box-shadow: inset 0 0 6px $white;
     }
 
     &.angry {

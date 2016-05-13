@@ -36,7 +36,7 @@ I did this ages ago, so I don't really remember.
 1.  Install GNOME Music or Sugar.  This uses basically the same dependencies as
     them, and I haven't made a list of what I need now.
 2.  Install the `python3-arrow`  and `python3-markdown`
-3.  Install a SCSS compiler (eg. sass ruby gem or `python-scss`).  This is very
+3.  Install a SCSS compiler (eg. `rubygem-sass` on Fedora).  This is very
     important because otherwise it will fail to build.
 3.  Install this obscure package via pip:  `pip3 install git+https://github.com/r0wb0t/markdown-urlize`
 

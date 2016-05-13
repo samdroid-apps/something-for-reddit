@@ -44,7 +44,7 @@ class RedditWindow(Gtk.Window):
         self.add_events(Gdk.EventMask.KEY_PRESS_MASK)
         self.set_default_size(600, 600)
 
-        settings = Gtk.Settings()
+        settings = Gtk.Settings.get_default()
         screen = Gdk.Screen.get_default()
         css_provider = Gtk.CssProvider.get_default()
         if settings.props.gtk_application_prefer_dark_theme:
@@ -226,13 +226,13 @@ class Application(Gtk.Application):
 
     def __about_cb(self, action, param):
         about_dialog = Gtk.AboutDialog(
-            program_name='Reddit is Gtk+',
+            program_name='Something for Reddit',
             comments=('A simple but powerful Reddit client, built for KDE and'
                       'powered by Qt5'),
             license_type=Gtk.License.GPL_3_0,
             logo_icon_name='reddit-is-a-dead-bird',
             authors=['Sam P. <sam@sam.today>'],
-            website='https://github.com/samdroid-apps/reddit-is-gtk',
+            website='https://github.com/samdroid-apps/something-for-reddit',
             website_label='Git Repo and Issue Tracker on GitHub',
             version='0.1',
             transient_for=self._w,
@@ -249,6 +249,10 @@ class Application(Gtk.Application):
 
 
 def run():
+    if '--dark' in sys.argv:
+        settings = Gtk.Settings.get_default()
+        settings.props.gtk_application_prefer_dark_theme = True
+
     a = Application()
     status = a.run()
     get_read_controller().save()
