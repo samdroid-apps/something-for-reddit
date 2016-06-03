@@ -215,6 +215,12 @@ class RedditAPI(GObject.GObject):
         if ('error' in j) and handle_errors:
             if DEBUG:
                 print(j)
+            if j['error'] == 401:
+                def callback():
+                    self.resend_message(my_args)
+                get_identity_controller().refresh(callback)
+                return
+
             self.request_failed.emit(
                 my_args, 'Reddit Error: {}'.format(j['error']))
             return

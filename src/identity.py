@@ -96,11 +96,18 @@ class IdentityController(GObject.GObject):
             redirect_uri='redditgtk://done'),
             id, callback=callback)
 
-    def _refresh_token(self, id):
+    def refresh(self, done_cb):
+        if self._active is None:
+            raise Exception('Called refresh when no account was active')
+
+        self._refresh_token(self._active, done_cb)
+
+    def _refresh_token(self, id, done_cb=None):
         self._call_access_token(dict(
             grant_type='refresh_token',
             refresh_token=self._tokens[id]['refresh_token']),
-            id)
+            id,
+            callback=done_cb)
 
     def _call_access_token(self, data, id, callback=None):
         msg = Soup.Message.new(
