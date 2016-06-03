@@ -31,6 +31,8 @@ So, it is a reddit app
 
 **Don't run this**, here are the real instructions:
 
+On Archlinux : `yaourt -S something-for-reddit-git`
+
 I did this ages ago, so I don't really remember.
 
 1.  Install GNOME Music or Sugar.  This uses basically the same dependencies as
