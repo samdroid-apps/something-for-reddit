@@ -63,9 +63,7 @@ class SubEntry(Gtk.Entry):
         self._palette = _ListPalette(self, relative_to=self)
         self._palette.selected.connect(self.__selected_cb)
 
-        # FIXME:  There is no do_icon_press by gobject
         self.connect('icon-press', SubEntry.do_icon_press)
-        self.connect('notify::text', self.__notify_text_cb)
 
     def do_event(self, event):
         if event.type != Gdk.EventType.KEY_PRESS:
@@ -79,10 +77,10 @@ class SubEntry(Gtk.Entry):
         if event.keyval == Gdk.KEY_Escape:
             self.escape_me.emit()
 
-    def __notify_text_cb(self, entry, pspec):
+    def do_changed(self):
         if self.is_focus():
             self._palette.show()
-            self._palette.set_filter(entry.props.text)
+            self._palette.set_filter(self.props.text)
             self.grab_focus_without_selecting()
 
     def do_icon_press(self, position, event):
@@ -95,6 +93,11 @@ class SubEntry(Gtk.Entry):
     def __selected_cb(self, palette, sub):
         self.props.text = sub
         self.do_activate()
+
+        # If we don't override the selection, the whole text will be selected
+        # This is confusing - as it makes the entry look :focused
+        p = len(self.props.text)
+        self.select_region(p, p)
 
     def get_real_sub(self):
         sub = self.props.text
