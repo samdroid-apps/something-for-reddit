@@ -17,6 +17,7 @@
 
 import os
 import sys
+from argparse import ArgumentParser
 
 from gi.repository import GObject
 from gi.repository import Gtk
@@ -39,7 +40,7 @@ VIEW_COMMENTS = 1
 class RedditWindow(Gtk.Window):
 
     def __init__(self, start_sub='/r/all'):
-        Gtk.Window.__init__(self, title='Reddit is Gtk+',
+        Gtk.Window.__init__(self, title='Something For Reddit',
                             icon_name='reddit-is-a-dead-bird')
         self.add_events(Gdk.EventMask.KEY_PRESS_MASK)
         self.set_default_size(600, 600)
@@ -191,6 +192,25 @@ class RedditWindow(Gtk.Window):
         self._sublist.goto(to)
         self._subentry.props.text = to
 
+    def goto_reddit_uri(self, uri):
+        '''
+        Go to a reddit.com uri, eg. "https://www.reddit.com/r/rct"
+        '''
+        for cond in ['https://', 'http://', 'reddit.com', 'www.reddit.com']:
+            if uri.startswith(cond):
+                uri = uri[len(cond):]
+
+        # Disregard the '' before the leading /
+        parts = uri.split('/')[1:]
+        if len(parts) <= 3:
+            # /u/*/*, /r/*, /r/*/*(sorting)
+            self.goto_sublist(uri)
+        if parts[2] == 'comments':
+            self.goto_sublist('/r/{}/'.format(parts[1]))
+            id_ = parts[3]
+            # TODO: load comments from that id_, and also set the browser uri
+            #       to the link's uri if it has one
+
     def __subentry_activate_cb(self, entry, sub):
         self._sublist.goto(sub)
         self._sublist.focus()
@@ -204,11 +224,22 @@ class Application(Gtk.Application):
         Gtk.Application.__init__(self,
                                  application_id='today.sam.reddit-is-gtk')
         self.connect('startup', self.__do_startup_cb)
+        self._w = None
+        self._queue_uri = None
 
     def do_activate(self):
         self._w = RedditWindow()
         self.add_window(self._w)
         self._w.show()
+        if self._queue_uri is not None:
+            self._w.goto_reddit_uri(self._queue_uri)
+            self._queue_uri = None
+
+    def goto_reddit_uri(self, uri):
+        if self._w is None:
+            self._queue_uri = uri
+        else:
+            self._w.goto_reddit_uri(uri)
 
     # TODO:  Using do_startup causes SIGSEGV for me
     def __do_startup_cb(self, app):
@@ -249,11 +280,21 @@ class Application(Gtk.Application):
 
 
 def run():
-    if '--dark' in sys.argv:
+    parser = ArgumentParser(
+        description='Something For Reddit - a Gtk+ Reddit Client')
+    parser.add_argument('uri', help='Reddit.com URI to open, or None',
+                        default=None, nargs='?')
+    parser.add_argument('--dark', help='Force Gtk+ dark theme',
+                        action='store_true')
+    args = parser.parse_args()
+
+    if args.dark:
         settings = Gtk.Settings.get_default()
         settings.props.gtk_application_prefer_dark_theme = True
 
     a = Application()
+    if args.uri is not None:
+        a.goto_reddit_uri(args.uri)
     status = a.run()
     get_read_controller().save()
     sys.exit(status)
