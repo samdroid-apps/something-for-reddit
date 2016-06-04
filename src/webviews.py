@@ -21,10 +21,12 @@ from gi.repository import Gtk
 from gi.repository import Gio
 from gi.repository import WebKit2
 
+
 class FullscreenableWebview(WebKit2.WebView):
     def do_enter_fullscreen(self):
         self._old_parent = self.get_parent()
         self._old_parent.remove(self)
+        self._old_parent.get_toplevel().hide()
 
         self._fullscreen = Gtk.Window()
         self._fullscreen.add(self)
@@ -33,6 +35,7 @@ class FullscreenableWebview(WebKit2.WebView):
     def do_leave_fullscreen(self):
         self._fullscreen.remove(self)
         self._old_parent.add(self)
+        self._old_parent.get_toplevel().show()
         del self._old_parent
 
         self._fullscreen.destroy()
