@@ -140,14 +140,14 @@ class CommentsView(Gtk.ScrolledWindow):
                     'angry')
 
         shortcuts = {
-            Gdk.KEY_k: (move, [-1, False]),
-            Gdk.KEY_j: (move, [+1, False]),
-            Gdk.KEY_Up: (move, [-1, False]),
-            Gdk.KEY_Down: (move, [+1, False]),
-            Gdk.KEY_h: (move, [-1, True]),
-            Gdk.KEY_l: (move, [+1, True]),
-            Gdk.KEY_Left: (move, [-1, True]),
-            Gdk.KEY_Right: (move, [+1, True]),
+            'k': (move, [-1, False]),
+            'j': (move, [+1, False]),
+            'Up': (move, [-1, False]),
+            'Down': (move, [+1, False]),
+            'h': (move, [-1, True]),
+            'l': (move, [+1, True]),
+            'Left': (move, [-1, True]),
+            'Right': (move, [+1, True]),
         }
         return process_shortcuts(shortcuts, event)
 
@@ -323,16 +323,16 @@ class _PostTopBar(Gtk.Bin):
             button.props.active = True
 
         shortcuts = {
-            Gdk.KEY_u: (self._sbb.vote, [+1]),
-            Gdk.KEY_d: (self._sbb.vote, [-1]),
-            Gdk.KEY_n: (self._sbb.vote, [0]),
-            Gdk.KEY_minus: (toggle, [self.expand]),
-            Gdk.KEY_f: (toggle, [self._favorite]),
-            Gdk.KEY_r: (activate, [self._reply_button]),
-            Gdk.KEY_t: (activate, [self._time_button]),
-            Gdk.KEY_a: (self.get_toplevel().goto_sublist,
+            'u': (self._sbb.vote, [+1]),
+            'd': (self._sbb.vote, [-1]),
+            'n': (self._sbb.vote, [0]),
+            '-': (toggle, [self.expand]),
+            'f': (toggle, [self._favorite]),
+            'r': (activate, [self._reply_button]),
+            't': (activate, [self._time_button]),
+            'a': (self.get_toplevel().goto_sublist,
                         ['/u/{}'.format(self.data['author'])]),
-            Gdk.KEY_s: (self.get_toplevel().goto_sublist,
+            's': (self.get_toplevel().goto_sublist,
                         ['/r/{}'.format(self.data['subreddit'])]),
         }
         return process_shortcuts(shortcuts, event)
@@ -371,6 +371,7 @@ class _ReplyPopover(Gtk.Popover):
 
     def __init__(self, data, **kwargs):
         Gtk.Popover.__init__(self, **kwargs)
+        self.add_events(Gdk.EventMask.KEY_PRESS_MASK)
         self.data = data
         box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.add(box)
@@ -388,6 +389,12 @@ class _ReplyPopover(Gtk.Popover):
         box.add(self._done)
 
         box.show_all()
+
+    def do_event(self, event):
+        shortcuts = {
+            '<Ctrl>Return': (self.__done_clicked_cb, [None])
+        }
+        return process_shortcuts(shortcuts, event)
 
     def __done_clicked_cb(self, button):
         self._done.props.label = 'Sending...'
@@ -436,7 +443,7 @@ class CommentRow(Gtk.ListBoxRow):
             return self._top.do_event(event)
         else:
             shortcuts = {
-                Gdk.KEY_return: (self.__load_more_cb, [self._more_button])
+                'Return': (self.__load_more_cb, [self._more_button])
             }
             return process_shortcuts(shortcuts, event)
 

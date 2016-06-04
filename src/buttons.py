@@ -203,16 +203,23 @@ class SubscribeButtonBehaviour():
 def process_shortcuts(shortcuts, event):
     '''
     Shortcuts is a dict of:
-        Gdk.KEY_x: (self._function, [arguments])
+        accelerator string: (self._function, [arguments])
+
+    Accelerator is passed to Gtk.accelerator_parse
     Event is the GdkEvent
     '''
     if event.type != Gdk.EventType.KEY_PRESS:
         return
-    if event.keyval in shortcuts:
-        func, args = shortcuts[event.keyval]
-        try:
-            func(*args)
-        except Exception as e:
-            print(e)
-            return False
-        return True
+    for accel_string, value in shortcuts.items():
+        key, mods = Gtk.accelerator_parse(accel_string)
+        emods = event.state & (Gdk.ModifierType.CONTROL_MASK |
+                               Gdk.ModifierType.SHIFT_MASK)
+
+        if event.keyval == key and (emods & mods or mods == emods == 0):
+            func, args = value
+            try:
+                func(*args)
+            except Exception as e:
+                print(e)
+                return False
+            return True

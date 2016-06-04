@@ -122,11 +122,11 @@ class SubList(Gtk.ScrolledWindow):
                     'angry')
 
         shortcuts = {
-            Gdk.KEY_k: (move, [-1]),
-            Gdk.KEY_j: (move, [+1]),
-            Gdk.KEY_Up: (move, [-1]),
-            Gdk.KEY_Down: (move, [+1]),
-            Gdk.KEY_0: (listbox.select_row, [self._first_row])
+            'k': (move, [-1]),
+            'j': (move, [+1]),
+            'p': (move, [-1]),
+            'Down': (move, [+1]),
+            '0': (listbox.select_row, [self._first_row])
         }
         return process_shortcuts(shortcuts, event)
 
@@ -282,13 +282,13 @@ class SubItemRow(Gtk.ListBoxRow):
 
     def do_event(self, event):
         shortcuts = {
-            Gdk.KEY_u: (self._sbb.vote, [+1]),
-            Gdk.KEY_d: (self._sbb.vote, [-1]),
-            Gdk.KEY_n: (self._sbb.vote, [0]),
-            Gdk.KEY_c: (self.goto_comments.emit, []),
-            Gdk.KEY_a: (self.get_toplevel().goto_sublist,
+            'u': (self._sbb.vote, [+1]),
+            'd': (self._sbb.vote, [-1]),
+            'n': (self._sbb.vote, [0]),
+            'c': (self.goto_comments.emit, []),
+            'a': (self.get_toplevel().goto_sublist,
                         ['/u/{}'.format(self.data['author'])]),
-            Gdk.KEY_s: (self.get_toplevel().goto_sublist,
+            's': (self.get_toplevel().goto_sublist,
                         ['/r/{}'.format(self.data['subreddit'])]),
         }
         return process_shortcuts(shortcuts, event)
@@ -350,9 +350,9 @@ class SingleCommentRow(Gtk.ListBoxRow):
 
     def do_event(self, event):
         shortcuts = {
-            Gdk.KEY_a: (self.get_toplevel().goto_sublist,
+            'a': (self.get_toplevel().goto_sublist,
                         ['/u/{}'.format(self.data['author'])]),
-            Gdk.KEY_s: (self.get_toplevel().goto_sublist,
+            's': (self.get_toplevel().goto_sublist,
                         ['/r/{}'.format(self.data['subreddit'])]),
         }
         return process_shortcuts(shortcuts, event)
