@@ -58,6 +58,7 @@ class SubList(Gtk.ScrolledWindow):
         self.props.hscrollbar_policy = Gtk.PolicyType.NEVER
         self._sub = None
         self._msg = None
+        self._first_load = True
 
         self._spinner = Gtk.Spinner()
         self.add(self._spinner)
@@ -74,15 +75,20 @@ class SubList(Gtk.ScrolledWindow):
         if self._msg is not None:
             get_reddit_api().cancel(self._msg)
         self._sub = sub
+        width = self.get_allocated_width()
         self.remove(self.get_child())
+
         self.add(self._spinner)
         self._spinner.show()
         self._spinner.start()
+        self.set_size_request(width, -1)
+
         self._msg = get_reddit_api().get_list(sub, self.__got_list_cb)
 
     def __got_list_cb(self, j):
         self._msg = None
         self.remove(self.get_child())
+
         self._listbox = Gtk.ListBox()
         self._listbox.connect('event', self.__listbox_event_cb)
         self._listbox.connect('row-selected', self.__row_selected_cb)
@@ -90,6 +96,18 @@ class SubList(Gtk.ScrolledWindow):
         self._listbox.props.selection_mode = Gtk.SelectionMode.BROWSE
         self.add(self._listbox)
         self._listbox.show()
+
+        if not self._first_load:
+            # If we keep the size request set, the user can't resize the view
+            width = self.get_allocated_width()
+            self.set_size_request(-1, -1)
+            if isinstance(self.get_parent(), Gtk.Paned):
+                    self.get_parent().props.position = width
+        else:
+            # First load you have to let the view set the size,
+            # otherwise you get the tiny 20px width of the spinner
+            self.set_size_request(-1, -1)
+            self._first_load = False
 
         self._first_row = None
         row = get_about_row(self._sub)
