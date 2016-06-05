@@ -21,18 +21,19 @@ import json
 import urllib.parse
 
 from gi.repository import Soup
+from gi.repository import GLib
 from gi.repository import GObject
 from gi.repository import GdkPixbuf
 
 from redditisgtk.identity import get_identity_controller
- 
+
 
 USER_AGENT = 'GNU:reddit-is-gtk:v0.1 (by /u/samtoday)'
 PREPEND_SUBS = ['/r/all', '/inbox']
 DEFAULT_SUBS = ['/r/gnome', '/r/gnu+linux']
 SPECIAL_SUBS = [
     '/message/inbox', '/message/unread', '/message/sent',
-    '/user/USER/overview', '/user/USER/submitted', '/user/USER/commented', 
+    '/user/USER/overview', '/user/USER/submitted', '/user/USER/commented',
     '/user/USER/upvoted', '/user/USER/downvoted', '/user/USER/hidden',
     '/user/USER/saved', '/user/USER/gilded'
 ]
@@ -52,7 +53,8 @@ def is_special_sub(sub):
     return False
 
 
-# macro from https://developer.gnome.org/libsoup/stable/libsoup-2.4-soup-status.html#SOUP-STATUS-IS-TRANSPORT-ERROR:CAPS
+# macro from
+# https://developer.gnome.org/libsoup/stable/libsoup-2.4-soup-status.html#SOUP-STATUS-IS-TRANSPORT-ERROR:CAPS
 def SOUP_STATUS_IS_TRANSPORT_ERROR(status):
     return 0 < status < 100
 
@@ -66,6 +68,8 @@ _SOME_SOUP_ERRORS = {
     Soup.Status.IO_ERROR: 'IO Error (aka turn your WiFi back on)',
     Soup.Status.TOO_MANY_REDIRECTS: 'Too many redirects'
 }
+
+
 def describe_soup_transport_error(code, msg):
     start = 'General Transport Error ({})'.format(code)
     if code == Soup.Status.SSL_FAILED:
@@ -99,7 +103,8 @@ class RedditAPI(GObject.GObject):
     def __init__(self):
         GObject.GObject.__init__(self)
         self._token = None
-        get_identity_controller().token_changed.connect(self.__token_changed_cb)
+        get_identity_controller().token_changed.connect(
+            self.__token_changed_cb)
         self.user_name = None
 
         self.session = Soup.Session()
@@ -130,7 +135,7 @@ class RedditAPI(GObject.GObject):
         if subs is None:
             subs = []
         for sub in msg['data']['children']:
-            subs.append(sub['data']['url']) 
+            subs.append(sub['data']['url'])
 
         if msg.get('after') is not None:
             self.send_request(
@@ -210,7 +215,7 @@ class RedditAPI(GObject.GObject):
             self.request_failed.emit(
                 my_args,
                 'No response body, status {}'.format(msg.props.status_code))
-            
+
         j = json.loads(str(data, 'utf8'))
         if ('error' in j) and handle_errors:
             if DEBUG:
@@ -281,8 +286,8 @@ class RedditAPI(GObject.GObject):
     def reply(self, thing_id, text, callback):
         return self.send_request('POST', '/api/comment', callback,
                                  post_data={'thing_id': thing_id,
-                                     'text': text,
-                                     'api_type': 'json'})
+                                            'text': text,
+                                            'api_type': 'json'})
 
     def set_saved(self, thing_id, new_value, callback):
         uri = '/api/save' if new_value else '/api/unsave'
@@ -380,7 +385,8 @@ class RedditAPI(GObject.GObject):
         callback(pbl.get_pixbuf())
 
 
-
 _api = RedditAPI()
+
+
 def get_reddit_api():
     return _api

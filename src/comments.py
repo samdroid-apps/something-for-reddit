@@ -15,10 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Reddit is Gtk+.  If not, see <http://www.gnu.org/licenses/>.
 
-import json
-import arrow
 from gi.repository import GObject
-from gi.repository import Soup
 from gi.repository import Gtk
 from gi.repository import Gdk
 from gi.repository import GLib
@@ -56,8 +53,8 @@ class CommentsView(Gtk.ScrolledWindow):
         selfpost_label = SaneLabel(
             '<big>{title}</big>\n'
             '{selftext_pango}'.format(
-               selftext_pango=markdown_to_pango(post.get('selftext')),
-               title=post['title']))
+                selftext_pango=markdown_to_pango(post.get('selftext')),
+                title=post['title']))
         selfpost_label.get_style_context().add_class('root-comments-label')
         self._box.add(selfpost_label)
         selfpost_label.show()
@@ -110,17 +107,19 @@ class CommentsView(Gtk.ScrolledWindow):
             if jump:
                 row = self._selected
                 while isinstance(row, CommentRow) and row.depth > 0:
+                    # FIXME:  This must be bad
                     # Me > List > Box > Revealer > Box > Next Row!!
-                    row = row.get_parent().get_parent().get_parent().get_parent().get_parent()
+                    row = row.get_parent().get_parent().get_parent() \
+                             .get_parent().get_parent()
                 kids = [self._top] + self._comments.get_children()
                 i = kids.index(row)
                 if 0 <= i + direction < len(kids):
-                    row = kids[i+direction]
+                    row = kids[i + direction]
             else:
                 i = self._all_comments.index(self._selected)
                 row = None
                 while 0 <= i + direction < len(self._all_comments):
-                    row = self._all_comments[i+direction]
+                    row = self._all_comments[i + direction]
                     if row.get_mapped():
                         break
                     else:
@@ -331,9 +330,9 @@ class _PostTopBar(Gtk.Bin):
             'r': (activate, [self._reply_button]),
             't': (activate, [self._time_button]),
             'a': (self.get_toplevel().goto_sublist,
-                        ['/u/{}'.format(self.data['author'])]),
+                  ['/u/{}'.format(self.data['author'])]),
             's': (self.get_toplevel().goto_sublist,
-                        ['/r/{}'.format(self.data['subreddit'])]),
+                  ['/r/{}'.format(self.data['subreddit'])]),
         }
         return process_shortcuts(shortcuts, event)
 
@@ -482,7 +481,7 @@ class CommentRow(Gtk.ListBoxRow):
             self._box.add(self._revealer)
             self._revealer.show()
 
-            self._sub = _CommentsView( \
+            self._sub = _CommentsView(
                 self.data['replies']['data']['children'],
                 depth=self.depth + 1,
                 original_poster=self._original_poster,

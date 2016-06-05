@@ -18,11 +18,11 @@
 
 import subprocess
 from gi.repository import Gtk
-from gi.repository import Gio
 from gi.repository import WebKit2
 
 
 class FullscreenableWebview(WebKit2.WebView):
+
     def do_enter_fullscreen(self):
         self._old_parent = self.get_parent()
         self._old_parent.remove(self)
@@ -46,6 +46,7 @@ class ProgressContainer(Gtk.Overlay):
     '''
     Overlays a progress bar on a webview passed to the constructor
     '''
+
     def __init__(self, webview):
         Gtk.Overlay.__init__(self)
         self._webview = webview
@@ -69,6 +70,7 @@ class ProgressContainer(Gtk.Overlay):
 
 
 class WebviewToolbar(Gtk.Bin):
+
     def __init__(self, webview):
         Gtk.Bin.__init__(self)
         self._webview = webview

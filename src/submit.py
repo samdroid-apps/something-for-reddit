@@ -43,7 +43,7 @@ class SubmitWindow(GObject.GObject):
         submit = self._b.get_object('submit-button')
         submit.props.label = 'Submitting...'
         submit.props.sensitive = False
-        
+
         data = {'title': self._b.get_object('title-entry').props.text,
                 'sr': self._b.get_object('sub-entry').props.text}
         stack = self._b.get_object('link-self-stack')
@@ -79,7 +79,7 @@ class SubmitWindow(GObject.GObject):
                     break
                 elif current_attr == 'redirect':
                     uri = args[0]
-                    if not 'already_submitted=true' in uri:
+                    if 'already_submitted=true' not in uri:
                         # Because for 1 error message they have a redirect :'(
                         break
 

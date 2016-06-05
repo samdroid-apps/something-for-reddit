@@ -16,6 +16,7 @@ Glade probably.
 
 
 class ScoreButtonBehaviour():
+
     def __init__(self, button, data):
         self._button = button
         self._data = data
@@ -96,6 +97,7 @@ class ScoreButtonBehaviour():
 
 
 class AuthorButtonBehaviour():
+
     def __init__(self, button, data, original_poster=None):
         button.props.label = data['author']
         button.connect('clicked', self.__name_clicked_cb)
@@ -114,6 +116,7 @@ class AuthorButtonBehaviour():
 
 
 class SubButtonBehaviour():
+
     def __init__(self, button, data):
         button.props.label = data['subreddit']
         button.connect('clicked', self.__sub_clicked_cb)
@@ -124,6 +127,7 @@ class SubButtonBehaviour():
 
 
 class TimeButtonBehaviour():
+
     def __init__(self, button, data):
         self.data = data
         time = arrow.get(self.data['created_utc'])
@@ -137,6 +141,7 @@ class TimeButtonBehaviour():
 
 
 class _TimePalette(Gtk.Popover):
+
     def __init__(self, data, **kwargs):
         Gtk.Popover.__init__(self, **kwargs)
         box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
@@ -171,6 +176,7 @@ class _TimePalette(Gtk.Popover):
 
 
 class SubscribeButtonBehaviour():
+
     def __init__(self, button, subreddit_name):
         self._button = button
         self._subreddit_name = subreddit_name

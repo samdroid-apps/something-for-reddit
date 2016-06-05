@@ -165,12 +165,13 @@ class IdentityController(GObject.GObject):
 
 
 _id_ctrl = None
+
+
 def get_identity_controller():
     global _id_ctrl
     if _id_ctrl is None:
         _id_ctrl = IdentityController()
     return _id_ctrl
-
 
 
 class SignInWindow(Gtk.Window):
@@ -190,15 +191,15 @@ class SignInWindow(Gtk.Window):
         self._web = WebKit2.WebView()
         self._web.load_uri(
             'https://www.reddit.com/api/v1/authorize.compact?{end}'.format(
-            end=urllib.parse.urlencode(dict(
-                redirect_uri='redditgtk://done',
-                state=self._state,
-                client_id='WCN3jqoJ1-0r0Q',
-                response_type='code',
-                duration='permanent',
-                scope=('edit history identity mysubreddits privatemessages'
-                       ' submit subscribe vote read save')))
-        ))
+                end=urllib.parse.urlencode(dict(
+                    redirect_uri='redditgtk://done',
+                    state=self._state,
+                    client_id='WCN3jqoJ1-0r0Q',
+                    response_type='code',
+                    duration='permanent',
+                    scope=('edit history identity mysubreddits privatemessages'
+                           ' submit subscribe vote read save')))
+            ))
         self.add(self._web)
         self.show_all()
 
@@ -248,6 +249,7 @@ class SignInWindow(Gtk.Window):
 
 
 class IdentityButton(Gtk.MenuButton):
+
     def __init__(self):
         Gtk.MenuButton.__init__(self, popover=IdentityPopover())
         self.__token_cb(get_identity_controller(), None)
@@ -262,6 +264,7 @@ class IdentityButton(Gtk.MenuButton):
 
 
 class IdentityPopover(Gtk.Popover):
+
     def __init__(self):
         Gtk.Popover.__init__(self)
         self.__token_cb(get_identity_controller(), None)
@@ -312,6 +315,7 @@ class IdentityPopover(Gtk.Popover):
 
 
 class _AccountRow(Gtk.ListBoxRow):
+
     def __init__(self, id, name, removeable=True):
         Gtk.ListBoxRow.__init__(self)
         self.id = id

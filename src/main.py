@@ -15,11 +15,9 @@
 # You should have received a copy of the GNU General Public License
 # along with Reddit is Gtk+.  If not, see <http://www.gnu.org/licenses/>.
 
-import os
 import sys
 from argparse import ArgumentParser
 
-from gi.repository import GObject
 from gi.repository import Gtk
 from gi.repository import Gdk
 from gi.repository import Gio
@@ -27,7 +25,7 @@ from gi.repository import GLib
 
 from redditisgtk.sublist import SubList
 from redditisgtk.subentry import SubEntry
-from redditisgtk.api import get_reddit_api, is_special_sub
+from redditisgtk.api import get_reddit_api
 from redditisgtk.webviews import (FullscreenableWebview, ProgressContainer,
                                   WebviewToolbar)
 from redditisgtk.readcontroller import get_read_controller
@@ -51,13 +49,14 @@ class RedditWindow(Gtk.Window):
         screen = Gdk.Screen.get_default()
         css_provider = Gtk.CssProvider.get_default()
         if settings.props.gtk_application_prefer_dark_theme:
-            css_provider.load_from_resource('/today/sam/reddit-is-gtk/style.dark.css')
+            css_provider.load_from_resource(
+                '/today/sam/reddit-is-gtk/style.dark.css')
         else:
-            css_provider.load_from_resource('/today/sam/reddit-is-gtk/style.css')
+            css_provider.load_from_resource(
+                '/today/sam/reddit-is-gtk/style.css')
         context = Gtk.StyleContext()
         context.add_provider_for_screen(screen, css_provider,
                                         Gtk.STYLE_PROVIDER_PRIORITY_USER)
-
 
         self._paned = Gtk.Paned.new(Gtk.Orientation.HORIZONTAL)
         self.add(self._paned)
@@ -169,7 +168,6 @@ class RedditWindow(Gtk.Window):
         self._webview_toolbar = WebviewToolbar(self._webview)
         self._header.pack_end(self._webview_toolbar)
 
-
         self._subentry = SubEntry()
         self._subentry.activate.connect(self.__subentry_activate_cb)
         self._subentry.escape_me.connect(self.__subentry_escape_me_cb)
@@ -222,6 +220,7 @@ class RedditWindow(Gtk.Window):
 
 
 class Application(Gtk.Application):
+
     def __init__(self):
         Gtk.Application.__init__(self,
                                  application_id='today.sam.reddit-is-gtk')

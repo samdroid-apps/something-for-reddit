@@ -17,9 +17,8 @@
 
 import os
 from gi.repository import GLib
-from gi.repository import Soup
 from gi.repository import GObject
-from gi.repository import GdkPixbuf
+
 
 def get_data_file_path(name):
     '''
@@ -38,6 +37,7 @@ def get_data_file_path(name):
 
 
 class ReadController(GObject.GObject):
+
     def __init__(self):
         GObject.GObject.__init__(self)
         self._set = set([])
@@ -49,7 +49,7 @@ class ReadController(GObject.GObject):
 
     def is_read(self, name):
         return name in self._set
-        
+
     def save(self):
         with open(get_data_file_path('read'), 'w') as f:
             for i in self._set:
@@ -66,6 +66,8 @@ class ReadController(GObject.GObject):
 
 
 _ctrl = None
+
+
 def get_read_controller():
     global _ctrl
     if _ctrl is None:

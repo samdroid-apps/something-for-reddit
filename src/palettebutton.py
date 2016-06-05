@@ -1,5 +1,6 @@
 from gi.repository import GObject
 
+
 class _PaletteButton(GObject.GObject):
     '''
     Like a Gtk.MenuButton, but instead of requiring the palette to be

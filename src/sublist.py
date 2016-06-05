@@ -16,17 +16,14 @@
 # along with Reddit is Gtk+.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import json
-import arrow
 from pprint import pprint
 
 from gi.repository import Gtk
 from gi.repository import Gdk
-from gi.repository import Soup
 from gi.repository import GLib
 from gi.repository import GObject
 
-from redditisgtk.comments import CommentsView, CommentRow, MessageRow
+from redditisgtk.comments import CommentsView, MessageRow
 from redditisgtk.buttons import (ScoreButtonBehaviour, AuthorButtonBehaviour,
                                  SubButtonBehaviour, TimeButtonBehaviour,
                                  SubscribeButtonBehaviour, process_shortcuts)
@@ -102,7 +99,7 @@ class SubList(Gtk.ScrolledWindow):
             width = self.get_allocated_width()
             self.set_size_request(-1, -1)
             if isinstance(self.get_parent(), Gtk.Paned):
-                    self.get_parent().props.position = width
+                self.get_parent().props.position = width
         else:
             # First load you have to let the view set the size,
             # otherwise you get the tiny 20px width of the spinner
@@ -305,9 +302,9 @@ class SubItemRow(Gtk.ListBoxRow):
             'n': (self._sbb.vote, [0]),
             'c': (self.goto_comments.emit, []),
             'a': (self.get_toplevel().goto_sublist,
-                        ['/u/{}'.format(self.data['author'])]),
+                  ['/u/{}'.format(self.data['author'])]),
             's': (self.get_toplevel().goto_sublist,
-                        ['/r/{}'.format(self.data['subreddit'])]),
+                  ['/r/{}'.format(self.data['subreddit'])]),
         }
         return process_shortcuts(shortcuts, event)
 
@@ -338,6 +335,7 @@ class SubItemRow(Gtk.ListBoxRow):
 
 
 class SingleCommentRow(Gtk.ListBoxRow):
+
     def __init__(self, data):
         Gtk.ListBoxRow.__init__(self)
         self.get_style_context().add_class('link-row')
@@ -369,9 +367,9 @@ class SingleCommentRow(Gtk.ListBoxRow):
     def do_event(self, event):
         shortcuts = {
             'a': (self.get_toplevel().goto_sublist,
-                        ['/u/{}'.format(self.data['author'])]),
+                  ['/u/{}'.format(self.data['author'])]),
             's': (self.get_toplevel().goto_sublist,
-                        ['/r/{}'.format(self.data['subreddit'])]),
+                  ['/r/{}'.format(self.data['subreddit'])]),
         }
         return process_shortcuts(shortcuts, event)
 
@@ -384,6 +382,7 @@ class SingleCommentRow(Gtk.ListBoxRow):
 
 
 class _SubredditAboutRow(Gtk.ListBoxRow):
+
     def __init__(self, subreddit_name):
         Gtk.ListBoxRow.__init__(self, selectable=False)
 
@@ -417,7 +416,9 @@ class _SubredditAboutRow(Gtk.ListBoxRow):
         set_markup_sane(self._g('sidebar'),
                         markdown_to_pango(data['description']))
 
+
 class _UserAboutRow(Gtk.ListBoxRow):
+
     def __init__(self, name):
         Gtk.ListBoxRow.__init__(self, selectable=False)
 

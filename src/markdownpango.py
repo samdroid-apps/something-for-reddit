@@ -37,10 +37,11 @@ def markdown_to_pango(text):
     text = markdown.markdown(text, extensions=['urlize'])
     text = text.replace('<p>', '').replace('</p>', '\n\n')
     text = text.replace('<br />', '\n')
-    text = text.replace('<hr />', '—'*15)
+    text = text.replace('<hr />', '—' * 15)
     text = text.replace('<em>', '<i>').replace('</em>', '</i>')
     text = text.replace('<strong>', '<b>').replace('</strong>', '</b>')
-    text = text.replace('<h1>', '<span font-size="x-large">').replace('</h1>', '</span>')
+    text = text.replace(
+        '<h1>', '<span font-size="x-large">').replace('</h1>', '</span>')
     text = re.sub('<h[2-6]>', '<big>', text)
     text = re.sub('</h[2-6]>', '</big>', text)
     text = text.replace('<pre>', '<tt>').replace('</pre>', '</tt>')
@@ -68,12 +69,14 @@ class SaneLabel(Gtk.Label):
         Gtk.Label.__init__(self)
         set_markup_sane(self, markup)
 
+
 def set_markup_sane(label, markup):
     label.props.xalign = 0
     label.props.justify = Gtk.Justification.LEFT
     label.set_line_wrap(True)
     label.set_markup(markup)
     label.connect('activate-link', __activate_link_cb)
+
 
 def __activate_link_cb(label, uri):
     window = label.get_toplevel()

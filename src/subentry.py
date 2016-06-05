@@ -109,6 +109,7 @@ class SubEntry(Gtk.Entry):
 
 
 class VScrollingPopover(Gtk.Popover):
+
     def __init__(self, **kwargs):
         Gtk.Popover.__init__(self, vexpand=True, **kwargs)
         self._sw = Gtk.ScrolledWindow(
@@ -136,7 +137,7 @@ class _ListPalette(VScrollingPopover):
     '''
 
     selected = GObject.Signal('selected', arg_types=[str])
-    
+
     def __init__(self, parent, **kwargs):
         VScrollingPopover.__init__(self, **kwargs)
         self._parent = parent
@@ -210,7 +211,7 @@ class _ListPalette(VScrollingPopover):
         if user_name is not None:
             self._add_header('Profile')
             self._add_subs((x.replace('USER', user_name)
-                           for x in SPECIAL_SUBS))
+                            for x in SPECIAL_SUBS))
 
     def _add_header(self, header):
         l = Gtk.Label(xalign=0, justify=Gtk.Justification.LEFT)

@@ -17,7 +17,6 @@
 
 from gi.repository import Gtk
 from gi.repository import Gdk
-from gi.repository import GdkPixbuf
 
 import subprocess
 from tempfile import mkstemp
@@ -30,12 +29,13 @@ from redditisgtk.webviews import FullscreenableWebview
 
 def _unescape(s):
     return urllib.parse.unquote(
-       s.replace('&lt;', '<').replace('&gt;', '>') \
+        s.replace('&lt;', '<').replace('&gt;', '>')
         .replace('&amp;', '&'))
 
 
 class _IframeSrcGetter(HTMLParser):
     src = None
+
     def handle_starttag(self, tag, attrs):
         if tag == 'iframe':
             for k, v in attrs:
@@ -60,6 +60,7 @@ def get_preview_palette(listing, **kwargs):
 
 
 class WebViewPopover(Gtk.Popover):
+
     def __init__(self, uri, width, height, **kwargs):
         if uri.startswith('//'):
             uri = 'https:' + uri
@@ -74,6 +75,7 @@ class WebViewPopover(Gtk.Popover):
 
 class _ImagePreviewPalette(Gtk.Popover):
     # TODO:  Scrolling and scaling
+
     def __init__(self, uri, **kwargs):
         Gtk.Popover.__init__(self, **kwargs)
         overlay = Gtk.Overlay()
@@ -103,6 +105,7 @@ class _ImagePreviewPalette(Gtk.Popover):
 
 class _RemoteImage(Gtk.Bin):
     # TODO:  Reload on error
+
     def __init__(self, uri):
         Gtk.Bin.__init__(self)
 
@@ -123,4 +126,4 @@ class _RemoteImage(Gtk.Bin):
         self._image.set_size_request(*old_sr)
 
     def save_to(self, path):
-       self._image.props.pixbuf.savev(path, 'png', [], [])
+        self._image.props.pixbuf.savev(path, 'png', [], [])
