@@ -23,6 +23,7 @@ from gi.repository import GObject
 from gi.repository import Gtk
 from gi.repository import Gdk
 from gi.repository import Gio
+from gi.repository import GLib
 
 from redditisgtk.sublist import SubList
 from redditisgtk.subentry import SubEntry
@@ -44,6 +45,7 @@ class RedditWindow(Gtk.Window):
                             icon_name='reddit-is-a-dead-bird')
         self.add_events(Gdk.EventMask.KEY_PRESS_MASK)
         self.set_default_size(600, 600)
+        self.set_wmclass("reddit-is-gtk", "Something For Reddit")
 
         settings = Gtk.Settings.get_default()
         screen = Gdk.Screen.get_default()
@@ -224,6 +226,8 @@ class Application(Gtk.Application):
         Gtk.Application.__init__(self,
                                  application_id='today.sam.reddit-is-gtk')
         self.connect('startup', self.__do_startup_cb)
+        GLib.set_application_name("Something For Reddit")
+        GLib.set_prgname("reddit-is-gtk")
         self._w = None
         self._queue_uri = None
 

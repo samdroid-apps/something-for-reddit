@@ -9,3 +9,4 @@ Type=Application
 Categories=GNOME;GTK;Network;
 _Keywords=Reddit;GTK;
 StartupNotify=true
+StartupWMClass=reddit-is-gtk
