@@ -3,22 +3,42 @@
   <id>reddit-is-gtk.desktop</id>
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>GPL-3.0+</project_license>
-  <_name>Something For Reddit+</_name>
+  <_name>Something For Reddit</_name>
   <_summary>Waste time with a beautiful GUI</_summary>
   <description>
     <_p>
-        Something for Reddit is a brand new reddit client for GNOME, built from
-        the ground up using the Gtk+ 3 gui framework.
+        Something for Reddit is a Reddit client for GNOME, built from
+        the ground up using the Gtk+ 3 framework.  It designed with a
+        usability first focus - supporting both touchscreen and VIM style
+        keybindings.  With this interface, you can view subreddits,
+        comments, your inbox and user pages.  You can sign-into Reddit
+        accounts with the easy account switcher, allowing you to vote,
+        write replies and save favorites.
     </_p>
+    <_p>
+        If you hate reading text, here is the same information as above in
+        dot point format:
+    </_p>
+    <ul>
+        <_li>Touchscreen tested interface</_li>
+        <_li>VIM style keybindings</_li>
+        <_li>View subreddits, comments and user pages</_li>
+        <_li>Vote on comments and links, write replies</_li>
+        <_li>Intergrated WebKit2 browser for vieweing links</_li>
+        <_li>Multi-account support</_li>
+    </ul>
   </description>
   <screenshots>
-    <screenshot type="default" width="750" height="469">
-      <image>http://i.imgur.com/pV8eHkp.png</image>
+    <screenshot type="default" width="1600" height="900">
+      <image>http://people.sugarlabs.org/sam/reddit-screenshots/SS1.png</image>
+    </screenshot>
+    <screenshot width="1600" height="900">
+      <image>http://people.sugarlabs.org/sam/reddit-screenshots/SS2.png</image>
     </screenshot>
   </screenshots>
-  <url type="homepage">https://wiki.gnome.org/Apps/Music</url>
-  <url type="bugtracker">https://bugzilla.gnome.org/enter_bug.cgi?product=gnome-music</url>
-  <url type="donation">http://www.gnome.org/friends/</url>
-  <url type="help">https://help.gnome.org/users/gnome-music/stable/</url>
+  <url type="homepage">https://github.com/samdroid-apps/something-for-reddit</url>
+  <url type="bugtracker">https://github.com/samdroid-apps/something-for-reddit/issues</url>
   <update_contact>sam@sam.today</update_contact>
+
+  <translation></translation>
 </component>
