@@ -27,8 +27,6 @@ IT_PROG_INTLTOOL(0.26)
 
 AX_PYTHON_MODULE([arrow], [For date humanization])
 AX_PYTHON_MODULE([markdown], [For reddit markdown])
-# pip3 install git+https://github.com/r0wb0t/markdown-urlize
-AX_PYTHON_MODULE([mdx_urlize], [For autolinking in reddit markdown])
 
 GLIB_GSETTINGS
 GOBJECT_INTROSPECTION_REQUIRE([1.35.9])

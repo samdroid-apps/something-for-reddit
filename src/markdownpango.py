@@ -17,8 +17,31 @@
 
 import re
 import markdown
+from markdown.extensions import Extension
+from markdown.inlinepatterns import Pattern
 
 from gi.repository import Gtk
+
+
+_URI_RE = r'(https?://[^ \r\t\n]+)'
+
+
+class _URIPattern(Pattern):
+
+    def handleMatch(self, match):
+        uri = match.group(2)
+        el = markdown.util.etree.Element('a')
+        el.set('href', uri)
+        el.text = markdown.util.AtomicString(uri)
+        return el
+
+
+class _URIRegex(Extension):
+    def extendMarkdown(self, md, md_globals):
+        md.inlinePatterns['uriregex'] = _URIPattern(_URI_RE, md)
+
+
+MDX_CONTEXT = markdown.Markdown(extensions=[_URIRegex()])
 
 
 def markdown_to_pango(text):
@@ -34,7 +57,7 @@ def markdown_to_pango(text):
     if text is None:
         return ''
 
-    text = markdown.markdown(text, extensions=['urlize'])
+    text = MDX_CONTEXT.convert(text)
     text = text.replace('<p>', '').replace('</p>', '\n\n')
     text = text.replace('<br />', '\n')
     text = text.replace('<hr />', '—' * 15)
