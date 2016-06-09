@@ -325,7 +325,6 @@ class _PostTopBar(Gtk.Bin):
             'u': (self._sbb.vote, [+1]),
             'd': (self._sbb.vote, [-1]),
             'n': (self._sbb.vote, [0]),
-            '-': (toggle, [self.expand]),
             'f': (toggle, [self._favorite]),
             'r': (activate, [self._reply_button]),
             't': (activate, [self._time_button]),
@@ -333,6 +332,7 @@ class _PostTopBar(Gtk.Bin):
                   ['/u/{}'.format(self.data['author'])]),
             's': (self.get_toplevel().goto_sublist,
                   ['/r/{}'.format(self.data['subreddit'])]),
+            'space': (toggle, [self.expand]),
         }
         return process_shortcuts(shortcuts, event)
 

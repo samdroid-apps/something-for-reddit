@@ -181,6 +181,13 @@
             <child>
               <object class="GtkShortcutsShortcut">
                 <property name="visible">1</property>
+                <property name="accelerator">space</property>
+                <property name="title" translatable="yes">Collapse Focused Comment</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="visible">1</property>
                 <property name="accelerator">u</property>
                 <property name="title" translatable="yes">Upvote Focused Comment</property>
               </object>
