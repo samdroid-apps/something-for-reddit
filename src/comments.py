@@ -25,7 +25,7 @@ from redditisgtk.palettebutton import connect_palette
 from redditisgtk.api import get_reddit_api
 from redditisgtk.buttons import (ScoreButtonBehaviour, AuthorButtonBehaviour,
                                  TimeButtonBehaviour, SubButtonBehaviour,
-                                 process_shortcuts)
+                                 process_shortcuts, SendTextPopover)
 
 
 class CommentsView(Gtk.ScrolledWindow):
@@ -353,59 +353,25 @@ class _PostTopBar(Gtk.Bin):
     def _make_reply_palette(self):
         palette = _ReplyPopover(self.data)
         palette.get_child().show_all()
-        palette.refresh.connect(self.__palette_refresh_cb)
+        palette.sent.connect(self.__palette_sent_cb)
         return palette
 
     def favorite_toggled_cb(self, button):
         get_reddit_api().set_saved(self.data['name'], button.props.active,
                                    None)
 
-    def __palette_refresh_cb(self, caller):
+    def __palette_sent_cb(self, caller):
         self.refresh.emit()
 
 
-class _ReplyPopover(Gtk.Popover):
-
-    refresh = GObject.Signal('refresh')
+class _ReplyPopover(SendTextPopover):
 
     def __init__(self, data, **kwargs):
-        Gtk.Popover.__init__(self, **kwargs)
-        self.add_events(Gdk.EventMask.KEY_PRESS_MASK)
         self.data = data
-        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        self.add(box)
+        SendTextPopover.__init__(self, **kwargs)
 
-        sw = Gtk.ScrolledWindow()
-        sw.set_size_request(500, 300)
-        box.add(sw)
-        self._textview = Gtk.TextView()
-        self._textview.props.wrap_mode = Gtk.WrapMode.WORD
-        self._textview.set_size_request(500, 300)
-        sw.add(self._textview)
-
-        self._done = Gtk.Button(label='Post Reply')
-        self._done.connect('clicked', self.__done_clicked_cb)
-        box.add(self._done)
-
-        box.show_all()
-
-    def do_event(self, event):
-        shortcuts = {
-            '<Ctrl>Return': (self.__done_clicked_cb, [None])
-        }
-        return process_shortcuts(shortcuts, event)
-
-    def __done_clicked_cb(self, button):
-        self._done.props.label = 'Sending...'
-        self._done.props.sensitive = False
-        b = self._textview.props.buffer
-        text = b.get_text(b.get_start_iter(), b.get_end_iter(), False)
-        get_reddit_api().reply(self.data['name'], text, self.__reply_done_cb)
-
-    def __reply_done_cb(self, data):
-        self.refresh.emit()
-        self.hide()
-        self.destroy()
+    def do_send(self, text, callback):
+        get_reddit_api().reply(self.data['name'], text, callback)
 
 
 class CommentRow(Gtk.ListBoxRow):

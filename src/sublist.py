@@ -24,9 +24,11 @@ from gi.repository import GLib
 from gi.repository import GObject
 
 from redditisgtk.comments import CommentsView, MessageRow
+from redditisgtk.palettebutton import connect_palette
 from redditisgtk.buttons import (ScoreButtonBehaviour, AuthorButtonBehaviour,
                                  SubButtonBehaviour, TimeButtonBehaviour,
-                                 SubscribeButtonBehaviour, process_shortcuts)
+                                 SubscribeButtonBehaviour, process_shortcuts,
+                                 SendTextPopover)
 from redditisgtk.markdownpango import markdown_to_pango, set_markup_sane
 from redditisgtk.api import get_reddit_api
 from redditisgtk.readcontroller import get_read_controller
@@ -430,6 +432,7 @@ class _UserAboutRow(Gtk.ListBoxRow):
 
         self.add(self._g('box'))
         self._g('name').props.label = self._name
+        self._palette = connect_palette(self._g('pm'), self._make_pm_palette)
 
         get_reddit_api().get_user_info(
             self._name, self.__got_info_cb)
@@ -438,6 +441,30 @@ class _UserAboutRow(Gtk.ListBoxRow):
         data = data['data']
         self._g('karma').props.label = \
             '{link_karma}l / {comment_karma}c'.format(**data)
+
+    def _make_pm_palette(self):
+        palette = _PMPopover(self._name)
+        palette.get_child().show_all()
+        # palette.sent.connect(self.__palette_sent_cb)
+        return palette
+
+
+class _PMPopover(SendTextPopover):
+
+    def __init__(self, username, **kwargs):
+        self._name = username
+        SendTextPopover.__init__(self, **kwargs)
+
+        self._subject = Gtk.Entry(placeholder_text='Subject',
+                                  max_length=100)
+        self._box.add(self._subject)
+        self._box.reorder_child(self._subject, 0)
+        self._subject.show()
+
+    def do_send(self, body, callback):
+        subject = self._subject.props.text
+        get_reddit_api().send_private_message(
+            self._name, subject, body, callback)
 
 
 def get_about_row(sub):

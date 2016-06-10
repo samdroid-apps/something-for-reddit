@@ -36,9 +36,8 @@
     </child>
     <child>
       <object class="GtkToggleButton" id="pm">
-        <property name="label" translatable="yes">TODO:  PM</property>
+        <property name="label" translatable="yes">Private Message</property>
         <property name="visible">True</property>
-        <property name="sensitive">False</property>
         <property name="can_focus">True</property>
         <property name="receives_default">True</property>
         <property name="halign">center</property>

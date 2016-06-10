@@ -305,6 +305,17 @@ class RedditAPI(GObject.GObject):
         return self.send_request('POST', '/api/read_message', None,
                                  post_data={'id': name})
 
+    def read_message(self, name):
+        return self.send_request('POST', '/api/read_message', None,
+                                 post_data={'id': name})
+
+    def send_private_message(self, to_username, subject, body, callback):
+        return self.send_request('POST', '/api/read_message', callback,
+                                 post_data={'to': to_username,
+                                            'api_type': 'json',
+                                            'text': body,
+                                            'subject': subject})
+
     def load_more(self, link_name, more_children, callback):
         '''
         Args:

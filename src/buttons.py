@@ -1,6 +1,7 @@
 import arrow
 from gi.repository import Gtk
 from gi.repository import Gdk
+from gi.repository import GObject
 
 from redditisgtk.palettebutton import connect_palette
 from redditisgtk.markdownpango import SaneLabel
@@ -229,3 +230,57 @@ def process_shortcuts(shortcuts, event):
                 print(e)
                 return False
             return True
+
+
+class SendTextPopover(Gtk.Popover):
+    '''
+    For subclasses to customize this, we provide the 'self._box' box, which
+    contains all of the widgets.  Take a look at `Gtk.Box.reorder_child` for
+    some useful apis.
+
+    Subclasses must implement `def do_send(self, text, callback)`.
+    You should call the callback once you have sent the text, and the callback
+    can take any arguments (all are disregarded).
+    '''
+
+    sent = GObject.Signal('sent')
+
+    def __init__(self, **kwargs):
+        Gtk.Popover.__init__(self, **kwargs)
+        self.add_events(Gdk.EventMask.KEY_PRESS_MASK)
+        self._box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        self.add(self._box)
+
+        sw = Gtk.ScrolledWindow()
+        sw.set_size_request(500, 300)
+        self._box.add(sw)
+        self._textview = Gtk.TextView()
+        self._textview.props.wrap_mode = Gtk.WrapMode.WORD
+        self._textview.set_size_request(500, 300)
+        sw.add(self._textview)
+
+        self._done = Gtk.Button(label='Post')
+        self._done.connect('clicked', self.__done_clicked_cb)
+        self._box.add(self._done)
+
+        self._box.show_all()
+
+    def do_event(self, event):
+        shortcuts = {
+            '<Ctrl>Return': (self.__done_clicked_cb, [None])
+        }
+        return process_shortcuts(shortcuts, event)
+
+    def __done_clicked_cb(self, button):
+        self._done.props.label = 'Sending...'
+        self._done.props.sensitive = False
+        b = self._textview.props.buffer
+        text = b.get_text(b.get_start_iter(), b.get_end_iter(), False)
+        self.do_send(text, self.__done_cb)
+
+    def __done_cb(self, *data):
+        self.sent.emit()
+        self.hide()
+
+        self._done.props.label = 'Post'
+        self._done.props.sensitive = True
