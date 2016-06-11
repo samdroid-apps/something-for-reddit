@@ -259,7 +259,7 @@ class _PostTopBar(Gtk.Bin):
     hide_toggled = GObject.Signal('hide-toggled', arg_types=[bool])
     refresh = GObject.Signal('refresh')
 
-    def __init__(self, data, hideable=True, pm=False, original_poster=None,
+    def __init__(self, data, hideable=True, original_poster=None,
                  refreshable=False, show_subreddit=False):
         Gtk.Bin.__init__(self, can_focus=True)
         self.add_events(Gdk.EventMask.KEY_PRESS_MASK)
@@ -272,7 +272,6 @@ class _PostTopBar(Gtk.Bin):
 
         self.expand = self._b.get_object('expand')
         self.expand.props.visible = hideable
-        self._b.get_object('pm').props.visible = pm
         self._b.get_object('refresh').props.visible = refreshable
 
         self._favorite = self._b.get_object('favorite')
@@ -504,23 +503,3 @@ class CommentRow(Gtk.ListBoxRow):
             rc = not self._revealer.props.reveal_child
             self._revealer.props.reveal_child = rc
             self._top.expand.props.active = not rc
-
-
-class MessageRow(Gtk.ListBoxRow):
-
-    def __init__(self, data):
-        Gtk.ListBoxRow.__init__(self, selectable=False)
-        self.data = data
-
-        self._box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        self.add(self._box)
-        self._box.show()
-
-        self._top = _PostTopBar(self.data, hideable=False, pm=True)
-        self._box.add(self._top)
-        self._top.show()
-
-        body_pango = markdown_to_pango(self.data['body'])
-        self._label = SaneLabel(body_pango)
-        self._box.add(self._label)
-        self._label.show()

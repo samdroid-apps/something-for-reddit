@@ -23,7 +23,7 @@ from gi.repository import Gdk
 from gi.repository import GLib
 from gi.repository import GObject
 
-from redditisgtk.comments import CommentsView, MessageRow
+from redditisgtk.comments import CommentsView
 from redditisgtk.buttons import (ScoreButtonBehaviour, AuthorButtonBehaviour,
                                  SubButtonBehaviour, TimeButtonBehaviour,
                                  SubscribeButtonBehaviour, process_shortcuts)
@@ -157,11 +157,8 @@ class SubList(Gtk.ScrolledWindow):
             if post['kind'] == 't3':
                 row = SubItemRow(post)
                 row.goto_comments.connect(self.__row_goto_comments_cb)
-            elif post['kind'] == 't1':
-                row = SingleCommentRow(post)
-            elif post['kind'] == 't4':
-                row = MessageRow(post['data'])
-                pprint(post['data'])
+            elif post['kind'] == 't1' or post['kind'] == 't4':
+                row = MessageRow(post)
             else:
                 row = Gtk.Label(label=str(post))
                 row.set_line_wrap(True)
@@ -334,7 +331,7 @@ class SubItemRow(Gtk.ListBoxRow):
         self._preview_palette.show()
 
 
-class SingleCommentRow(Gtk.ListBoxRow):
+class MessageRow(Gtk.ListBoxRow):
 
     def __init__(self, data):
         Gtk.ListBoxRow.__init__(self)
@@ -342,6 +339,8 @@ class SingleCommentRow(Gtk.ListBoxRow):
         self.add_events(Gdk.EventMask.KEY_PRESS_MASK)
         self.data = data['data']
         self._msg = None
+
+        is_comment_reply = self.data.get('subreddit') is not None
 
         self._builder = Gtk.Builder.new_from_resource(
             '/today/sam/reddit-is-gtk/row-comment.ui')
@@ -354,15 +353,24 @@ class SingleCommentRow(Gtk.ListBoxRow):
 
         # Keep a reference so the GC doesn't collect them
         self._abb = AuthorButtonBehaviour(self._g('author'), self.data)
-        self._srbb = SubButtonBehaviour(self._g('subreddit'), self.data)
         self._tbb = TimeButtonBehaviour(self._g('time'), self.data)
+        if is_comment_reply:
+            self._srbb = SubButtonBehaviour(self._g('subreddit'), self.data)
+        else:
+            self._g('subreddit').props.sensitive = False
+            self._g('subreddit').props.label = 'PM'
 
         self._g('nsfw').props.visible = self.data.get('over_18')
         self._g('saved').props.visible = self.data.get('saved')
 
-        self._g('title').props.label = self.data['link_title']
+        self._g('title').props.label = self.data['subject']
         body_pango = markdown_to_pango(self.data['body'])
         set_markup_sane(self._g('text'), body_pango)
+
+        if is_comment_reply:
+            self._g('type-private-message').props.visible = False
+        else:
+            self._g('type-comment-reply').props.visible = False
 
     def do_event(self, event):
         shortcuts = {

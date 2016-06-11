@@ -40,7 +40,6 @@ I did this ages ago, so I don't really remember.
 2.  Install the `python3-arrow`  and `python3-markdown`
 3.  Install a SCSS compiler (eg. `rubygem-sass` on Fedora).  This is very
     important because otherwise it will fail to build.
-3.  Install this obscure package via pip:  `pip3 install git+https://github.com/r0wb0t/markdown-urlize`
 
 Then you can just install it like any usual program.
 
