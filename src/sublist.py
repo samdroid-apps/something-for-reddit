@@ -185,7 +185,7 @@ class SubList(Gtk.ScrolledWindow):
 
         if hasattr(row, 'read'):
             row.read()
-        if isinstance(row, SingleCommentRow):
+        if isinstance(row, MessageRow):
             if 'context' not in row.data:
                 # Bloody reddit api, /inbox responses include the context
                 # link, but for /u/X/overview we need to make a url
