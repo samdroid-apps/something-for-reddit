@@ -103,7 +103,7 @@ class RedditWindow(Gtk.Window):
             return
 
         if event.keyval == Gdk.KEY_F6:
-            self._subentry.grab_focus()
+            self._subentry.focus()
             return True
         if event.keyval == Gdk.KEY_1:
             self._sublist.focus()

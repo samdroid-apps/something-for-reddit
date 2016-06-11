@@ -42,7 +42,7 @@ def _clean_sub(sub):
     return sub
 
 
-class SubEntry(Gtk.Entry):
+class SubEntry(Gtk.Box):
     '''
     The thing that goes in the middle of the header bar, and
     shows the current subreddit
@@ -52,20 +52,29 @@ class SubEntry(Gtk.Entry):
     escape_me = GObject.Signal('escape-me')
 
     def __init__(self):
-        Gtk.Entry.__init__(
-            self,
-            text='/r/all',
-            secondary_icon_name='go-down-symbolic',
-            secondary_icon_sensitive=True,
-            secondary_icon_tooltip_text='View List'
-        )
-        self.set_size_request(400, 0)
-        self._palette = _ListPalette(self, relative_to=self)
+        Gtk.Box.__init__(self, orientation=Gtk.Orientation.HORIZONTAL)
+        self.get_style_context().add_class('linked')
+
+        self._entry = Gtk.Entry(text='/r/all')
+        self._entry.connect('event', self.__event_cb)
+        self._entry.connect('changed', self.__changed_cb)
+        self._entry.connect('activate', self.__activate_cb)
+        self._entry.set_size_request(300, 0)
+        self.add(self._entry)
+        self._entry.show()
+
+        self._palette = _ListPalette(self)
         self._palette.selected.connect(self.__selected_cb)
 
-        self.connect('icon-press', SubEntry.do_icon_press)
+        show_palette = Gtk.MenuButton(popover=self._palette)
+        show_palette.connect('toggled', self.__show_palette_toggled_cb)
+        self.add(show_palette)
+        show_palette.show()
 
-    def do_event(self, event):
+    def focus(self):
+        self._entry.grab_focus()
+
+    def __event_cb(self, entry, event):
         if event.type != Gdk.EventType.KEY_PRESS:
             return
         if event.keyval == Gdk.KEY_Down:
@@ -77,35 +86,37 @@ class SubEntry(Gtk.Entry):
         if event.keyval == Gdk.KEY_Escape:
             self.escape_me.emit()
 
-    def do_changed(self):
-        if self.is_focus():
+    def __changed_cb(self, entry):
+        if entry.is_focus():
             self._palette.show()
-            self._palette.set_filter(self.props.text)
-            self.grab_focus_without_selecting()
+            self._palette.set_filter(entry.props.text)
+            entry.grab_focus_without_selecting()
 
-    def do_icon_press(self, position, event):
-        self._show_palette()
+    def __show_palette_toggled_cb(self, button):
+        if button.props.active:
+            # When the user clicks on the button, ensure the palette is empty
+            self._palette.set_filter(None)
 
     def _show_palette(self):
         self._palette.set_filter(None)
         self._palette.show()
 
     def __selected_cb(self, palette, sub):
-        self.props.text = sub
-        self.do_activate()
+        self._entry.props.text = sub
+        self.__activate_cb()
+
+    def get_real_sub(self):
+        sub = self._entry.props.text
+        return _clean_sub(sub)
+
+    def __activate_cb(self, entry=None):
+        self.activate.emit(self.get_real_sub())
+        self._palette.hide()
 
         # If we don't override the selection, the whole text will be selected
         # This is confusing - as it makes the entry look :focused
-        p = len(self.props.text)
-        self.select_region(p, p)
-
-    def get_real_sub(self):
-        sub = self.props.text
-        return _clean_sub(sub)
-
-    def do_activate(self):
-        self.activate.emit(self.get_real_sub())
-        self._palette.hide()
+        p = len(self._entry.props.text)
+        self._entry.select_region(p, p)
 
 
 class VScrollingPopover(Gtk.Popover):
@@ -145,7 +156,6 @@ class _ListPalette(VScrollingPopover):
 
         get_reddit_api().subs_changed.connect(self.__changed_cb)
         get_reddit_api().user_changed.connect(self.__changed_cb)
-        self._parent.connect('activate', self.__changed_cb)
         self._rebuild()
 
     def __changed_cb(self, caller, *args):
