@@ -79,11 +79,8 @@ class ScoreButtonBehaviour():
         likes = self._data['likes']
         hidden = self._data.get('score_hidden')
 
-        gold = ''
-        if self._data.get('gilded') > 0:
-            gold = '[★{}] '.format(self._data.get('gilded'))
         score_string = 'score hidden' if hidden else '{} points'.format(score)
-        self._button.props.label = gold + score_string
+        self._button.props.label = score_string
 
         ctx = self._button.get_style_context()
         ctx.remove_class('upvoted')
@@ -92,9 +89,19 @@ class ScoreButtonBehaviour():
             ctx.add_class('upvoted')
         elif likes is False:
             ctx.add_class('downvoted')
-        if self._data.get('gilded') > 0:
-            ctx.add_class('gilded')
 
+        if self._data.get('gilded') > 0:
+            gold = '★{} '.format(self._data.get('gilded'))
+            gold_label = Gtk.Label(label=gold)
+            gold_label.get_style_context().add_class('gilded')
+
+            label = self._button.get_child()
+            self._button.remove(label)
+            box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+            box.add(gold_label)
+            box.add(label)
+            self._button.add(box)
+            box.show_all()
 
 class AuthorButtonBehaviour():
 
