@@ -139,7 +139,7 @@ class SubList(Gtk.ScrolledWindow):
         shortcuts = {
             'k': (move, [-1]),
             'j': (move, [+1]),
-            'p': (move, [-1]),
+            'Up': (move, [-1]),
             'Down': (move, [+1]),
             '0': (listbox.select_row, [self._first_row])
         }
