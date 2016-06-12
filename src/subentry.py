@@ -109,6 +109,9 @@ class SubEntry(Gtk.Box):
         sub = self._entry.props.text
         return _clean_sub(sub)
 
+    def goto(self, sub):
+        self._entry.props.text = sub
+
     def __activate_cb(self, entry=None):
         self.activate.emit(self.get_real_sub())
         self._palette.hide()

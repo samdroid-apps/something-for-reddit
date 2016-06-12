@@ -190,7 +190,7 @@ class RedditWindow(Gtk.Window):
              widget.get_toplevel().goto_sublist('/u/samdroid_/overview')
         '''
         self._sublist.goto(to)
-        self._subentry.props.text = to
+        self._subentry.goto(to)
 
     def goto_reddit_uri(self, uri):
         '''
