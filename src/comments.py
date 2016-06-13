@@ -44,7 +44,7 @@ class CommentsView(Gtk.ScrolledWindow):
         self._permalink = permalink
         if post is not None and permalink is None:
             self._permalink = post['permalink']
-        if permalink is None:
+        if self._permalink is None:
             raise Exception('We have no link for a post!')
 
         self._box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)

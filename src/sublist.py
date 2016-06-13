@@ -187,13 +187,11 @@ class SubList(Gtk.ScrolledWindow):
             row.read()
         if isinstance(row, MessageRow):
             if 'context' not in row.data:
-                # Bloody reddit api, /inbox responses include the context
-                # link, but for /u/X/overview we need to make a url
-                # AND WORST OF ALL, WE CAN'T MAKE THE PROPER URL BECAUSE WE
-                # DON'T HAVE THE DATA :(
-                row.data['context'] = '/r/{subreddit}/comments/{link}/'.format(
-                    subreddit=row.data['subreddit'],
-                    link=row.data['link_id'][len('t4_'):])
+                row.data['context'] = '/r/{}/comments/{}/slug/{}/'.format(
+                    row.data['subreddit'],
+                    row.data['link_id'][len('t4_'):],
+                    row.data['id'])
+                print(row.data['context'])
             # We need to download first
             # TODO: Progress indicator for user
             get_reddit_api().get_list(row.data['context'],
@@ -363,7 +361,8 @@ class MessageRow(Gtk.ListBoxRow):
         self._g('nsfw').props.visible = self.data.get('over_18')
         self._g('saved').props.visible = self.data.get('saved')
 
-        self._g('title').props.label = self.data['subject']
+        self._g('title').props.label = (self.data.get('link_title') or
+                                        self.data['subject'])
         body_pango = markdown_to_pango(self.data['body'])
         set_markup_sane(self._g('text'), body_pango)
 
