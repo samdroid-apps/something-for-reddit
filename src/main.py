@@ -30,6 +30,7 @@ from redditisgtk.webviews import (FullscreenableWebview, ProgressContainer,
                                   WebviewToolbar)
 from redditisgtk.readcontroller import get_read_controller
 from redditisgtk.identity import IdentityButton
+from redditisgtk.comments import CommentsView
 
 
 VIEW_WEB = 0
@@ -207,9 +208,13 @@ class RedditWindow(Gtk.Window):
             self.goto_sublist(uri)
         if parts[2] == 'comments':
             self.goto_sublist('/r/{}/'.format(parts[1]))
-            id_ = parts[3]
-            # TODO: load comments from that id_, and also set the browser uri
-            #       to the link's uri if it has one
+            cv = CommentsView(permalink=uri)
+            cv.got_post_data.connect(self.__cv_got_post_data_cb)
+            self.__new_other_pane_cb(None, None, cv, False)
+
+    def __cv_got_post_data_cb(self, cv, post):
+        if not post.get('is_self') and 'url' in post:
+            self.__new_other_pane_cb(None, post['url'], cv, True)
 
     def __subentry_activate_cb(self, entry, sub):
         self._sublist.goto(sub)

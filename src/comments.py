@@ -31,7 +31,9 @@ from redditisgtk.buttons import (ScoreButtonBehaviour, AuthorButtonBehaviour,
 class CommentsView(Gtk.ScrolledWindow):
     '''Downloads comments, shows selftext'''
 
-    def __init__(self, post, comments=None):
+    got_post_data = GObject.Signal('got-post-data', arg_types=[object])
+
+    def __init__(self, post=None, comments=None, permalink=None):
         Gtk.ScrolledWindow.__init__(self)
         self.add_events(Gdk.EventMask.KEY_PRESS_MASK)
         self.get_style_context().add_class('root-comments-view')
@@ -39,11 +41,32 @@ class CommentsView(Gtk.ScrolledWindow):
         self._post = post
         self._msg = None
 
+        self._permalink = permalink
+        if post is not None and permalink is None:
+            self._permalink = post['permalink']
+        if permalink is None:
+            raise Exception('We have no link for a post!')
+
         self._box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.add(self._box)
         self._box.show()
 
-        self._top = _PostTopBar(self._post, hideable=False, refreshable=True,
+        self._spinner = Gtk.Spinner()
+        self._box.pack_end(self._spinner, True, True, 0)
+        self._spinner.show()
+
+        if self._post is not None:
+            self._init_post(self._post)
+
+        if comments is not None:
+            self.__message_done_cb(comments, is_full_comments=False)
+        else:
+            self.__refresh_cb()
+
+    def _init_post(self, post):
+        self.got_post_data.emit(post)
+
+        self._top = _PostTopBar(post, hideable=False, refreshable=True,
                                 show_subreddit=True)
         self._top.get_style_context().add_class('root-comments-bar')
         self._top.refresh.connect(self.__refresh_cb)
@@ -62,10 +85,6 @@ class CommentsView(Gtk.ScrolledWindow):
         self._comments = None
         self._all_comments = [self._top]
         self._selected = self._top
-        if comments is not None:
-            self.__message_done_cb(comments, is_full_comments=False)
-        else:
-            self.__refresh_cb()
 
     def focus(self):
         self._selected.grab_focus()
@@ -77,14 +96,20 @@ class CommentsView(Gtk.ScrolledWindow):
         return self._comments.get_allocation().y
 
     def __refresh_cb(self, caller=None):
+        self._spinner.start()
         self._msg = get_reddit_api().send_request(
-            'GET', self._post['permalink'], self.__message_done_cb)
+            'GET', self._permalink, self.__message_done_cb)
 
     def do_unrealize(self):
         if self._msg is not None:
             get_reddit_api().cancel(self._msg)
 
     def __message_done_cb(self, j, is_full_comments=True):
+        self._spinner.stop()
+        if self._post is None:
+            self._post = j[0]['data']['children'][0]['data']
+            self._init_post(self._post)
+
         self._msg = None
         self._all_comments = [self._top]
         self._selected = self._top
