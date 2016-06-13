@@ -192,6 +192,14 @@ $lightorange: if($dark, #8c3700, #fff0d7);
     padding: 0 5px 10px 5px;
 }
 
+@mixin label-badge($color) {
+    box-shadow: 0 0 3px $color,
+                inset 0 0 3px $color;
+    background: lighter($color);
+    color: white;
+    text-shadow: none;
+}
+
 button {
     &.fullscreen {
         -gtk-icon-source: -gtk-icontheme('list-add-symbolic');
@@ -206,10 +214,7 @@ button {
     }
 
     label.gilded {
-        box-shadow: 0 0 5px $orange,
-                    inset 0 0 5px $orange;
-        background: lighter($orange);
-        color: white;
+        @include label-badge($orange);
     }
 
     /*
@@ -222,20 +227,20 @@ button {
         padding-right: 3px;
     }
 
-    &.op label {
-        background: $blue;
+    label.op {
+        @include label-badge($blue);
     }
 
-    &.moderator label {
-        background: $green;
+    label.moderator {
+        @include label-badge(darker($green));
     }
 
-    &.admin label {
-        background: $red;
+    label.admin {
+        @include label-badge(lighter($red));
     }
 
-    &.special label {
-        background: $purple;
+    label.special {
+        @include label-badge($purple);
     }
 
     &.expand image {

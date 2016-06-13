@@ -109,13 +109,31 @@ class AuthorButtonBehaviour():
         button.props.label = data['author']
         button.connect('clicked', self.__name_clicked_cb)
 
-        ctx = button.get_style_context()
-        if data['distinguished'] is not None:
-            ctx.add_class('reddit')
-            ctx.add_class(data['distinguished'])
-        if data['author'] == original_poster:
-            ctx.add_class('reddit')
-            ctx.add_class('op')
+        disti = data['distinguished']
+        is_op = data['author'] == original_poster
+        if disti is not None or is_op:
+            label = button.get_child()
+            button.remove(label)
+            box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+
+            if disti is not None:
+                l = Gtk.Label()
+                l.props.label = {
+                    'moderator': 'MOD',
+                    'admin': 'ADM',
+                    'special': 'SP'
+                }[disti]
+                l.get_style_context().add_class(disti)
+                box.add(l)
+
+            if is_op:
+                l = Gtk.Label(label='OP')
+                l.get_style_context().add_class('op')
+                box.add(l)
+
+            box.add(label)
+            button.add(box)
+            box.show_all()
 
     def __name_clicked_cb(self, button):
         window = button.get_toplevel()

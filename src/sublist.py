@@ -191,26 +191,20 @@ class SubList(Gtk.ScrolledWindow):
                     row.data['subreddit'],
                     row.data['link_id'][len('t4_'):],
                     row.data['id'])
-                print(row.data['context'])
-            # We need to download first
-            # TODO: Progress indicator for user
-            get_reddit_api().get_list(row.data['context'],
-                                      self.__got_context_list_cb)
+            get_read_controller().read(row.data['name'])
+            self._handle_activate(permalink=row.data['context'],
+                                  link_first=False)
         else:
             self._handle_activate(row.data)
 
-    def __got_context_list_cb(self, data):
-        self._handle_activate(data[0]['data']['children'][0]['data'],
-                              comments=data,
-                              link_first=False)
-
-    def _handle_activate(self, data, comments=None, link_first=True):
+    def _handle_activate(self, data=None, permalink=None, link_first=True):
         link = None
-        get_read_controller().read(data['name'])
+        if data is not None:
+            get_read_controller().read(data['name'])
+            if not data.get('is_self') and 'url' in data:
+                link = data['url']
 
-        if not data.get('is_self') and 'url' in data:
-            link = data['url']
-        comments = CommentsView(data, comments=comments)
+        comments = CommentsView(data, permalink=permalink)
         self.new_other_pane.emit(link, comments, link_first)
 
     def __row_goto_comments_cb(self, row):
