@@ -105,13 +105,15 @@ class ScoreButtonBehaviour():
 
 class AuthorButtonBehaviour():
 
-    def __init__(self, button, data, original_poster=None):
+    def __init__(self, button, data, original_poster=None,
+                 show_flair=False):
         button.props.label = data['author']
         button.connect('clicked', self.__name_clicked_cb)
 
         disti = data['distinguished']
         is_op = data['author'] == original_poster
-        if disti is not None or is_op:
+        flair = data['author_flair_text'] if show_flair else None
+        if disti is not None or is_op or flair is not None:
             label = button.get_child()
             button.remove(label)
             box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
@@ -132,6 +134,11 @@ class AuthorButtonBehaviour():
                 box.add(l)
 
             box.add(label)
+            if flair is not None:
+                l = Gtk.Label(label=flair)
+                l.get_style_context().add_class('flair')
+                box.add(l)
+
             button.add(box)
             box.show_all()
 

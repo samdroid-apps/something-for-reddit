@@ -243,6 +243,11 @@ button {
         @include label-badge($purple);
     }
 
+    label.flair {
+        border: 1px solid grey;
+        color: grey;
+    }
+
     &.expand image {
         transition: 0.2s all linear;
     }

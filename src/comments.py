@@ -334,7 +334,8 @@ class _PostTopBar(Gtk.Bin):
         self._name_button = self._b.get_object('name')
         self._abb = AuthorButtonBehaviour(
             self._name_button, self.data,
-            self._toplevel_cv.get_original_poster())
+            self._toplevel_cv.get_original_poster(),
+            show_flair=True)
 
         self._score_button = self._b.get_object('score')
         self._score_button.props.visible = 'score' in data
