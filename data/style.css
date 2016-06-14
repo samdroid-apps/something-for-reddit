@@ -83,9 +83,9 @@ $lightorange: if($dark, #8c3700, #fff0d7);
 
         & > row:focus {
             @if $dark {
-                background: lighter($bg);
-            } @else {
                 background: darker($bg);
+            } @else {
+                background: white;
             }
         }
 
