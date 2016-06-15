@@ -69,6 +69,7 @@ class RedditWindow(Gtk.Window):
         self._stack = Gtk.Stack()
         self._stack.connect('notify::visible-child', self.__stack_child_cb)
         self._paned.add2(self._stack)
+        self._paned.child_set_property(self._stack, 'shrink', True)
         self._stack.show()
 
         self._make_header()
@@ -76,6 +77,7 @@ class RedditWindow(Gtk.Window):
         self._sublist = SubList()
         self._sublist.new_other_pane.connect(self.__new_other_pane_cb)
         self._paned.add1(self._sublist)
+        self._paned.child_set_property(self._sublist, 'shrink', True)
         self._sublist.show()
         self._sublist.goto(start_sub)
 

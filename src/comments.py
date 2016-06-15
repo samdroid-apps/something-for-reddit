@@ -305,6 +305,7 @@ class _PostTopBar(Gtk.Bin):
         self.add_events(Gdk.EventMask.KEY_PRESS_MASK)
         self.data = data
         self._toplevel_cv = toplevel_cv
+        self._hideable_buttons = []
 
         self._b = Gtk.Builder.new_from_resource(
             '/today/sam/reddit-is-gtk/post-top-bar.ui')
@@ -314,10 +315,14 @@ class _PostTopBar(Gtk.Bin):
         self.expand = self._b.get_object('expand')
         self.expand.props.visible = hideable
         self._b.get_object('refresh').props.visible = refreshable
+        if refreshable:
+            self._hideable_buttons.append(self._b.get_object('refresh'))
 
         self._favorite = self._b.get_object('favorite')
         self._favorite.props.visible = 'saved' in self.data
         self._favorite.props.active = self.data.get('saved')
+        if 'saved' in self.data:
+            self._hideable_buttons.append(self._b.get_object('favorite'))
 
         self._read = self._b.get_object('unread')
         self._read.props.visible = 'new' in data
@@ -336,25 +341,55 @@ class _PostTopBar(Gtk.Bin):
             self._name_button, self.data,
             self._toplevel_cv.get_original_poster(),
             show_flair=True)
+        self._hideable_buttons.append(self._name_button)
 
         self._score_button = self._b.get_object('score')
         self._score_button.props.visible = 'score' in data
         if 'score' in data:
             self._sbb = ScoreButtonBehaviour(self._score_button, self.data)
+        self._hideable_buttons.append(self._score_button)
 
         self._time_button = self._b.get_object('time')
         self._tbb = TimeButtonBehaviour(self._time_button, self.data)
+        self._hideable_buttons.insert(0, self._time_button)
 
         self._reply_button = self._b.get_object('reply')
         self._reply_pb = connect_palette(
             self._reply_button, self._make_reply_palette, recycle_palette=True)
+        self._hideable_buttons.append(self._reply_button)
 
         self._sub_button = self._b.get_object('sub')
         self._sub_button.props.visible = show_subreddit
         if show_subreddit:
             self._subbb = SubButtonBehaviour(self._sub_button, self.data)
+            self._hideable_buttons.insert(0, self._b.get_object('sub'))
 
         self._b.connect_signals(self)
+        self.set_size_request(100, -1)
+
+    def do_get_request_mode(self):
+        return Gtk.SizeRequestMode.HEIGHT_FOR_WIDTH
+
+    def do_get_preferred_width(self):
+        minimum, natural = Gtk.Bin.do_get_preferred_width(self)
+        return 1, natural
+
+    def do_get_preferred_height_for_width(self, width):
+        # FIXME:  Worse for performance than the nested ListBoxes??
+        for b in self._hideable_buttons:
+            b.show()
+
+        minw, natw = Gtk.Bin.do_get_preferred_width(self)
+        for b in self._hideable_buttons:
+            if natw < width:
+                break
+            b.hide()
+            minw, natw = Gtk.Bin.do_get_preferred_width(self)
+
+        if natw > width:
+            self._b.get_object('sub').hide()
+        minh, nath = Gtk.Bin.do_get_preferred_height(self)
+        return minh, nath
 
     def do_event(self, event):
         def toggle(button):
