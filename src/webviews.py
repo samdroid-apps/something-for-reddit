@@ -41,6 +41,17 @@ class FullscreenableWebview(WebKit2.WebView):
         self._fullscreen.destroy()
         del self._fullscreen
 
+    _load_when_visible = None
+    def load_when_visible(self, uri):
+        self._load_when_visible = uri
+
+    def do_map(self):
+        WebKit2.WebView.do_map(self)
+
+        if self._load_when_visible is not None:
+            self.load_uri(self._load_when_visible)
+            self._load_when_visible = None
+
 
 class ProgressContainer(Gtk.Overlay):
     '''

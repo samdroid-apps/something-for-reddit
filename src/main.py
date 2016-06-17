@@ -141,14 +141,16 @@ class RedditWindow(Gtk.Window):
         self._stack.add_titled(self._webview_bin, 'web', 'Web')
         self._webview_bin.show()
         self._webview.show()
-        if link is not None:
-            self.load_uri_from_label(link)
         self._paned.position = 400  # TODO: constant
 
         if link_first and link:
             self._stack.set_visible_child(self._webview_bin)
+            self._webview.load_uri(link)
         else:
             self._stack.set_visible_child(self._comments)
+            if link is not None:
+                self._webview.load_when_visible(link)
+
 
     def load_uri_from_label(self, uri):
         self._stack.set_visible_child(self._webview_bin)
