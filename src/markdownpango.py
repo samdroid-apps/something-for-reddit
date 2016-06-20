@@ -18,7 +18,7 @@
 import re
 import markdown
 from markdown.extensions import Extension
-from markdown.inlinepatterns import Pattern
+from markdown.inlinepatterns import Pattern, SimpleTagPattern
 
 from gi.repository import Gtk
 
@@ -41,7 +41,14 @@ class _URIRegex(Extension):
         md.inlinePatterns['uriregex'] = _URIPattern(_URI_RE, md)
 
 
-MDX_CONTEXT = markdown.Markdown(extensions=[_URIRegex()])
+class _StrikeThroughRegex(Extension):
+    def extendMarkdown(self, md, md_globals):
+        s_tag = SimpleTagPattern('(~~)([^~]+)~~', 's')
+        md.inlinePatterns.add('s', s_tag, '>not_strong')
+
+
+MDX_CONTEXT = markdown.Markdown(extensions=[_URIRegex(),
+                                            _StrikeThroughRegex()])
 
 
 def markdown_to_pango(text):
