@@ -305,7 +305,6 @@ class _PostTopBar(Gtk.Bin):
         self.add_events(Gdk.EventMask.KEY_PRESS_MASK)
         self.data = data
         self._toplevel_cv = toplevel_cv
-        self._hideable_buttons = []
 
         self._b = Gtk.Builder.new_from_resource(
             '/today/sam/reddit-is-gtk/post-top-bar.ui')
@@ -315,57 +314,38 @@ class _PostTopBar(Gtk.Bin):
         self.expand = self._b.get_object('expand')
         self.expand.props.visible = hideable
         self._b.get_object('refresh').props.visible = refreshable
-        if refreshable:
-            self._hideable_buttons.append(self._b.get_object('refresh'))
 
         self._favorite = self._b.get_object('favorite')
         self._favorite.props.visible = 'saved' in self.data
         self._favorite.props.active = self.data.get('saved')
-        if 'saved' in self.data:
-            self._hideable_buttons.append(self._b.get_object('favorite'))
-
-        self._read = self._b.get_object('unread')
-        self._read.props.visible = 'new' in data
-        if 'new' in data:
-            if data['new']:
-                self._read.props.active = False
-                self._read.get_style_context().add_class('unread')
-                self._read.props.label = 'Mark as Read'
-            else:
-                self._read.props.active = True
-                self._read.props.sensitive = False
-                self._read.props.label = 'Read'
 
         self._name_button = self._b.get_object('name')
         self._abb = AuthorButtonBehaviour(
             self._name_button, self.data,
             self._toplevel_cv.get_original_poster(),
             show_flair=True)
-        self._hideable_buttons.append(self._name_button)
 
         self._score_button = self._b.get_object('score')
         self._score_button.props.visible = 'score' in data
         if 'score' in data:
             self._sbb = ScoreButtonBehaviour(self._score_button, self.data)
-        self._hideable_buttons.append(self._score_button)
 
         self._time_button = self._b.get_object('time')
         self._tbb = TimeButtonBehaviour(self._time_button, self.data)
-        self._hideable_buttons.insert(0, self._time_button)
 
         self._reply_button = self._b.get_object('reply')
         self._reply_pb = connect_palette(
             self._reply_button, self._make_reply_palette, recycle_palette=True)
-        self._hideable_buttons.append(self._reply_button)
 
         self._sub_button = self._b.get_object('sub')
         self._sub_button.props.visible = show_subreddit
         if show_subreddit:
             self._subbb = SubButtonBehaviour(self._sub_button, self.data)
-            self._hideable_buttons.insert(0, self._b.get_object('sub'))
 
         self._b.connect_signals(self)
-        self.set_size_request(100, -1)
+
+        # We need to lazy allocate this list, otherwise we get bogus sizes
+        self._hideables = None
 
     def do_get_request_mode(self):
         return Gtk.SizeRequestMode.HEIGHT_FOR_WIDTH
@@ -376,18 +356,21 @@ class _PostTopBar(Gtk.Bin):
 
     def do_get_preferred_height_for_width(self, width):
         # FIXME:  Worse for performance than the nested ListBoxes??
-        for b in self._hideable_buttons:
-            b.show()
+        if self._hideables is None:
+            self._hideables = []
+            for child in self._b.get_object('box').get_children():
+                if child.props.visible:
+                    minimum, natural = child.get_preferred_width()
+                    self._hideables.append((child, natural))
 
-        minw, natw = Gtk.Bin.do_get_preferred_width(self)
-        for b in self._hideable_buttons:
-            if natw < width:
-                break
-            b.hide()
-            minw, natw = Gtk.Bin.do_get_preferred_width(self)
+        new_width = 0
+        for b, w in self._hideables:
+            new_width += w
+            if new_width > width:
+                b.hide()
+            else:
+                b.show()
 
-        if natw > width:
-            self._b.get_object('sub').hide()
         minh, nath = Gtk.Bin.do_get_preferred_height(self)
         return minh, nath
 
@@ -403,7 +386,6 @@ class _PostTopBar(Gtk.Bin):
             'd': (self._sbb.vote, [-1]),
             'n': (self._sbb.vote, [0]),
             'f': (toggle, [self._favorite]),
-            'r': (activate, [self._reply_button]),
             't': (activate, [self._time_button]),
             'a': (self.get_toplevel().goto_sublist,
                   ['/u/{}'.format(self.data['author'])]),
@@ -411,6 +393,10 @@ class _PostTopBar(Gtk.Bin):
                   ['/r/{}'.format(self.data['subreddit'])]),
             'space': (toggle, [self.expand]),
         }
+        if self._reply_button.props.visible:
+            shortcuts['r'] = (activate, [self._reply_button])
+        else:
+            shortcuts['r'] = (self._show_reply_modal, [])
         return process_shortcuts(shortcuts, event)
 
     def refresh_clicked_cb(self, button):
@@ -432,41 +418,55 @@ class _PostTopBar(Gtk.Bin):
                                    None)
 
     def _make_reply_palette(self):
-        palette = _ReplyPopover(self.data)
-        palette.get_child().show_all()
-        palette.posted.connect(self.__reply_posted_cb)
-        return palette
+        popover = Gtk.Popover()
+        contents = _ReplyPopoverContents(self.data)
+        contents.posted.connect(self.__reply_posted_cb)
+        popover.add(contents)
+        return popover
+
+    def _show_reply_modal(self):
+        dialog = Gtk.Dialog(use_header_bar=True)
+        contents = _ReplyPopoverContents(self.data,
+                                         header_bar=dialog.get_header_bar())
+        dialog.get_content_area().add(contents)
+        contents.posted.connect(self.__reply_posted_cb)
+
+        dialog.props.transient_for = self.get_toplevel()
+        dialog.show()
 
     def __reply_posted_cb(self, caller, new_id):
         self._toplevel_cv.reply_posted(new_id)
 
 
-class _ReplyPopover(Gtk.Popover):
+class _ReplyPopoverContents(Gtk.Box):
 
     posted = GObject.Signal('posted', arg_types=[str])
 
-    def __init__(self, data, **kwargs):
-        Gtk.Popover.__init__(self, **kwargs)
-        self.add_events(Gdk.EventMask.KEY_PRESS_MASK)
+    def __init__(self, data, header_bar=None, **kwargs):
+        Gtk.Box.__init__(self, orientation=Gtk.Orientation.VERTICAL)
         self.data = data
-        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        self.add(box)
 
         sw = Gtk.ScrolledWindow()
         sw.set_size_request(500, 300)
-        box.add(sw)
+        self.add(sw)
         self._textview = Gtk.TextView()
         self._textview.props.wrap_mode = Gtk.WrapMode.WORD
         self._textview.set_size_request(500, 300)
+        self._textview.connect('event', self.__event_cb)
         sw.add(self._textview)
 
         self._done = Gtk.Button(label='Post Reply')
         self._done.connect('clicked', self.__done_clicked_cb)
-        box.add(self._done)
+        if header_bar is not None:
+            header_bar.pack_end(self._done)
+            self._done.get_style_context().add_class('suggested-action')
+            self._done.show()
+        else:
+            self.add(self._done)
 
-        box.show_all()
+        self.show_all()
 
-    def do_event(self, event):
+    def __event_cb(self, textview, event):
         shortcuts = {
             '<Ctrl>Return': (self.__done_clicked_cb, [None])
         }
@@ -482,7 +482,10 @@ class _ReplyPopover(Gtk.Popover):
     def __reply_done_cb(self, data):
         new_id = data['json']['data']['things'][0]['data']['id']
         self.posted.emit(new_id)
-        self.hide()
+
+        parent = self.get_parent()
+        parent.hide()
+        parent.destroy()
         self.destroy()
 
 

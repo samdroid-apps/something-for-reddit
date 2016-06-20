@@ -144,7 +144,7 @@ class AuthorButtonBehaviour():
 
     def __name_clicked_cb(self, button):
         window = button.get_toplevel()
-        window.goto_sublist('/u/{}/overview'.format(button.props.label))
+        window.goto_sublist('/u/{}/'.format(button.props.label))
 
 
 class SubButtonBehaviour():

@@ -33,21 +33,7 @@
       <placeholder/>
     </child>
     <child>
-      <object class="GtkToggleButton" id="unread">
-        <property name="label" translatable="yes">[unread]</property>
-        <property name="visible">True</property>
-        <property name="can_focus">True</property>
-        <property name="receives_default">True</property>
-        <signal name="toggled" handler="read_toggled_cb" swapped="no"/>
-        <style>
-          <class name="unread"/>
-        </style>
-      </object>
-      <packing>
-        <property name="expand">False</property>
-        <property name="fill">True</property>
-        <property name="position">2</property>
-      </packing>
+      <placeholder/>
     </child>
     <child>
       <object class="GtkButton" id="name">
