@@ -384,6 +384,34 @@ class RedditAPI(GObject.GObject):
         pbl.close()
         callback(pbl.get_pixbuf())
 
+    def viglink(self, url, permalink, callback, user_data=None):
+        '''
+        Args:
+            url (str)
+            callback (function) - takes str (new link uri)
+        '''
+        data = urllib.parse.urlencode({
+            'out': url,
+            'loc': 'http://reddit.com' + permalink,
+            'format': 'txt',
+            'key': '227ce066840c1a6457f9d409d4fef0d0'
+        })
+        msg = Soup.Message.new('GET',
+                               'https://api.viglink.com/api/click?' + data)
+        msg.props.priority = Soup.MessagePriority.LOW
+        return self.session.queue_message(msg, self.__vig_cb,
+                                          (callback, url, user_data))
+
+    def __vig_cb(self, session, msg, user_data):
+        callback, origi, callback_user_data = user_data
+        vigged = msg.props.response_body.flatten().get_data()
+        vigged = vigged.decode('utf8')
+        if 'amazon' in origi:
+            print(vigged, origi)
+        if vigged != origi:
+            print('Vigged', origi, vigged)
+            callback(vigged, origi)
+
 
 _api = RedditAPI()
 

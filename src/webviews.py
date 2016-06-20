@@ -20,6 +20,8 @@ import subprocess
 from gi.repository import Gtk
 from gi.repository import WebKit2
 
+from redditisgtk.api import get_reddit_api
+
 
 class FullscreenableWebview(WebKit2.WebView):
 
@@ -96,6 +98,7 @@ class WebviewToolbar(Gtk.Bin):
             'clicked', self.__clicked_cb, webview.go_forward)
         self._b.get_object('external').connect('clicked', self.__external_cb)
 
+        self._vigged_uri = None
         webview.connect('load-changed', self.__load_changed_cb)
 
     def __load_changed_cb(self, webview, load_event):
@@ -103,6 +106,14 @@ class WebviewToolbar(Gtk.Bin):
             self._webview.can_go_back()
         self._b.get_object('forward').props.sensitive = \
             self._webview.can_go_forward()
+
+        if load_event == WebKit2.LoadEvent.STARTED:
+            self._vigged_uri = None
+            self._viglink_op = get_reddit_api().viglink(
+                webview.props.uri, '', self.__vigged_link_cb)
+
+    def __vigged_link_cb(self, new_uri, old_uri):
+        print('VIGGED LINK', old_uri, new_uri)
 
     def __external_cb(self, button):
         uri = self._webview.props.uri

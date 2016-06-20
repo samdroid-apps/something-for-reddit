@@ -261,6 +261,7 @@ class SubItemRow(Gtk.ListBoxRow):
         self._srbb = SubButtonBehaviour(self._g('subreddit'), self.data)
         self._tbb = TimeButtonBehaviour(self._g('time'), self.data)
 
+        self._g('money').props.visible = False
         self._g('nsfw').props.visible = self.data.get('over_18')
         self._g('saved').props.visible = self.data.get('saved')
         self._g('sticky').props.visible = self.data.get('stickied')
@@ -279,6 +280,8 @@ class SubItemRow(Gtk.ListBoxRow):
 
         self._fetch_thumbnail(self.data.get('thumbnail'))
         self._preview_palette = None
+
+        self._try_viglink()
 
     def read(self):
         self.get_style_context().add_class('read')
@@ -321,6 +324,17 @@ class SubItemRow(Gtk.ListBoxRow):
             self._preview_palette = get_preview_palette(
                 self.data, relative_to=button)
         self._preview_palette.show()
+
+    def _try_viglink(self):
+        uri = self.data.get('url')
+        if uri is None:
+            return
+
+        get_reddit_api().viglink(uri, self.data['permalink'], self.__vigged_cb)
+
+    def __vigged_cb(self, uri, old_uri):
+        self.data['url'] = uri
+        self._g('money').props.visible = True
 
 
 class MessageRow(Gtk.ListBoxRow):
