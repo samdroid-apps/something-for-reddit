@@ -157,7 +157,7 @@ class RedditWindow(Gtk.Window):
 
 
     def load_uri_from_label(self, uri):
-        if re.match('https?:\/\/(www\.)?reddit\.com\/', uri):
+        if re.match('https?:\/\/(www\.|np\.)?reddit\.com\/', uri):
             self.goto_reddit_uri(uri)
             return
         self._stack.set_visible_child(self._webview_bin)
@@ -208,7 +208,7 @@ class RedditWindow(Gtk.Window):
         '''
         Go to a reddit.com uri, eg. "https://www.reddit.com/r/rct"
         '''
-        for cond in ['https://', 'http://', 'reddit.com', 'www.reddit.com']:
+        for cond in ['https://', 'http://', 'www.', 'np.', 'reddit.com']:
             if uri.startswith(cond):
                 uri = uri[len(cond):]
 
