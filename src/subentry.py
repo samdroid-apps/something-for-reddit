@@ -51,11 +51,11 @@ class SubEntry(Gtk.Box):
     activate = GObject.Signal('reddit-activate', arg_types=[str])
     escape_me = GObject.Signal('escape-me')
 
-    def __init__(self):
+    def __init__(self, text='/r/all'):
         Gtk.Box.__init__(self, orientation=Gtk.Orientation.HORIZONTAL)
         self.get_style_context().add_class('linked')
 
-        self._entry = Gtk.Entry(text='/r/all')
+        self._entry = Gtk.Entry(text=text)
         self._entry.connect('event', self.__event_cb)
         self._entry.connect('changed', self.__changed_cb)
         self._entry.connect('activate', self.__activate_cb)

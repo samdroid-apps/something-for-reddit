@@ -25,6 +25,13 @@ appdata_in_files = reddit-is-gtk.appdata.xml.in
 please_draw_new_iconsdir = $(datadir)/pixmaps
 please_draw_new_icons_DATA = reddit-is-a-dead-bird.svg reddit-is-a-dead-bird-symbolic.svg
 
+gsettings_SCHEMAS = today.sam.something-for-reddit.gschema.xml
+
+# For uninstalled use
+gschemas.compiled: $(gsettings_SCHEMAS) Makefile
+	$(AM_V_GEN) $(GLIB_COMPILE_SCHEMAS) $(builddir)
+
+@GSETTINGS_RULES@
 
 EXTRA_DIST = \
 	$(resource_files) \
@@ -32,6 +39,7 @@ EXTRA_DIST = \
 	reddit-is-gtk.desktop.in \
 	reddit-is-gtk.appdata.xml.in \
 	reddit-is-gtk.gresource.xml \
+	today.sam.something-for-reddit.gschema.xml \
 	style.css \
 	$(NULL)
 

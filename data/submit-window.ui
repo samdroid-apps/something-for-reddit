@@ -11,6 +11,7 @@
         <property name="visible">True</property>
         <property name="can_focus">False</property>
         <property name="orientation">vertical</property>
+        <property name="spacing">6</property>
         <child>
           <object class="GtkGrid" id="title-grid">
             <property name="visible">True</property>
@@ -32,6 +33,7 @@
               <object class="GtkEntry" id="title-entry">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
+                <property name="hexpand">True</property>
                 <property name="placeholder_text" translatable="yes">Title</property>
               </object>
               <packing>
@@ -72,6 +74,7 @@
                   <object class="GtkEntry" id="link-entry">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
+                    <property name="hexpand">True</property>
                     <property name="placeholder_text" translatable="yes">Link</property>
                     <property name="input_purpose">url</property>
                   </object>
@@ -151,6 +154,7 @@
               <object class="GtkEntry" id="sub-entry">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
+                <property name="hexpand">True</property>
                 <property name="placeholder_text" translatable="yes">Subreddit</property>
               </object>
               <packing>

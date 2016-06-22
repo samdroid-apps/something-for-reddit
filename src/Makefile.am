@@ -17,4 +17,5 @@ app_PYTHON = \
 	readcontroller.py \
 	subentry.py \
 	sublist.py \
+	settings.py \
 	submit.py

@@ -31,6 +31,7 @@ from redditisgtk.webviews import (FullscreenableWebview, ProgressContainer,
 from redditisgtk.readcontroller import get_read_controller
 from redditisgtk.identity import IdentityButton
 from redditisgtk.comments import CommentsView
+from redditisgtk.settings import get_settings, show_settings
 
 
 VIEW_WEB = 0
@@ -39,7 +40,7 @@ VIEW_COMMENTS = 1
 
 class RedditWindow(Gtk.Window):
 
-    def __init__(self, start_sub='/r/all'):
+    def __init__(self, start_sub=None):
         Gtk.Window.__init__(self, title='Something For Reddit',
                             icon_name='reddit-is-a-dead-bird')
         self.add_events(Gdk.EventMask.KEY_PRESS_MASK)
@@ -72,7 +73,9 @@ class RedditWindow(Gtk.Window):
         self._paned.child_set_property(self._stack, 'shrink', True)
         self._stack.show()
 
-        self._make_header()
+        if start_sub is None:
+            start_sub = get_settings()['default-sub']
+        self._make_header(start_sub)
 
         self._sublist = SubList()
         self._sublist.new_other_pane.connect(self.__new_other_pane_cb)
@@ -156,7 +159,7 @@ class RedditWindow(Gtk.Window):
         self._stack.set_visible_child(self._webview_bin)
         self._webview.load_uri(uri)
 
-    def _make_header(self):
+    def _make_header(self, start_sub):
         self._header = Gtk.HeaderBar()
         self._header.props.show_close_button = True
         self.set_titlebar(self._header)
@@ -173,7 +176,7 @@ class RedditWindow(Gtk.Window):
         self._webview_toolbar = WebviewToolbar(self._webview)
         self._header.pack_end(self._webview_toolbar)
 
-        self._subentry = SubEntry()
+        self._subentry = SubEntry(start_sub)
         self._subentry.activate.connect(self.__subentry_activate_cb)
         self._subentry.escape_me.connect(self.__subentry_escape_me_cb)
         self._header.props.custom_title = self._subentry
@@ -256,7 +259,8 @@ class Application(Gtk.Application):
     # TODO:  Using do_startup causes SIGSEGV for me
     def __do_startup_cb(self, app):
         actions = [('about', self.__about_cb), ('quit', self.__quit_cb),
-                   ('shortcuts', self.__shortcuts_cb)]
+                   ('shortcuts', self.__shortcuts_cb),
+                   ('settings', self.__settings_cb)]
         for name, cb in actions:
             a = Gio.SimpleAction.new(name, None)
             a.connect('activate', cb)
@@ -290,6 +294,9 @@ class Application(Gtk.Application):
             '/today/sam/reddit-is-gtk/shortcuts-window.ui')
         builder.get_object('window').show()
 
+    def __settings_cb(self, action, param):
+        show_settings()
+
 
 def run():
     parser = ArgumentParser(
@@ -300,8 +307,14 @@ def run():
                         action='store_true')
     args = parser.parse_args()
 
+    settings = Gtk.Settings.get_default()
+    theme = get_settings()['theme']
+    if theme == 'dark':
+        settings.props.gtk_application_prefer_dark_theme = True
+    elif theme == 'light':
+        settings.props.gtk_application_prefer_dark_theme = False
+
     if args.dark:
-        settings = Gtk.Settings.get_default()
         settings.props.gtk_application_prefer_dark_theme = True
 
     a = Application()
