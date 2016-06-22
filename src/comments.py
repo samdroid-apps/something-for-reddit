@@ -342,7 +342,8 @@ class _PostTopBar(Gtk.Bin):
 
         self._reply_button = self._b.get_object('reply')
         self._reply_pb = connect_palette(
-            self._reply_button, self._make_reply_palette, recycle_palette=True)
+            self._reply_button, self._make_reply_palette,
+            recycle_palette=True, modalify=True)
 
         self._sub_button = self._b.get_object('sub')
         self._sub_button.props.visible = show_subreddit
@@ -404,10 +405,7 @@ class _PostTopBar(Gtk.Bin):
         return process_shortcuts(shortcuts, event)
 
     def show_reply(self):
-        if self._reply_button.props.visible:
-            self._reply_button.props.active = True
-        else:
-            self._show_reply_modal()
+        self._reply_button.props.active = True
 
     def refresh_clicked_cb(self, button):
         self._toplevel_cv.refresh()
@@ -428,53 +426,61 @@ class _PostTopBar(Gtk.Bin):
                                    None)
 
     def _make_reply_palette(self):
-        popover = Gtk.Popover()
-        contents = _ReplyPopoverContents(self.data)
-        contents.posted.connect(self.__reply_posted_cb)
-        popover.add(contents)
+        popover = _ReplyPopover(self.data)
+        popover.posted.connect(self.__reply_posted_cb)
         return popover
-
-    def _show_reply_modal(self):
-        dialog = Gtk.Dialog(use_header_bar=True)
-        contents = _ReplyPopoverContents(self.data,
-                                         header_bar=dialog.get_header_bar())
-        dialog.get_content_area().add(contents)
-        contents.posted.connect(self.__reply_posted_cb)
-
-        dialog.props.transient_for = self.get_toplevel()
-        dialog.show()
 
     def __reply_posted_cb(self, caller, new_id):
         self._toplevel_cv.reply_posted(new_id)
 
 
-class _ReplyPopoverContents(Gtk.Box):
+class _ReplyPopover(Gtk.Popover):
 
     posted = GObject.Signal('posted', arg_types=[str])
 
-    def __init__(self, data, header_bar=None, **kwargs):
-        Gtk.Box.__init__(self, orientation=Gtk.Orientation.VERTICAL)
+    def __init__(self, data):
+        Gtk.Popover.__init__(self)
         self.data = data
+
+        self._box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        self.add(self._box)
+        self._box.show()
 
         sw = Gtk.ScrolledWindow()
         sw.set_size_request(500, 300)
-        self.add(sw)
+        self._box.add(sw)
+        sw.show()
+
         self._textview = Gtk.TextView()
         self._textview.props.wrap_mode = Gtk.WrapMode.WORD
         self._textview.set_size_request(500, 300)
         self._textview.connect('event', self.__event_cb)
         sw.add(self._textview)
+        self._textview.show()
 
         self._done = Gtk.Button(label='Post Reply')
         self._done.connect('clicked', self.__done_clicked_cb)
-        if header_bar is not None:
-            header_bar.pack_end(self._done)
-            self._done.get_style_context().add_class('suggested-action')
-            self._done.show()
-        else:
-            self.add(self._done)
+        self._done.show()
 
-        self.show_all()
+    def preshow_palette(self):
+        print('PS P')
+        if self._done.get_parent() is not None:
+            print('1111')
+            self._done.get_parent().remove(self._done)
+        print('PS P')
+        self._box.add(self._done)
+        print('PS P')
+        self._done.get_style_context().remove_class('suggested-action')
+        print('PS P')
+        self._done.show()
+        print('PS P')
+
+    def preshow_modal(self, header_bar):
+        if self._done.get_parent() is not None:
+            self._done.get_parent().remove(self._done)
+        header_bar.pack_end(self._done)
+        self._done.get_style_context().add_class('suggested-action')
+        self._done.show()
 
     def __event_cb(self, textview, event):
         shortcuts = {

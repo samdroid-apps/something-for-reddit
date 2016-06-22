@@ -35,9 +35,15 @@ class _PaletteButton(GObject.GObject):
 
                 dialog.props.transient_for = self._button.get_toplevel()
                 dialog.connect('response', self.__dialog_closed_cb)
+                if hasattr(self._palette, 'preshow_modal'):
+                    self._palette.preshow_modal(dialog.get_header_bar())
+                print('SEG FAULT YET?')
                 dialog.show()
+                print('SEG FAULT YET?')
             else:
                 self._palette.props.relative_to = button
+                if hasattr(self._palette, 'preshow_palette'):
+                    self._palette.preshow_palette()
                 self._palette.show()
         else:
             self._palette.hide()
