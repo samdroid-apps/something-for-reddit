@@ -1,6 +1,7 @@
 /* define $dark, based on theme darkness */
 
 $gnome-gray: if($dark, rgb(51, 57, 59), rgb(232, 232, 231));
+$popover-bg: if($dark, rgb(57, 63, 63), rgb(232, 232, 231));
 $blue: if($dark, #215D9C, #4a90d9);
 $white: if($dark, black, white);
 $orange: if($dark, #ce5c00, #f57900);
@@ -265,4 +266,59 @@ popover textview {
 
 .error-label {
     color: red;
+}
+
+/*
+ * SubEntry
+ */
+
+popover.subentry-palette {
+    padding-left: 0;
+    padding-right: 0;
+}
+
+popover.subentry-palette label.header {
+    padding-left: 6px;
+}
+
+popover button.full-width {
+    background: $popover-bg;
+
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+
+    &:checked {
+        background: darker($popover-bg);
+        border-top: 1px solid black;
+        color: white;
+        text-shadow: none;
+    }
+    &:hover, &:focus {
+        background: lighter($popover-bg);
+        outline: none;
+
+        @if $dark == false {
+            color: black;
+            text-shadow: none;
+        }
+    }
+    &:active {
+        background: $blue;
+        color: white;
+        text-shadow: none;
+    }
+}
+
+popover revealer {
+    button.full-width {
+        background: darker($popover-bg);
+        color: white;
+        text-shadow: none;
+    }
+
+    box {
+        border-bottom: 1px solid black;
+    }
 }

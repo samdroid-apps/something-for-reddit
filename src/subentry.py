@@ -20,7 +20,7 @@ from gi.repository import Gdk
 from gi.repository import GObject
 
 from redditisgtk.api import (get_reddit_api, PREPEND_SUBS, is_special_sub,
-                             SORTINGS, SPECIAL_SUBS, SORTING_TIMES)
+                             SPECIAL_SUBS, SORTING_TIMES)
 
 
 def _clean_sub(sub):
@@ -131,8 +131,7 @@ class VScrollingPopover(Gtk.Popover):
     def __init__(self, **kwargs):
         Gtk.Popover.__init__(self, vexpand=True, **kwargs)
         self._sw = Gtk.ScrolledWindow(
-            hscrollbar_policy=Gtk.PolicyType.NEVER,
-            height_request=400)
+            hscrollbar_policy=Gtk.PolicyType.NEVER)
         self.add(self._sw)
         self._sw.show()
 
@@ -158,6 +157,7 @@ class _ListPalette(VScrollingPopover):
 
     def __init__(self, parent, **kwargs):
         VScrollingPopover.__init__(self, **kwargs)
+        self.get_style_context().add_class('subentry-palette')
         self._parent = parent
         self._filter = None
 
@@ -198,6 +198,7 @@ class _ListPalette(VScrollingPopover):
 
     def __open_reddit_uri_cb(self, button, uri):
         self.get_toplevel().goto_reddit_uri(uri)
+        self.hide()
 
     def _rebuild(self):
         self._box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
@@ -217,16 +218,12 @@ class _ListPalette(VScrollingPopover):
         if sub.startswith('/r/'):
             by_slash = sub.split('/')
             name = by_slash[2]  # get the /r/[thing]/whatever part
-            if len(by_slash) == 4:  # /r/subreddit/top?=whatever
-                sort = by_slash[3]
-                if '?' in sort and len(sort.split('?')) == 2:
-                    type, time = sort.split('?')
-                    self._add_header('Sorting Times')
-                    self._add_subs(('/r/{}/{}?t={}'.format(name, type, x)
-                                    for x in SORTING_TIMES))
 
             self._add_header('Sorting')
-            self._add_subs(('/r/{}/{}'.format(name, x) for x in SORTINGS))
+            for x in ['hot', 'new', 'random']:
+                self._add_subs(('/r/{}/{}'.format(name, x),))
+            for x in ['top', 'controversial']:
+                self._add_expander_sub('/r/{}/{}'.format(name, x))
 
         if not self._filter:
             self._add_header('Subscribed')
@@ -246,18 +243,44 @@ class _ListPalette(VScrollingPopover):
 
     def _add_header(self, header):
         l = Gtk.Label(xalign=0, justify=Gtk.Justification.LEFT)
+        l.get_style_context().add_class('header')
         l.set_markup('<b>{}</b>'.format(header))
         self._box.add(l)
         l.show()
 
-    def _add_subs(self, subs):
+    def _add_subs(self, subs, to=None):
         for sub in subs:
-            b = Gtk.Button(label=sub)
-            b.get_style_context().add_class('flat')
-            b.props.xalign = 0
+            b = Gtk.Button(label=sub, xalign=0)
+            b.get_style_context().add_class('full-width')
             b.connect('clicked', self.__sub_button_clicked)
-            self._box.add(b)
+            if to is None:
+                self._box.add(b)
+            else:
+                to.add(b)
             b.show()
 
     def __sub_button_clicked(self, button):
         self.selected.emit(button.props.label)
+
+    def _add_expander_sub(self, sub):
+        btn = Gtk.ToggleButton(label=sub, xalign=0)
+        btn.get_style_context().add_class('full-width')
+
+        revealer = Gtk.Revealer(
+            transition_type=Gtk.RevealerTransitionType.SLIDE_DOWN)
+        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        revealer.add(box)
+
+        self._add_subs(('{}?t={}'.format(sub, x) for x in SORTING_TIMES),
+                       to=box)
+
+        btn.connect('toggled', self.__sub_expander_toggled_cb, revealer)
+
+        self._box.add(btn)
+        self._box.add(revealer)
+        btn.show()
+        revealer.show()
+        box.show()
+
+    def __sub_expander_toggled_cb(self, button, revealer):
+        revealer.props.reveal_child = button.props.active
