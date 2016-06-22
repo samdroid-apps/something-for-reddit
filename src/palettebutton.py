@@ -1,4 +1,5 @@
 from gi.repository import GObject
+from gi.repository import Gtk
 
 
 class _PaletteButton(GObject.GObject):
@@ -8,9 +9,10 @@ class _PaletteButton(GObject.GObject):
     method (when subclassed)
     '''
 
-    def __init__(self, button, recycle):
+    def __init__(self, button, recycle, modalify):
         self._button = button
         self._recycle = recycle
+        self._modalify = modalify
         self._palette = None
         self._self_triggered = False
 
@@ -24,12 +26,29 @@ class _PaletteButton(GObject.GObject):
             if self._palette is None:
                 self._palette = self.create_palette()
                 self._palette.connect('closed', self.__palette_closed_cb)
-            self._palette.props.relative_to = button
-            self._palette.show()
+                self._pc = self._palette.get_child()
+
+            if not self._button.props.visible and self._modalify:
+                dialog = Gtk.Dialog(use_header_bar=True)
+                self._palette.remove(self._pc)
+                dialog.get_content_area().add(self._pc)
+
+                dialog.props.transient_for = self._button.get_toplevel()
+                dialog.connect('response', self.__dialog_closed_cb)
+                dialog.show()
+            else:
+                self._palette.props.relative_to = button
+                self._palette.show()
         else:
             self._palette.hide()
             if not self._recycle:
                 self._palette = None
+
+    def __dialog_closed_cb(self, dialog, response):
+        dialog.get_content_area().remove(self._pc)
+        self._palette.add(self._pc)
+
+        self.__palette_closed_cb(None)
 
     def __palette_closed_cb(self, palette):
         self._self_triggered = True
@@ -39,7 +58,8 @@ class _PaletteButton(GObject.GObject):
             self._palette = None
 
 
-def connect_palette(button, create_palette_func, recycle_palette=False):
-    p = _PaletteButton(button, recycle_palette)
+def connect_palette(button, create_palette_func, recycle_palette=False,
+                    modalify=False):
+    p = _PaletteButton(button, recycle_palette, modalify)
     p.create_palette = create_palette_func
     return p

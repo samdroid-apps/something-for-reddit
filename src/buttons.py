@@ -164,7 +164,8 @@ class TimeButtonBehaviour():
         self.data = data
         time = arrow.get(self.data['created_utc'])
         button.props.label = time.humanize()
-        self._p = connect_palette(button, self._make_time_palette)
+        self._p = connect_palette(button, self._make_time_palette,
+                                  modalify=True)
 
     def _make_time_palette(self):
         t = _TimePalette(self.data)
