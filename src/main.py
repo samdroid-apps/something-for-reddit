@@ -15,6 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Reddit is Gtk+.  If not, see <http://www.gnu.org/licenses/>.
 
+import re
 import sys
 from argparse import ArgumentParser
 
@@ -156,6 +157,9 @@ class RedditWindow(Gtk.Window):
 
 
     def load_uri_from_label(self, uri):
+        if re.match('https?:\/\/(www\.)?reddit\.com\/', uri):
+            self.goto_reddit_uri(uri)
+            return
         self._stack.set_visible_child(self._webview_bin)
         self._webview.load_uri(uri)
 

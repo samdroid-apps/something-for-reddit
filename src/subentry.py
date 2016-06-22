@@ -113,7 +113,11 @@ class SubEntry(Gtk.Box):
         self._entry.props.text = sub
 
     def __activate_cb(self, entry=None):
-        self.activate.emit(self.get_real_sub())
+        text = self._entry.props.text
+        if text.startswith('http://') or text.startswith('https://'):
+            self.get_toplevel().goto_reddit_uri(text)
+        else:
+            self.activate.emit(self.get_real_sub())
         self._palette.hide()
 
         # If we don't override the selection, the whole text will be selected
@@ -165,6 +169,11 @@ class _ListPalette(VScrollingPopover):
         self._rebuild()
 
     def set_filter(self, filter):
+        if filter is not None:
+            if filter.startswith('https://') or filter.startswith('http://'):
+                self._show_open_uri(filter)
+                return
+
         if not filter:
             filter = None
         else:
@@ -180,6 +189,15 @@ class _ListPalette(VScrollingPopover):
         for sub in sub_list:
             if sub.lower().startswith(self._filter.lower()):
                 yield sub
+
+    def _show_open_uri(self, uri):
+        button = Gtk.Button(label='Open this reddit.com URI')
+        button.connect('clicked', self.__open_reddit_uri_cb, uri)
+        self.set_scrolled_child(button)
+        button.show()
+
+    def __open_reddit_uri_cb(self, button, uri):
+        self.get_toplevel().goto_reddit_uri(uri)
 
     def _rebuild(self):
         self._box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
