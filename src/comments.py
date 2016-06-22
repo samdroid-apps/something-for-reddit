@@ -134,12 +134,19 @@ class CommentsView(Gtk.ScrolledWindow):
             self._comments.hide()
             self._comments.destroy()
 
-        # The 0th one is just the self post
-        self._comments = _CommentsView(j[1]['data']['children'],
-                                       self,
-                                       first=True)
+        if len(j[1]['data']['children']) == 0:
+            self._comments = EmptyView('No Comments', action='Add a comment')
+            self._comments.action.connect(self.__add_comment_clicked_cb)
+        else:
+            # The 0th one is just the self post
+            self._comments = _CommentsView(j[1]['data']['children'],
+                                           self,
+                                           first=True)
         self._box.add(self._comments)
         self._comments.show()
+
+    def __add_comment_clicked_cb(self, view):
+        self._top.show_reply()
 
     def __load_full_cb(self, row):
         # First 6 = /r/rct/comments/4ns96b/new_to_rct_lovely_community_3/
@@ -391,13 +398,16 @@ class _PostTopBar(Gtk.Bin):
                   ['/u/{}'.format(self.data['author'])]),
             's': (self.get_toplevel().goto_sublist,
                   ['/r/{}'.format(self.data['subreddit'])]),
+            'r': (self.show_reply, []),
             'space': (toggle, [self.expand]),
         }
-        if self._reply_button.props.visible:
-            shortcuts['r'] = (activate, [self._reply_button])
-        else:
-            shortcuts['r'] = (self._show_reply_modal, [])
         return process_shortcuts(shortcuts, event)
+
+    def show_reply(self):
+        if self._reply_button.props.visible:
+            self._reply_button.props.active = True
+        else:
+            self._show_reply_modal()
 
     def refresh_clicked_cb(self, button):
         self._toplevel_cv.refresh()
@@ -577,3 +587,27 @@ class CommentRow(Gtk.ListBoxRow):
             rc = not self._revealer.props.reveal_child
             self._revealer.props.reveal_child = rc
             self._top.expand.props.active = not rc
+
+
+class EmptyView(Gtk.Bin):
+
+    action = GObject.Signal('action')
+
+    def __init__(self, title, action=None):
+        Gtk.Bin.__init__(self)
+
+        builder = Gtk.Builder.new_from_resource(
+            '/today/sam/reddit-is-gtk/empty-view.ui')
+        self._g = builder.get_object
+        self.add(self._g('box'))
+        self.get_child().show()
+
+        self._g('title').props.label = title
+
+        if action is not None:
+            self._g('action').props.label = action
+            self._g('action').props.visible = True
+            self._g('action').connect('clicked', self.__action_clicked_cb)
+
+    def __action_clicked_cb(self, button):
+        self.action.emit()
