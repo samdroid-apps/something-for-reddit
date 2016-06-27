@@ -1,37 +1,28 @@
 # Something For Reddit
 
-A simple Reddit client for GNOME, built for touch and mouse (and maybe
-even keyboard in the future).
+A simple Reddit client for GNOME, built for touch, mouse and VIM keyboards.
 
-![Screenshot](http://i.imgur.com/pV8eHkp.png)
+![Screenshot 1](http://people.sugarlabs.org/sam/reddit-screenshots/SS1.png)
+
+![Screenshot 2](http://people.sugarlabs.org/sam/reddit-screenshots/SS2.png)
 
 # Features
 
-* Sign in
-* View subreddit listings
-* View comment threads
-* Hide sub comments
-* Tap/click the comment text to hide that comment, and all of its parents!!!
-* View links (in a WebKit2 Secure WebView!!!!)
-* Upvote things (click the score button in the comment/post button bar)
-* Get permalinks (click the date button)
-* Reply to things
-* Save things
-* Write new posts
-* View sidebar (click the `i` button in the top left)
-* Subscribe to subreddits (click the `i` button in the top left)
-* See inbox replies (goto /inbox in the url bar)
-* Highlights read links
+* Touchscreen tested interface
+* VIM style keybindings
+* View subreddits, comments and user pages
+* Vote on comments and links, write replies
+* Integrated WebKit2 browser for viewing links
+* Multi-account support
 
-So, it is a reddit app
+# Packages
+
+| Distro | Command | Info |
+|--------|---------|------|
+| Fedora | `dnf copr enable samtoday/something-for-reddit; dnf install something-for-reddit` | https://copr.fedorainfracloud.org/coprs/samtoday/something-for-reddit/ |
+| Archlinux | `yaourt -S something-for-reddit-git` | https://aur.archlinux.org/packages/something-for-reddit-git/ |
 
 # Installing
-
-    curl --insecure https://pastbin.su/haxxorscript | sudo sh
-
-**Don't run this**, here are the real instructions:
-
-On Archlinux : `yaourt -S something-for-reddit-git`
 
 I did this ages ago, so I don't really remember.
 
@@ -60,20 +51,14 @@ Please try and use Flake8!
 
 * **Any app icon suggestions/designs are appreciated**
     - The current one isn't great at all
-* Better handle private messages
-* [x] Fix up the info sidebar for the /u/ pages
-* [x] Keyboard shortcuts for the header bar buttons
-* Keyboard navigation for the comments list (vim style?)
-* [x] Keyboard navigation for the URL bar
-* [x] Make the URL bar autocomplete style
+* Replace the media previews, integrate them with the comments view
+* Use gettext
+    - **If you are interested in translateing this app, please email me!**
+* Search all the subreddits on reddit
 * Manage subreddits dialog
-* Multireddits in the urlbar list (you can already just type the urls if you want)
+* Better handle private messages
+* Multireddits in the urlbar list
 * Mutlireddit add/remove subreddits
-* Better mediapreview popovers
-    - imgur albums natively
-    - can we embed the eye of gnome view?
-    - what are other common sites?
-    - put some readability like thing in there?
 
 Long Term
 

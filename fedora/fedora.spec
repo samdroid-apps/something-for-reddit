@@ -4,7 +4,7 @@
 
 Name:          something-for-reddit
 Summary:       Browse Reddit from GNOME
-Version:       0.1
+Version:       0.2
 Release:       1%{?dist}
 BuildArch:     noarch
 
@@ -56,22 +56,18 @@ make %{?_smp_mflags}
 
 
 %check
-appstream-util validate-relax --nonet %{buildroot}/%{_datadir}/appdata/%{name}.appdata.xml
-desktop-file-validate %{buildroot}/%{_datadir}/applications/%{name}.desktop
+appstream-util validate-relax --nonet %{buildroot}/%{_datadir}/appdata/reddit-is-gtk.appdata.xml
+desktop-file-validate %{buildroot}/%{_datadir}/applications/reddit-is-gtk.desktop
 
 
 
 %files
 %doc NEWS
 %license COPYING
-%{_bindir}/%{name}
+%{_bindir}/reddit-is-gtk
 %{_datadir}/%{name}
 %{_datadir}/pixmaps/
 %{_datadir}/appdata/reddit-is-gtk.appdata.xml
 %{_datadir}/glib-2.0/schemas/today.sam.something-for-reddit.gschema.xml
 %{_datadir}/applications/reddit-is-gtk.desktop
 %{python3_sitelib}/redditisgtk
-
-
-%changelog
-Adapted from Fedora's gnome-music 3.20.0-1

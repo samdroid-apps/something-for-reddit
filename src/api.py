@@ -28,7 +28,7 @@ from gi.repository import GdkPixbuf
 from redditisgtk.identity import get_identity_controller
 
 
-USER_AGENT = 'GNU:reddit-is-gtk:v0.1 (by /u/samtoday)'
+USER_AGENT = 'GNU:something-for-reddit:v0.2 (by /u/samtoday)'
 PREPEND_SUBS = ['/r/all', '/inbox']
 DEFAULT_SUBS = ['/r/gnome', '/r/gnu+linux']
 SPECIAL_SUBS = [

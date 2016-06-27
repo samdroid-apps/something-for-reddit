@@ -285,7 +285,7 @@ class Application(Gtk.Application):
             authors=['Sam P. <sam@sam.today>'],
             website='https://github.com/samdroid-apps/something-for-reddit',
             website_label='Git Repo and Issue Tracker on GitHub',
-            version='0.1',
+            version='0.2',
             transient_for=self._w,
             modal=True)
         about_dialog.present()

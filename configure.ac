@@ -1,9 +1,9 @@
 AC_PREREQ(2.63)
-AC_INIT([reddit-is-gtk],
-        [0.1],
-        [https://github.com/samdroid-apps/reddit-is-gtk/issues],
-        [reddit-is-gtk],
-        [https://github.com/samdroid-apps/reddit-is-gtk])
+AC_INIT([something-for-reddit],
+        [0.2],
+        [https://github.com/samdroid-apps/something-for-reddit/issues],
+        [something-for-reddit],
+        [https://github.com/samdroid-apps/something-for-reddit])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_SRCDIR([Makefile.am])
 AC_CONFIG_HEADERS(config.h)
@@ -32,6 +32,7 @@ GLIB_GSETTINGS
 GOBJECT_INTROSPECTION_REQUIRE([1.35.9])
 PKG_CHECK_MODULES([GTK], [gtk+-3.0 >= 3.13.2])
 PKG_CHECK_MODULES([LIBSOUP], [libsoup-2.4 >= 2.4])
+# AX_PATH_PROG([sass], [For compiling style sheets])
 
 GLIB_COMPILE_RESOURCES=`$PKG_CONFIG --variable glib_compile_resources gio-2.0`
 AC_SUBST(GLIB_COMPILE_RESOURCES)
