@@ -284,22 +284,30 @@ class _CommentsView(Gtk.ListBox):
         self._add_comments(more_comments)
 
 
-class LoadFullCommentsRow(Gtk.InfoBar):
+class LoadFullCommentsRow(Gtk.ListBoxRow):
 
     load_full = GObject.Signal('load_full')
 
     def __init__(self):
-        Gtk.InfoBar.__init__(self,
-                             message_type=Gtk.MessageType.QUESTION)
+        Gtk.ListBoxRow.__init__(self)
+
+        self._ib = Gtk.InfoBar(message_type=Gtk.MessageType.QUESTION)
+        self._ib.connect('response', self.__response_cb)
+        self.add(self._ib)
+        self._ib.show()
 
         label = Gtk.Label(label='Showing only a subset of comments')
-        self.get_content_area().add(label)
+        self._ib.get_content_area().add(label)
         label.show()
 
-        self.add_button('Show All Comments', 1)
+        self._button = self._ib.add_button('Show All Comments', 1)
 
-    def do_response(self, response):
+    def grab_focus(self):
+        self._button.grab_focus()
+
+    def __response_cb(self, ib, response):
         self.load_full.emit()
+        self._button.props.label = 'Loading...'
 
 
 class _PostTopBar(Gtk.Bin):
@@ -511,6 +519,7 @@ class CommentRow(Gtk.ListBoxRow):
         self.depth = depth
         self._toplevel_cv = toplevel_cv
         self._top = None
+        self._more_button = None
 
         self._box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.add(self._box)
@@ -527,14 +536,13 @@ class CommentRow(Gtk.ListBoxRow):
             self._box.add(self._more_button)
             self._more_button.show()
 
+    def do_focus_in_event(self, event):
+        if self._more_button is not None:
+            self._more_button.grab_focus()
+
     def do_event(self, event):
         if self._top is not None:
             return self._top.do_event(event)
-        else:
-            shortcuts = {
-                'Return': (self.__load_more_cb, [self._more_button])
-            }
-            return process_shortcuts(shortcuts, event)
 
     def __load_more_cb(self, button):
         button.props.sensitive = False
