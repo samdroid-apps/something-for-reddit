@@ -129,6 +129,7 @@ class SubList(Gtk.ScrolledWindow):
                 row.grab_focus()
             else:
                 # We went too far!
+                s.error_bell()
                 s.get_style_context().remove_class('angry')
                 s.get_style_context().add_class('angry')
                 GLib.timeout_add(

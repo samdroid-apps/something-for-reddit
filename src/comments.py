@@ -195,6 +195,7 @@ class CommentsView(Gtk.ScrolledWindow):
                 self._selected = row
             else:
                 # We went too far!
+                self.error_bell()
                 self._selected.get_style_context().remove_class('angry')
                 self._selected.get_style_context().add_class('angry')
                 GLib.timeout_add(
