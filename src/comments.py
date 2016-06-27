@@ -408,6 +408,10 @@ class _PostTopBar(Gtk.Bin):
                   ['/r/{}'.format(self.data['subreddit'])]),
             'r': (self.show_reply, []),
             'space': (toggle, [self.expand]),
+            # The ListBoxRow usually eats these shortcuts, but we want
+            # the ListBox to handle them, so we need to pass it up
+            'Up': (self._toplevel_cv.do_event, [event]),
+            'Down': (self._toplevel_cv.do_event, [event]),
         }
         return process_shortcuts(shortcuts, event)
 
