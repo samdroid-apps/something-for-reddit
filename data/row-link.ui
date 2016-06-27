@@ -16,7 +16,7 @@
           <object class="GtkImage" id="nsfw">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="icon_name">face-devilish</property>
+            <property name="icon_name">face-devilish-symbolic</property>
           </object>
           <packing>
             <property name="expand">False</property>
