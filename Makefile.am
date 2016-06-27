@@ -6,6 +6,7 @@ bin_SCRIPTS = reddit-is-gtk
 SUBDIRS = src data po
 
 EXTRA_DIST = \
+	reddit-is-gtk.in  \
 	$(NULL)
 
 CLEANFILES = \
