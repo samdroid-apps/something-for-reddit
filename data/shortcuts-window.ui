@@ -72,7 +72,7 @@
               <object class="GtkShortcutsShortcut">
                 <property name="visible">1</property>
                 <property name="accelerator">Down</property>
-                <property name="title" translatable="yes">Show Subreddit List</property>
+                <property name="title" translatable="yes">Subscribed Subreddit List</property>
               </object>
             </child>
           </object>
@@ -80,68 +80,67 @@
         <child>
           <object class="GtkShortcutsGroup">
             <property name="visible">1</property>
-            <property name="title" translatable="yes">SubList (Left Panel)</property>
+            <property name="title" translatable="yes">Navigating Lists</property>
             <child>
               <object class="GtkShortcutsShortcut">
                 <property name="visible">1</property>
                 <property name="accelerator">Down j</property>
-                <property name="title" translatable="yes">Focus Row Below</property>
+                <property name="title" translatable="yes">Move Focus Down</property>
               </object>
             </child>
             <child>
               <object class="GtkShortcutsShortcut">
                 <property name="visible">1</property>
                 <property name="accelerator">Up k</property>
-                <property name="title" translatable="yes">Focus Row Above</property>
+                <property name="title" translatable="yes">Move Focus Up</property>
               </object>
             </child>
-            <child>
-              <object class="GtkShortcutsShortcut">
-                <property name="visible">1</property>
-                <property name="accelerator">Enter</property>
-                <property name="title" translatable="yes">Show Focused Row's Link</property>
-              </object>
-            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkShortcutsGroup">
+            <property name="visible">1</property>
+            <property name="title" translatable="yes">List Items</property>
             <child>
               <object class="GtkShortcutsShortcut">
                 <property name="visible">1</property>
                 <property name="accelerator">u</property>
-                <property name="title" translatable="yes">Upvote Focused</property>
+                <property name="title" translatable="yes">Upvote</property>
               </object>
             </child>
             <child>
               <object class="GtkShortcutsShortcut">
                 <property name="visible">1</property>
                 <property name="accelerator">d</property>
-                <property name="title" translatable="yes">Downvote Focused</property>
+                <property name="title" translatable="yes">Downvote</property>
               </object>
             </child>
             <child>
               <object class="GtkShortcutsShortcut">
                 <property name="visible">1</property>
                 <property name="accelerator">n</property>
-                <property name="title" translatable="yes">Clear Vote for Focused Row</property>
+                <property name="title" translatable="yes">Clear Vote</property>
               </object>
             </child>
             <child>
               <object class="GtkShortcutsShortcut">
                 <property name="visible">1</property>
                 <property name="accelerator">a</property>
-                <property name="title" translatable="yes">Goto the Focused's Author's Overview Page</property>
+                <property name="title" translatable="yes">Goto Author's Overview Page</property>
               </object>
             </child>
             <child>
               <object class="GtkShortcutsShortcut">
                 <property name="visible">1</property>
                 <property name="accelerator">s</property>
-                <property name="title" translatable="yes">Goto the Focused's Subreddit</property>
+                <property name="title" translatable="yes">Goto the Subreddit</property>
               </object>
             </child>
             <child>
               <object class="GtkShortcutsShortcut">
                 <property name="visible">1</property>
-                <property name="accelerator">c</property>
-                <property name="title" translatable="yes">Goto the Focused's Comments Page</property>
+                <property name="accelerator">t</property>
+                <property name="title" translatable="yes">Time Palette</property>
               </object>
             </child>
           </object>
@@ -149,21 +148,27 @@
         <child>
           <object class="GtkShortcutsGroup">
             <property name="visible">1</property>
-            <property name="title" translatable="yes">Comments View</property>
+            <property name="title" translatable="yes">SubList Specific</property>
             <child>
               <object class="GtkShortcutsShortcut">
                 <property name="visible">1</property>
-                <property name="accelerator">Down j</property>
-                <property name="title" translatable="yes">Focus Comment Below</property>
+                <property name="accelerator">Return</property>
+                <property name="title" translatable="yes">Goto Row's Link</property>
               </object>
             </child>
             <child>
               <object class="GtkShortcutsShortcut">
                 <property name="visible">1</property>
-                <property name="accelerator">Up k</property>
-                <property name="title" translatable="yes">Focus Comment Above</property>
+                <property name="accelerator">c</property>
+                <property name="title" translatable="yes">Goto Comments Page</property>
               </object>
             </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkShortcutsGroup">
+            <property name="visible">1</property>
+            <property name="title" translatable="yes">Comments View Specific</property>
             <child>
               <object class="GtkShortcutsShortcut">
                 <property name="visible">1</property>
@@ -188,50 +193,15 @@
             <child>
               <object class="GtkShortcutsShortcut">
                 <property name="visible">1</property>
-                <property name="accelerator">u</property>
-                <property name="title" translatable="yes">Upvote Focused Comment</property>
-              </object>
-            </child>
-            <child>
-              <object class="GtkShortcutsShortcut">
-                <property name="visible">1</property>
-                <property name="accelerator">d</property>
-                <property name="title" translatable="yes">Downvote Focused Comment</property>
-              </object>
-            </child>
-            <child>
-              <object class="GtkShortcutsShortcut">
-                <property name="visible">1</property>
-                <property name="accelerator">n</property>
-                <property name="title" translatable="yes">Clear Vote for Focused Comment</property>
-              </object>
-            </child>
-            <child>
-              <object class="GtkShortcutsShortcut">
-                <property name="visible">1</property>
-                <property name="accelerator">a</property>
-                <property name="title" translatable="yes">Goto the Focused Comment's Author's Overview Page</property>
-              </object>
-            </child>
-            <child>
-              <object class="GtkShortcutsShortcut">
-                <property name="visible">1</property>
                 <property name="accelerator">r</property>
-                <property name="title" translatable="yes">Reply to Focused Comment</property>
+                <property name="title" translatable="yes">Reply</property>
               </object>
             </child>
             <child>
               <object class="GtkShortcutsShortcut">
                 <property name="visible">1</property>
                 <property name="accelerator">f</property>
-                <property name="title" translatable="yes">Save/Favorite Focused Comment</property>
-              </object>
-            </child>
-            <child>
-              <object class="GtkShortcutsShortcut">
-                <property name="visible">1</property>
-                <property name="accelerator">t</property>
-                <property name="title" translatable="yes">Show Time Palette</property>
+                <property name="title" translatable="yes">Save/Favorite</property>
               </object>
             </child>
           </object>
