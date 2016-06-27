@@ -443,15 +443,14 @@ class _UserAboutRow(Gtk.ListBoxRow):
 
 def get_about_row(sub):
     # Disregard leading slash
-    url_parts = sub[1:].split('/')
+    url_parts = sub.strip('/').split('/')
 
     # Show if it is like /r/sub
     if url_parts[0] == 'r' and url_parts[1] != 'all':
         return _SubredditAboutRow(url_parts[1])
 
-    # Eg. /user/name/overview
-    if url_parts[0] == 'user' and len(url_parts) == 3 \
-       and url_parts[2] == 'overview':
+    # Eg. /user/name(/*)
+    if url_parts[0] in ('user', 'u') and len(url_parts) >= 2:
         return _UserAboutRow(url_parts[1])
 
     return None
