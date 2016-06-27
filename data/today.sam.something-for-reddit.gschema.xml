@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist>
+    <enum id="today.sam.something-for-reddit.Theme">
+        <value nick="default" value="0"/>
+        <value nick="light" value="1"/>
+        <value nick="dark" value="2"/>
+    </enum>
+    <schema path="/today/sam/something-for-reddit/" id="today.sam.something-for-reddit">
+        <key type="s" name="default-sub">
+            <default>'/r/all'</default>
+            <summary>Default subreddit</summary>
+            <description>What to open when you open the app</description>
+        </key>
+        <key enum="today.sam.something-for-reddit.Theme" name="theme">
+            <default>'default'</default>
+            <summary>Theme to use for app</summary>
+            <description>Theme to use, default just uses the system theme</description>
+        </key>
+    </schema>
+</schemalist>
