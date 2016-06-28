@@ -447,11 +447,11 @@ def get_about_row(sub):
     url_parts = sub.strip('/').split('/')
 
     # Show if it is like /r/sub
-    if url_parts[0] == 'r' and url_parts[1] != 'all':
+    if len(url_parts) >= 2 and url_parts[0] == 'r' and url_parts[1] != 'all':
         return _SubredditAboutRow(url_parts[1])
 
     # Eg. /user/name(/*)
-    if url_parts[0] in ('user', 'u') and len(url_parts) >= 2:
+    if len(url_parts) >= 2 and url_parts[0] in ('user', 'u'):
         return _UserAboutRow(url_parts[1])
 
     return None
