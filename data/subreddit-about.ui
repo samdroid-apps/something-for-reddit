@@ -2,84 +2,45 @@
 <!-- Generated with glade 3.20.0 -->
 <interface>
   <requires lib="gtk+" version="3.6"/>
-  <object class="GtkImage" id="image1">
-    <property name="visible">True</property>
-    <property name="can_focus">False</property>
-    <property name="icon_name">document-new-symbolic</property>
-  </object>
   <object class="GtkBox" id="box">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
-    <property name="orientation">vertical</property>
+    <property name="spacing">7</property>
     <child>
-      <object class="GtkExpander" id="expander">
+      <object class="GtkButton" id="submit">
         <property name="visible">True</property>
         <property name="can_focus">True</property>
-        <property name="halign">center</property>
+        <property name="receives_default">True</property>
+        <property name="always_show_image">True</property>
         <child>
-          <object class="GtkLabel" id="sidebar">
+          <object class="GtkImage">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="label" translatable="yes">Loading Sidebar...</property>
-          </object>
-        </child>
-        <child type="label">
-          <object class="GtkLabel" id="subreddit">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="label" translatable="yes">AskReddit</property>
-            <property name="justify">center</property>
-            <property name="ellipsize">end</property>
-            <attributes>
-              <attribute name="scale" value="1.3"/>
-            </attributes>
+            <property name="icon_name">document-new-symbolic</property>
           </object>
         </child>
       </object>
       <packing>
         <property name="expand">False</property>
-        <property name="fill">True</property>
+        <property name="fill">False</property>
         <property name="position">0</property>
       </packing>
     </child>
     <child>
-      <object class="GtkButton" id="submit">
-        <property name="label" translatable="yes">Submit</property>
+      <object class="GtkToggleButton" id="subscribe">
+        <property name="label" translatable="yes">Subscribe</property>
         <property name="visible">True</property>
         <property name="can_focus">True</property>
         <property name="receives_default">True</property>
-        <property name="halign">center</property>
-        <property name="image">image1</property>
-        <property name="always_show_image">True</property>
+        <style>
+          <class name="suggested-action"/>
+        </style>
       </object>
       <packing>
         <property name="expand">False</property>
-        <property name="fill">True</property>
+        <property name="fill">False</property>
         <property name="position">1</property>
       </packing>
     </child>
-    <child>
-      <object class="GtkToggleButton" id="subscribe">
-        <property name="label" translatable="yes">togglebutton</property>
-        <property name="visible">True</property>
-        <property name="can_focus">True</property>
-        <property name="receives_default">True</property>
-        <property name="halign">center</property>
-      </object>
-      <packing>
-        <property name="expand">False</property>
-        <property name="fill">True</property>
-        <property name="position">2</property>
-      </packing>
-    </child>
-    <style>
-      <class name="linked"/>
-    </style>
-  </object>
-  <object class="GtkSizeGroup">
-    <widgets>
-      <widget name="submit"/>
-      <widget name="subscribe"/>
-    </widgets>
   </object>
 </interface>
