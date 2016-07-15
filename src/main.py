@@ -71,19 +71,28 @@ class RedditWindow(Gtk.Window):
         self._stack = Gtk.Stack()
         self._stack.connect('notify::visible-child', self.__stack_child_cb)
         self._paned.add2(self._stack)
-        self._paned.child_set_property(self._stack, 'shrink', True)
+        #self._paned.child_set_property(self._stack, 'shrink', True)
         self._stack.show()
 
         if start_sub is None:
             start_sub = get_settings()['default-sub']
-        self._make_header(start_sub)
-
         self._sublist = SubList()
         self._sublist.new_other_pane.connect(self.__new_other_pane_cb)
         self._paned.add1(self._sublist)
-        self._paned.child_set_property(self._sublist, 'shrink', True)
+        #self._paned.child_set_property(self._sublist, 'shrink', True)
         self._sublist.show()
         self._sublist.goto(start_sub)
+
+        self._make_header(start_sub)
+        left = Gtk.SizeGroup(mode=Gtk.SizeGroupMode.HORIZONTAL)
+        left.add_widget(self._left_header)
+        left.add_widget(self._sublist)
+        self._paned.connect('notify::position',
+                            self.__notify_position_cb,
+                            self._header_paned)
+        self._header_paned.connect('notify::position',
+                                   self.__notify_position_cb,
+                                   self._paned)
 
         get_reddit_api().request_failed.connect(self.__request_failed_cb)
 
@@ -163,27 +172,40 @@ class RedditWindow(Gtk.Window):
         self._stack.set_visible_child(self._webview_bin)
         self._webview.load_uri(uri)
 
+    def __notify_position_cb(self, caller, pspec, other):
+        other.props.position = caller.props.position
+
     def _make_header(self, start_sub):
-        self._header = Gtk.HeaderBar()
-        self._header.props.show_close_button = True
-        self.set_titlebar(self._header)
-        self._header.show()
+        self._header_paned = Gtk.Paned()
+        self.set_titlebar(self._header_paned)
+
+        self._left_header = Gtk.HeaderBar()
+        layout = Gtk.Settings.get_default().props.gtk_decoration_layout
+        self._left_header.set_decoration_layout(layout.split(':')[0])
+
+        self._right_header = Gtk.HeaderBar()
+        self._right_header.set_decoration_layout(':'+layout.split(':')[1])
+        self._right_header.props.show_close_button = True
+
+        self._header_paned.add1(self._left_header)
+        self._header_paned.add2(self._right_header)
+        self._header_paned.show_all()
 
         self._identity = IdentityButton()
-        self._header.pack_start(self._identity)
+        self._left_header.pack_start(self._identity)
         self._identity.show()
 
         self._stack_switcher = Gtk.StackSwitcher(stack=self._stack)
-        self._header.pack_end(self._stack_switcher)
+        self._right_header.pack_end(self._stack_switcher)
         self._stack_switcher.show()
 
         self._webview_toolbar = WebviewToolbar(self._webview)
-        self._header.pack_end(self._webview_toolbar)
+        self._right_header.pack_end(self._webview_toolbar)
 
         self._subentry = SubEntry(start_sub)
         self._subentry.activate.connect(self.__subentry_activate_cb)
         self._subentry.escape_me.connect(self.__subentry_escape_me_cb)
-        self._header.props.custom_title = self._subentry
+        self._right_header.props.custom_title = self._subentry
         self._subentry.show()
 
     def __stack_child_cb(self, stack, pspec):
