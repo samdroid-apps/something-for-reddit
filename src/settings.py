@@ -32,28 +32,29 @@ def get_settings():
     return _settings
 
 
-_window = None
+_original_theme_value = None
 
 
 def show_settings():
-    global _window
-    if _window is not None:
-        _window.show()
-        return
+    global _original_theme_value
 
     builder = Gtk.Builder.new_from_resource(
         '/today/sam/reddit-is-gtk/settings-window.ui')
-    _window = builder.get_object('window')
-    _window.show()
+    window = builder.get_object('window')
+    window.show()
 
-    def __theme_changed_cb(combo, original_value):
+
+    def __theme_changed_cb(combo):
         builder.get_object('restart-warning').props.visible = \
-            combo.props.active_id != original_value
+            combo.props.active_id != _original_theme_value
 
     theme_combo = builder.get_object('theme')
     get_settings().bind('theme', theme_combo,
                         'active-id', Gio.SettingsBindFlags.DEFAULT)
-    theme_combo.connect('changed', __theme_changed_cb,
-                        theme_combo.props.active_id)
+    if _original_theme_value is None:
+        _original_theme_value = theme_combo.props.active_id
+    __theme_changed_cb(theme_combo)
+    theme_combo.connect('changed', __theme_changed_cb)
+
     get_settings().bind('default-sub', builder.get_object('default-sub'),
                         'text', Gio.SettingsBindFlags.DEFAULT)
