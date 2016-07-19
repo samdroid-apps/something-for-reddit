@@ -26,8 +26,7 @@ A simple Reddit client for GNOME, built for touch, mouse and VIM keyboards.
 
 I did this ages ago, so I don't really remember.
 
-1.  Install GNOME Music or Sugar.  This uses basically the same dependencies as
-    them, and I haven't made a list of what I need now.
+1.  Install `gnome-common`
 2.  Install the `python3-arrow`  and `python3-markdown`
 3.  Install a SCSS compiler (eg. `rubygem-sass` on Fedora).  This is very
     important because otherwise it will fail to build.
