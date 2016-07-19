@@ -83,7 +83,6 @@ class CommentsView(Gtk.ScrolledWindow):
 
         self._comments = None
         self._load_full = None
-        self._all_comments = [self._top]
         self._selected = self._top
 
     def focus(self):
@@ -111,23 +110,20 @@ class CommentsView(Gtk.ScrolledWindow):
             self._init_post(self._post)
 
         self._msg = None
-        self._all_comments = [self._top]
         self._selected = self._top
 
         if self._load_full is not None:
             self._load_full.hide()
             self._load_full.destroy()
+            self._load_full = None
+
         permalink_segments = len(self._permalink.rstrip('/').split('/'))
         # More than /r/rct/comments/4ns96b/new_to_rct_lovely_community_3/
         if permalink_segments > 6:
             self._load_full = LoadFullCommentsRow()
             self._load_full.load_full.connect(self.__load_full_cb)
             self._box.add(self._load_full)
-            self._all_comments.append(self._load_full)
             self._load_full.show()
-        elif self._load_full is not None:
-            self._box.remove(self._load_full)
-            self._load_full.destroy()
 
         if self._comments is not None:
             self._box.remove(self._comments)
@@ -163,8 +159,64 @@ class CommentsView(Gtk.ScrolledWindow):
     def get_original_poster(self):
         return self._post['author']
 
-    def added_comment_row(self, row):
-        self._all_comments.append(row)
+    def _get_next_row(self, relative_to):
+        if relative_to == self._top:
+            return self._load_full or self._comments.get_children()[0]
+        if relative_to == self._load_full:
+            return self._comments.get_children()[0]
+
+        row = relative_to
+        # 1st, try to see if I have a child to descend into
+        if isinstance(row, CommentRow) and row.get_sub() is not None:
+            child = row.get_sub().get_children()[0]
+            if child.get_mapped():
+                return child
+
+        # 2nd, try siblings and parents iteratively
+        while isinstance(row, CommentRow):
+            parent_listview = row.get_parent()
+            kids = parent_listview.get_children()
+            i = kids.index(row)
+            if i+1 < len(kids) and kids[i+1].get_mapped():
+                return kids[i+1]
+            else:
+                # FIXME:  This must be bad
+                # Me > List > Box > Revealer > Box > Next Row!!
+                row = row.get_parent().get_parent().get_parent() \
+                         .get_parent().get_parent()
+        return None
+
+    def _get_last_child_of(self, row):
+        if row.get_sub() is not None:
+            child = row.get_sub().get_children()[-1]
+            if child.get_mapped():
+                return self._get_last_child_of(child)
+        return row
+
+    def _get_prev_row(self, row):
+        if self._load_full is not None and row == self._load_full:
+            return self._top
+
+        if row == self._top:
+            return None
+
+        assert isinstance(row, CommentRow)
+        # Find the row before me
+        if isinstance(row, CommentRow):
+            parent_listview = row.get_parent()
+            kids = parent_listview.get_children()
+            i = kids.index(row)
+            if i == 0:
+                # Return parent is there is no row before us
+                if row.depth == 0:
+                    return self._load_full or self._top
+                # FIXME:  This must be bad
+                # Me > List > Box > Revealer > Box > Next Row!!
+                return row.get_parent().get_parent().get_parent() \
+                          .get_parent().get_parent()
+            else:
+                return self._get_last_child_of(kids[i-1])
+        return None
 
     def do_event(self, event):
         def move(direction, jump):
@@ -180,15 +232,11 @@ class CommentsView(Gtk.ScrolledWindow):
                 if 0 <= i + direction < len(kids):
                     row = kids[i + direction]
             else:
-                i = self._all_comments.index(self._selected)
-                row = None
-                while 0 <= i + direction < len(self._all_comments):
-                    row = self._all_comments[i + direction]
-                    if row.get_mapped():
+                f = self._get_next_row if direction > 0 else self._get_prev_row
+                while True:
+                    row = f(self._selected)
+                    if row is None or row.get_mapped():
                         break
-                    else:
-                        i += direction
-                        row = None
 
             if row is not None:
                 row.grab_focus()
@@ -253,7 +301,6 @@ class _CommentsView(Gtk.ListBox):
         for comment in data:
             comment_data = comment['data']
             row = CommentRow(comment_data, self._depth, self._toplevel_cv)
-            self._toplevel_cv.added_comment_row(row)
             row.recurse()
             row.got_more_comments.connect(self.__got_more_comments_cb)
             self.insert(row, -1)
@@ -524,11 +571,15 @@ class CommentRow(Gtk.ListBoxRow):
         self.depth = depth
         self._toplevel_cv = toplevel_cv
         self._top = None
+        self._sub = None
         self._more_button = None
 
         self._box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.add(self._box)
         self._box.show()
+
+    def get_sub(self):
+        return self._sub
 
     def recurse(self):
         if 'body' in self.data:
