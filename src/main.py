@@ -187,12 +187,18 @@ class RedditWindow(Gtk.Window):
         self._right_header.set_decoration_layout(':'+layout.split(':')[1])
         self._right_header.props.show_close_button = True
 
+        self._subentry = SubEntry(start_sub)
+        self._subentry.activate.connect(self.__subentry_activate_cb)
+        self._subentry.escape_me.connect(self.__subentry_escape_me_cb)
+        self._left_header.props.custom_title = self._subentry
+        self._subentry.show()
+
         self._header_paned.add1(self._left_header)
         self._header_paned.add2(self._right_header)
         self._header_paned.show_all()
 
         self._identity = IdentityButton()
-        self._left_header.pack_start(self._identity)
+        self._right_header.pack_start(self._identity)
         self._identity.show()
 
         self._stack_switcher = Gtk.StackSwitcher(stack=self._stack)
@@ -201,12 +207,6 @@ class RedditWindow(Gtk.Window):
 
         self._webview_toolbar = WebviewToolbar(self._webview)
         self._right_header.pack_end(self._webview_toolbar)
-
-        self._subentry = SubEntry(start_sub)
-        self._subentry.activate.connect(self.__subentry_activate_cb)
-        self._subentry.escape_me.connect(self.__subentry_escape_me_cb)
-        self._right_header.props.custom_title = self._subentry
-        self._subentry.show()
 
     def __stack_child_cb(self, stack, pspec):
         self._webview_toolbar.props.visible = \
