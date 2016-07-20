@@ -26,16 +26,12 @@ from gi.repository import GObject
 from redditisgtk.comments import CommentsView
 from redditisgtk.buttons import (ScoreButtonBehaviour, AuthorButtonBehaviour,
                                  SubButtonBehaviour, TimeButtonBehaviour,
-                                 SubscribeButtonBehaviour, process_shortcuts,
-                                 SubmitButtonBehaviour)
+                                 SubscribeButtonBehaviour, process_shortcuts)
 from redditisgtk.markdownpango import markdown_to_pango, set_markup_sane
 from redditisgtk.api import get_reddit_api
 from redditisgtk.readcontroller import get_read_controller
 from redditisgtk.mediapreview import get_preview_palette
-
-
-class HeaderBin(Gtk.Bin):
-    pass
+from redditisgtk.submit import SubmitWindow
 
 
 class SubList(Gtk.ScrolledWindow):
@@ -54,7 +50,7 @@ class SubList(Gtk.ScrolledWindow):
             the default view
     '''
 
-    def __init__(self, header: Gtk.HeaderBar):
+    def __init__(self):
         Gtk.ScrolledWindow.__init__(self)
         self.props.hscrollbar_policy = Gtk.PolicyType.NEVER
         self._sub = None
@@ -64,18 +60,6 @@ class SubList(Gtk.ScrolledWindow):
         self._spinner = Gtk.Spinner()
         self.add(self._spinner)
         self._spinner.show()
-
-        self._header_bin = HeaderBin()
-        header.pack_end(self._header_bin)
-        self._header_bin.show()
-
-        self._refresh_button = Gtk.Button.new_from_icon_name(
-            'view-refresh-symbolic', Gtk.IconSize.BUTTON)
-        header.pack_end(self._refresh_button)
-        self._refresh_button.connect('clicked', self.__refresh_cb)
-
-    def __refresh_cb(self, button):
-        self.goto(self.get_uri())
 
     def get_uri(self):
         return self._sub
@@ -123,16 +107,12 @@ class SubList(Gtk.ScrolledWindow):
             self._first_load = False
 
         self._first_row = None
-
-        c = self._header_bin.get_child()
-        if c is not None:
-            self._header_bin.remove(c)
-            c.destroy()
-        actions = get_header_actions(self._sub)
-        if actions is not None:
-            self._header_bin.add(actions)
-            actions.show()
-        self._refresh_button.show()
+        row = get_about_row(self._sub)
+        if row is not None:
+            row.get_style_context().add_class('about-row')
+            self._listbox.insert(row, -1)
+            row.show()
+            self._first_row = row
 
         self.insert_data(j)
         self.focus()
@@ -403,30 +383,75 @@ class MessageRow(Gtk.ListBoxRow):
         self._g('unread').props.visible = False
 
 
-def get_header_actions(sub: str) -> Gtk.Widget:
+class _SubredditAboutRow(Gtk.ListBoxRow):
+
+    def __init__(self, subreddit_name):
+        Gtk.ListBoxRow.__init__(self, selectable=False)
+
+        self._subreddit_name = subreddit_name
+        self._loaded = False
+
+        self._builder = Gtk.Builder.new_from_resource(
+            '/today/sam/reddit-is-gtk/subreddit-about.ui')
+        self._g = self._builder.get_object
+
+        self.add(self._g('box'))
+        self._g('subreddit').props.label = self._subreddit_name
+        self._sbb = SubscribeButtonBehaviour(
+            self._g('subscribe'), self._subreddit_name)
+        self._g('submit').connect('clicked', self.__submit_clicked_cb)
+        self._g('expander').connect(
+            'notify::expanded', self.__notify_expanded_cb)
+
+    def __submit_clicked_cb(self, button):
+        w = SubmitWindow(sub=self._subreddit_name)
+        w.show()
+
+    def __notify_expanded_cb(self, expander, pspec):
+        if not self._loaded:
+            get_reddit_api().get_subreddit_info(
+                self._subreddit_name, self.__got_info_cb)
+            self._loaded = True
+
+    def __got_info_cb(self, data):
+        data = data['data']
+        set_markup_sane(self._g('sidebar'),
+                        markdown_to_pango(data['description']))
+
+
+class _UserAboutRow(Gtk.ListBoxRow):
+
+    def __init__(self, name):
+        Gtk.ListBoxRow.__init__(self, selectable=False)
+
+        self._name = name
+
+        self._builder = Gtk.Builder.new_from_resource(
+            '/today/sam/reddit-is-gtk/user-about.ui')
+        self._g = self._builder.get_object
+
+        self.add(self._g('box'))
+        self._g('name').props.label = self._name
+
+        get_reddit_api().get_user_info(
+            self._name, self.__got_info_cb)
+
+    def __got_info_cb(self, data):
+        data = data['data']
+        self._g('karma').props.label = \
+            '{link_karma}l / {comment_karma}c'.format(**data)
+
+
+def get_about_row(sub):
     # Disregard leading slash
     url_parts = sub.strip('/').split('/')
 
     # Show if it is like /r/sub
     if len(url_parts) >= 2 and url_parts[0] == 'r' and url_parts[1] != 'all':
-        builder = Gtk.Builder.new_from_resource(
-            '/today/sam/reddit-is-gtk/subreddit-about.ui')
-        g = builder.get_object
-        box = g('box')
-
-        # Stop it from being gc'ed
-        box.sbb = SubscribeButtonBehaviour(g('subscribe'), url_parts[1])
-        box.subb = SubmitButtonBehaviour(g('submit'), url_parts[1])
-        return box
+        return _SubredditAboutRow(url_parts[1])
 
     # Eg. /user/name(/*)
     if len(url_parts) >= 2 and url_parts[0] in ('user', 'u'):
-        label = Gtk.Label(label='???l / ???c')
-        def __got_info_cb(data):
-            data = data['data']
-            label.props.label = \
-                '{link_karma}l / {comment_karma}c'.format(**data)
-        get_reddit_api().get_user_info(url_parts[1], __got_info_cb)
-        return label
+        return _UserAboutRow(url_parts[1])
 
     return None

@@ -19,7 +19,6 @@ import arrow
 from gi.repository import Gtk
 from gi.repository import Gdk
 
-from redditisgtk.submit import SubmitWindow
 from redditisgtk.palettebutton import connect_palette
 from redditisgtk.markdownpango import SaneLabel
 from redditisgtk.api import get_reddit_api
@@ -228,7 +227,7 @@ class _TimePalette(Gtk.Popover):
 
 class SubscribeButtonBehaviour():
 
-    def __init__(self, button: Gtk.Widget, subreddit_name: str):
+    def __init__(self, button, subreddit_name):
         self._button = button
         self._subreddit_name = subreddit_name
 
@@ -239,15 +238,12 @@ class SubscribeButtonBehaviour():
         self._set_label()
 
     def _set_label(self):
-        if self._button.props.active:
-            self._button.props.label = 'Unsubscribe'
-            self._button.get_style_context().remove_class('suggested-action')
-        else:
-            self._button.props.label = 'Subscribe'
-            self._button.get_style_context().add_class('suggested-action')
+        self._button.props.label = 'Subscribed' \
+            if self._button.props.active else 'Subscribe'
 
     def __toggled_cb(self, toggle):
-        self._set_label()
+        self._button.props.label = 'Subscribing...'  \
+            if self._button.props.active else 'Unsubscribing...'
         self._button.props.sensitive = False
 
         get_reddit_api().set_subscribed(self._subreddit_name,
@@ -258,16 +254,6 @@ class SubscribeButtonBehaviour():
         self._button.props.sensitive = True
         self._set_label()
         get_reddit_api().update_subscriptions()
-
-
-class SubmitButtonBehaviour():
-
-    def __init__(self, button: Gtk.Widget, subreddit_name: str):
-        self._subreddit_name = subreddit_name
-        button.connect('clicked', self.__clicked_cb)
-
-    def __clicked_cb(self, button):
-        SubmitWindow(sub=self._subreddit_name).show()
 
 
 def process_shortcuts(shortcuts, event):
