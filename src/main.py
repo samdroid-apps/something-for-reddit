@@ -300,8 +300,8 @@ class Application(Gtk.Application):
     def __about_cb(self, action, param):
         about_dialog = Gtk.AboutDialog(
             program_name='Something for Reddit',
-            comments=('A simple but powerful Reddit client, built for KDE and'
-                      'powered by Qt5'),
+            comments=('A simple but powerful Reddit client, built for GNOME '
+                      'powered by Gtk+ 3.0'),
             license_type=Gtk.License.GPL_3_0,
             logo_icon_name='reddit-is-a-dead-bird',
             authors=['Sam P. <sam@sam.today>'],
