@@ -5,9 +5,13 @@ class SFR.LeftView : Gtk.Box {
     [GtkChild]
     Gtk.ListBox list_box;
 
+    // the only GtkBin like thing I found in glade
+    [GtkChild]
+    Gtk.Revealer meta_bin;
+
     public LeftView (SFR.AppWindowModel model) {
         this.model = model;
-        this.model.notify["left-listing"].connect((s, p) => {
+        this.model.notify["left-listing"].connect ((s, p) => {
             debug ("Listing changed, rebuilding left view");
             this.list_box.foreach((widget) => {
                 this.list_box.remove(widget);
@@ -17,7 +21,82 @@ class SFR.LeftView : Gtk.Box {
                 this.list_box.add(w);
                 w.show();
             }
+
+            debug ("Listing meta, rebuilding");
+            var child = this.meta_bin.get_child ();
+            if (child != null) {
+                this.meta_bin.remove (child);
+            }
+
+            var lm = this.model.left_meta;
+            var type = lm.get_type_id ();
+            Gtk.Widget w = null;
+            if (type == SFR.MetaType.SUBREDDIT) {
+                w = new SFR.MetaToolbarSubreddit ((SFR.MetaModelSubreddit) lm);
+            }
+            if (w != null) {
+                this.meta_bin.add (w);
+                w.show ();
+            }
         });
+    }
+}
+
+
+[GtkTemplate (ui="/today/sam/reddit-is-gtk/meta-toolbar-subreddit.ui")]
+class SFR.MetaToolbarSubreddit : Gtk.Box {
+    private SFR.MetaModelSubreddit model;
+
+    [GtkChild]
+    private Gtk.Stack main_stack;
+    [GtkChild]
+    private Gtk.Stack subscribe_stack;
+    [GtkChild]
+    private Gtk.Entry active;
+    [GtkChild]
+    private Gtk.Entry subs;
+
+    public MetaToolbarSubreddit (SFR.MetaModelSubreddit model) {
+        this.model = model;
+
+        this.loaded_changed ();
+        this.model.notify["loaded"].connect ((s, p) => {
+            this.loaded_changed ();
+        });
+
+        this.model.bind_property (
+            "is_subscribed", this.subscribe_stack, "visible-child-name",
+            BindingFlags.DEFAULT | BindingFlags.SYNC_CREATE,
+            (binding, srcval, ref targetval) => {
+                bool src = (bool) srcval;
+                targetval.set_string (src ? "unsubscribe" : "subscribe");
+                return true;
+            }
+        );
+        this.model.bind_property (
+            "subscribers", this.subs, "text",
+            BindingFlags.DEFAULT | BindingFlags.SYNC_CREATE,
+            (binding, srcval, ref targetval) => {
+                int64 src = (int64) srcval;
+                targetval.set_string ("%lld".printf (src));
+                return true;
+            }
+        );
+        this.model.bind_property (
+            "active_users", this.active, "text",
+            BindingFlags.DEFAULT | BindingFlags.SYNC_CREATE,
+            (binding, srcval, ref targetval) => {
+                int64 src = (int64) srcval;
+                targetval.set_string ("%lld".printf (src));
+                return true;
+            }
+        );
+    }
+
+    private void loaded_changed () {
+        this.main_stack.visible_child_name = (
+            this.model.loaded ? "loaded" : "loading"
+        );
     }
 }
 
@@ -105,11 +184,11 @@ class SFR.LeftViewPost : Gtk.Box {
     private void update_info_label () {
         string l = "%i points · ".printf (this.model.score);
         if (this.model.n_comments == 0) {
-            l += "no";
+            l += "no ";
         } else {
             l += "%i".printf (this.model.n_comments);
         }
-        l += " · ";
+        l += "c · ";
         if (this.model.is_selfpost) {
             l += "self.%s".printf (this.model.subreddit);
         } else {

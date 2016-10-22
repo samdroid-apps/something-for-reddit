@@ -13,6 +13,7 @@ something_for_reddit_SOURCES = \
     left-header.vala \
     left-view.vala \
     listing.vala \
+    meta-model.vala \
     reddit-is-gtk.gresource.c
 
 something_for_reddit_CPPFLAGS = $(SOMETHING_FOR_REDDIT_CFLAGS)

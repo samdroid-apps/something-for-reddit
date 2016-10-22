@@ -53,7 +53,7 @@ abstract class SFR.Account {
         yield parser.load_from_stream_async (stream);
         return parser.get_root ().get_object ();
     }
-    protected abstract async Json.Object send_request_get (string path);
+    public abstract async Json.Object send_request_get (string path);
     protected abstract async Json.Object send_request_post (
         string path, Datalist<string> data
     );
@@ -163,6 +163,7 @@ class SFR.AccountAuthed : SFR.Account {
         msg.request_headers.append(
             "Authorization", "bearer %s".printf (this.access_token)
         );
+        debug ("GET %s\n", path);
 
         var stream = yield this.session.send_async (msg);
         if (msg.status_code == 401) {

@@ -22,5 +22,6 @@
     <file preprocess="xml-stripblanks">left-header.ui</file>
     <file preprocess="xml-stripblanks">left-view.ui</file>
     <file preprocess="xml-stripblanks">left-view-post.ui</file>
+    <file preprocess="xml-stripblanks">meta-toolbar-subreddit.ui</file>
   </gresource>
 </gresources>

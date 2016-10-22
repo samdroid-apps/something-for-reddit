@@ -9,9 +9,17 @@ class SFR.AppWindowModel : Object {
     public string left_uri { get; set; }
     public bool left_loading { get; set; default = false; }
     public SFR.Listing? left_listing { get; set; default = null; }
+    public SFR.MetaModel left_meta {
+        get; set; default = new SFR.MetaModelNone ();
+    }
 
     public async void load_left_uri (string uri) {
         this.left_uri = uri;
+        if (!this.left_meta.applies_for_path (uri)) {
+            this.left_meta = get_meta_model_for_path (
+                uri, this.application_model
+            );
+        }
         this.left_loading = true;
 
         var aa = this.application_model.active_account;
