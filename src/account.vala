@@ -19,6 +19,17 @@
 
 const string USER_AGENT = "GNU:something-for-reddit:v0.9 (by /u/samtoday)";
 
+void debug_print_json (Json.Object obj) {
+    var generator = new Json.Generator ();
+    generator.pretty = true;
+    var root = new Json.Node (Json.NodeType.OBJECT);
+    root.set_object (obj);
+    generator.set_root (root);
+
+    var json_buffer = generator.to_data (null);
+    debug ("JSON %s", json_buffer);
+}
+
 enum SFR.AccountType {
     ANNON,
     AUTHED
@@ -26,6 +37,7 @@ enum SFR.AccountType {
 
 abstract class SFR.Account {
     protected Soup.Session session;
+    protected SFR.ApplicationModel model;
 
     public Account () {
         this.session = new Soup.Session ();
@@ -36,20 +48,62 @@ abstract class SFR.Account {
     public abstract void to_json (Json.Builder builder);
     public abstract void load_json (Json.Object root);
 
-    public abstract async Json.Object send_request_get (string path);
-
-    public async SFR.Listing get_listing (string path) {
-        var root = yield this.send_request_get (path);
-        return new SFR.Listing (root);
+    protected async Json.Object parse_message (GLib.InputStream stream) {
+        var parser = new Json.Parser ();
+        yield parser.load_from_stream_async (stream);
+        return parser.get_root ().get_object ();
     }
+    protected abstract async Json.Object send_request_get (string path);
+    protected abstract async Json.Object send_request_post (
+        string path, Datalist<string> data
+    );
 
     public abstract string username { get; }
     public abstract string icon_name { get; }
+
+    public async SFR.Listing get_listing (string path) {
+        var root = yield this.send_request_get (path);
+        return new SFR.Listing (root, this.model);
+    }
+
+    public async void vote (string item_fullname, SFR.Vote vote) {
+        string dir = "0";
+        if (vote == SFR.Vote.UP) {
+            dir = "1";
+        } else if (vote == SFR.Vote.DOWN) {
+            dir = "-1";
+        }
+
+        var data = new Datalist<string> ();
+        data.set_data ("dir", dir);
+        data.set_data ("id", item_fullname);
+        var resp = yield this.send_request_post ("/api/vote", data);
+        this.maybe_log_api_error ("Voting", resp);
+    }
+
+    private bool maybe_log_api_error (string desc, Json.Object resp) {
+        if (resp.has_member ("error")) {
+            error (
+                "%s returned %i: %s",
+                desc,
+                (int) resp.get_int_member ("error"),
+                resp.get_string_member ("message")
+            );
+            return true;
+        }
+        return false;
+    }
 }
+
 
 class SFR.AccountAnnon : Account {
     public override int get_type_id () {
         return SFR.AccountType.ANNON;
+    }
+
+    public AccountAnnon (SFR.ApplicationModel model) {
+        base ();
+        this.model = model;
     }
 
     public override string username { get { return "Annon"; } }
@@ -63,16 +117,23 @@ class SFR.AccountAnnon : Account {
             "GET", "https://api.reddit.com%s".printf (path)
         );
         var stream = yield this.session.send_async (msg);
+        return yield this.parse_message (stream);
+    }
 
-        var parser = new Json.Parser ();
-        yield parser.load_from_stream_async (stream);
-        return parser.get_root ().get_object ();
+    public override async Json.Object send_request_post (
+        string path, Datalist<string> data
+    ) {
+        error ("Should handle send_request_post on anonyms account");
     }
 }
 
 class SFR.AccountAuthed : SFR.Account {
     public override int get_type_id () {
         return SFR.AccountType.AUTHED;
+    }
+    public AccountAuthed (SFR.ApplicationModel model) {
+        base ();
+        this.model = model;
     }
 
     private string access_token;
@@ -83,15 +144,12 @@ class SFR.AccountAuthed : SFR.Account {
     private string _icon_name = "face-smile";
     public override string icon_name { get { return this._icon_name; } }
 
-    public AccountAuthed.new_from_authorization_code (Json.Object root) {
-        base ();
+    public async void load_authorization_code (Json.Object root) {
         this.access_token = root.get_string_member ("access_token");
         this.refresh_token = root.get_string_member ("refresh_token");
-    }
 
-    public async void setup () {
-        var root = yield this.send_request_get ("/api/v1/me");
-        this._username = root.get_string_member ("name");
+        var data= yield this.send_request_get ("/api/v1/me");
+        this._username = data.get_string_member ("name");
     }
 
     public void set_icon_name (string icon_name) {
@@ -115,9 +173,32 @@ class SFR.AccountAuthed : SFR.Account {
             return yield this.send_request_get (path);
         }
 
-        var parser = new Json.Parser ();
-        yield parser.load_from_stream_async (stream);
-        return parser.get_root ().get_object ();
+        return yield this.parse_message (stream);
+    }
+    public override async Json.Object send_request_post (
+        string path, Datalist<string> data
+    ) {
+        var msg = new Soup.Message(
+            "POST", "https://oauth.reddit.com%s".printf (path)
+        );
+        msg.request_headers.append(
+            "Authorization", "bearer %s".printf (this.access_token)
+        );
+
+        debug ("POST %s %s\n", path, Soup.Form.encode_datalist (data));
+        msg.set_request (
+            "application/x-www-form-urlencoded",
+            Soup.MemoryUse.COPY,
+            Soup.Form.encode_datalist (data).data
+        );
+
+        var stream = yield this.session.send_async (msg);
+        if (msg.status_code == 401) {
+            debug ("Hit %s, but token expired", path);
+            yield this.do_refresh_token ();
+            return yield this.send_request_post (path, data);
+        }
+        return yield this.parse_message (stream);
     }
 
     public async void do_refresh_token () {

@@ -32,7 +32,7 @@ class SFR.ApplicationModel : Object {
             this.load_json (parser.get_root ().get_object ());
         } catch (Error e) {
             stdout.printf ("Couldn't read model file: %s\n", e.message);
-            this.accounts.append (new SFR.AccountAnnon());
+            this.accounts.append (new SFR.AccountAnnon (this));
             this.active_account = this.accounts.nth_data (0);
         }
         
@@ -60,9 +60,9 @@ class SFR.ApplicationModel : Object {
             var item = node.get_object ();
             var type = item.get_int_member ("type");
 
-            SFR.Account acc = new SFR.AccountAnnon ();
+            SFR.Account acc = new SFR.AccountAnnon (this);
             if (type == SFR.AccountType.AUTHED) {
-                acc = new SFR.AccountAuthed ();
+                acc = new SFR.AccountAuthed (this);
             }
             acc.load_json (item.get_object_member ("data"));
             this.accounts.append (acc);

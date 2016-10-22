@@ -114,8 +114,9 @@ class SFR.SignInView : Gtk.Stack {
             }
 
             this.visible_child_name = "loading-about-me";
-            this.acc = new SFR.AccountAuthed.new_from_authorization_code (root);
-            acc.setup.begin (
+            this.acc = new SFR.AccountAuthed (this.model);
+            acc.load_authorization_code.begin (
+                root,
                 (obj, res) => { 
                     this.pick_emoji_title.label = "Almost There %s...".printf (
                         this.acc.username

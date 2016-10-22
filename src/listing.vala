@@ -8,9 +8,10 @@ abstract class SFR.ListingItem : Object {
 
 class SFR.Listing : Object {
     public List<SFR.ListingItem> items;
+    private SFR.ApplicationModel model;
 
-    public Listing (Json.Object root) {
-        debug ("SFR.Listing.new");
+    public Listing (Json.Object root, SFR.ApplicationModel model) {
+        this.model = model;
 
         var listing = root.get_object_member ("data");
         listing.get_array_member ("children").foreach_element ((a, i, node) => {
@@ -19,7 +20,7 @@ class SFR.Listing : Object {
             var data = obj.get_object_member ("data");
 
             if (kind == "t3") {
-                this.items.append (new Post (data));
+                this.items.append (new Post (data, this.model));
             } else {
                 warning ("ListingItem of unknown kind: %s", kind);
             }
@@ -35,6 +36,7 @@ enum SFR.Vote {
 
 class SFR.Post : SFR.ListingItem {
     public override int get_type_id () { return SFR.ListingItemType.POST; }
+    private SFR.ApplicationModel model;
 
     public string title { get; set; }
     public string domain { get; set; }
@@ -52,14 +54,16 @@ class SFR.Post : SFR.ListingItem {
     public SFR.Vote vote {
         get { return this._vote; }
         set {
-            debug ("TODO: Send for for %s to %s", value.to_string (), this.fullname);
+            this.model.active_account.vote (this.fullname, value);
             this._vote = value;
         }
     }
 
     public string fullname;
 
-    public Post (Json.Object root) {
+    public Post (Json.Object root, SFR.ApplicationModel model) {
+        this.model = model;
+
         this.title = root.get_string_member ("title");
         this.domain = root.get_string_member ("domain");
         this.selftext = root.get_string_member ("selftext");

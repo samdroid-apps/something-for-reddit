@@ -67,20 +67,9 @@ class SFR.LeftViewPost : Gtk.Box {
             this.summary.label = "";
         }
 
-        string l = "%i points · ".printf (this.model.score);
-        if (this.model.n_comments == 0) {
-            l += "no";
-        } else {
-            l += "%i".printf (this.model.n_comments);
-        }
-        l += " · ";
-        if (this.model.is_selfpost) {
-            l += "self.%s".printf (this.model.subreddit);
-        } else {
-            l += "%s · %s".printf (this.model.domain, this.model.subreddit);
-        }
-        l += " · TIMESTAMP · %s".printf (this.model.author_name);
-        this.info.label = l;
+
+        this.model.notify.connect ((s, p) => { this.update_info_label (); });
+        this.update_info_label ();
 
         this.model.bind_property (
             "vote", this.upvote, "active",
@@ -111,6 +100,22 @@ class SFR.LeftViewPost : Gtk.Box {
             }
         );
 
+    }
 
+    private void update_info_label () {
+        string l = "%i points · ".printf (this.model.score);
+        if (this.model.n_comments == 0) {
+            l += "no";
+        } else {
+            l += "%i".printf (this.model.n_comments);
+        }
+        l += " · ";
+        if (this.model.is_selfpost) {
+            l += "self.%s".printf (this.model.subreddit);
+        } else {
+            l += "%s · %s".printf (this.model.domain, this.model.subreddit);
+        }
+        l += " · TIMESTAMP · %s".printf (this.model.author_name);
+        this.info.label = l;
     }
 }
