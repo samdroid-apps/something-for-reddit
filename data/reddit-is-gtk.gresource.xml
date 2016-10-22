@@ -14,5 +14,7 @@
     <file preprocess="xml-stripblanks">webview-toolbar.ui</file>
     <file preprocess="xml-stripblanks">shortcuts-window.ui</file>
     <file preprocess="xml-stripblanks">settings-window.ui</file>
+    <file preprocess="xml-stripblanks">welcome-window-content.ui</file>
+    <file preprocess="xml-stripblanks">sign-in-view.ui</file>
   </gresource>
 </gresources>

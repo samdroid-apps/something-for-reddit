@@ -73,3 +73,8 @@ Makefile.in
 /debian/files
 /debian/reddit-is-gtk.debhelper.log
 /debian/reddit-is-gtk.substvars
+
+.deps
+/src/*.c
+/src/something-for-reddit
+/src/something_for_reddit*
