@@ -1,3 +1,25 @@
+/* Copyright (C) 2016 Sam Parkinson
+ *
+ * This site provides the sign-in wizard.  The wizard has 4 states/views:
+ * 1.  Sign in to Reddit (WebView)
+ * 2.  Hit Reddit API to grant access token and refresh token
+ * 3.  Hit Reddit API for user metadata (SFR.AccountAuthed.setup)
+ * 4.  Pick icon to represent account
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 const string API_SCOPE = "edit history identity mysubreddits privatemessages submit subscribe vote read save";
 const string CLIENT_ID = "WCN3jqoJ1-0r0Q";
 
@@ -40,7 +62,7 @@ class SFR.SignInView : Gtk.Stack {
 
     private void uri_scheme (WebKit.URISchemeRequest request) {
         var uri = new Soup.URI (request.get_uri ());
-        var query = Soup.form_decode (uri.get_query ());
+        var query = Soup.Form.decode (uri.get_query ());
         string state = query.lookup ("state");
 
         if (state != this.state) {
@@ -65,7 +87,7 @@ class SFR.SignInView : Gtk.Stack {
             "POST", "https://www.reddit.com/api/v1/access_token"
         );
         msg.priority = Soup.MessagePriority.VERY_HIGH;
-        var form = Soup.form_encode(
+        var form = Soup.Form.encode (
             "grant_type", "authorization_code",
             "code", code,
             "redirect_uri", "redditgtk://done",

@@ -152,15 +152,13 @@ class SFR.App : Gtk.Application {
         });
     }
 
-    private void reset_content (Gtk.Window window) {
+    private void reset_content (Gtk.ApplicationWindow window) {
         if (window.get_child () != null) {
             window.remove (window.get_child ());
         }
 
-        Gtk.Widget content;
         if (this.model.should_show_welcome) {
             var welcome = new SFR.WelcomeWindowContent (this.model);
-            content = welcome;
             welcome.request_login.connect (() => {
                 window.remove (window.get_child ());
 
@@ -168,11 +166,12 @@ class SFR.App : Gtk.Application {
                 window.add (view);
                 view.show ();
             });
+
+            window.add (welcome);
+            welcome.show();
         } else {
-            content = new Gtk.Label (this.model.active_account.username);
+            var apv = new SFR.AppWindowManager (window, this.model);
         }
-        window.add (content);
-        content.show();
     }
 
     public static int main (string[] args) {

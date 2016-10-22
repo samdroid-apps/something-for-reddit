@@ -9,6 +9,10 @@ something_for_reddit_SOURCES = \
     something-for-reddit.vala \
     account.vala \
     sign-in-view.vala \
+    app-view-manager.vala \
+    left-header.vala \
+    left-view.vala \
+    listing.vala \
     reddit-is-gtk.gresource.c
 
 something_for_reddit_CPPFLAGS = $(SOMETHING_FOR_REDDIT_CFLAGS)

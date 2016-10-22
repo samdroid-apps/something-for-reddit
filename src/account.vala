@@ -1,6 +1,7 @@
 /* Copyright (C) 2016 Sam Parkinson
  *
- * This file is part of Something for Reddit.
+ * This file contains the Account models, which represent an Account on
+ * a site.  They are used to access the site's api.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,9 +25,23 @@ enum SFR.AccountType {
 }
 
 abstract class SFR.Account {
+    protected Soup.Session session;
+
+    public Account () {
+        this.session = new Soup.Session ();
+        this.session.user_agent = USER_AGENT;
+    }
+
     public abstract int get_type_id ();
     public abstract void to_json (Json.Builder builder);
     public abstract void load_json (Json.Object root);
+
+    public abstract async Json.Object send_request_get (string path);
+
+    public async SFR.Listing get_listing (string path) {
+        var root = yield this.send_request_get (path);
+        return new SFR.Listing (root);
+    }
 
     public abstract string username { get; }
     public abstract string icon_name { get; }
@@ -42,6 +57,17 @@ class SFR.AccountAnnon : Account {
 
     public override void load_json (Json.Object root) {}
     public override void to_json (Json.Builder builder) {}
+
+    public override async Json.Object send_request_get (string path) {
+        var msg = new Soup.Message(
+            "GET", "https://api.reddit.com%s".printf (path)
+        );
+        var stream = yield this.session.send_async (msg);
+
+        var parser = new Json.Parser ();
+        yield parser.load_from_stream_async (stream);
+        return parser.get_root ().get_object ();
+    }
 }
 
 class SFR.AccountAuthed : SFR.Account {
@@ -51,20 +77,14 @@ class SFR.AccountAuthed : SFR.Account {
 
     private string access_token;
     private string refresh_token;
-    private Soup.Session session;
 
     private string _username = "Loading Username";
     public override string username { get { return this._username; } }
     private string _icon_name = "face-smile";
     public override string icon_name { get { return this._icon_name; } }
 
-    public AccountAuthed () {
-        this.session = new Soup.Session ();
-        this.session.user_agent = USER_AGENT;
-    }
-
     public AccountAuthed.new_from_authorization_code (Json.Object root) {
-        this ();
+        base ();
         this.access_token = root.get_string_member ("access_token");
         this.refresh_token = root.get_string_member ("refresh_token");
     }
@@ -78,7 +98,7 @@ class SFR.AccountAuthed : SFR.Account {
         this._icon_name = icon_name;
     }
 
-    public async Json.Object send_request_get (string path) {
+    public override async Json.Object send_request_get (string path) {
         var msg = new Soup.Message(
             "GET", "https://oauth.reddit.com%s".printf (path)
         );
@@ -88,12 +108,53 @@ class SFR.AccountAuthed : SFR.Account {
 
         var stream = yield this.session.send_async (msg);
         if (msg.status_code == 401) {
-            stdout.printf ("TODO: FIX TOKEN EXPIRY\n");
+            debug ("Hit %s, but token expired", path);
+            yield this.do_refresh_token ();
+
+            // Recursive hey?  Ain't yield beautiful
+            return yield this.send_request_get (path);
         }
 
         var parser = new Json.Parser ();
         yield parser.load_from_stream_async (stream);
         return parser.get_root ().get_object ();
+    }
+
+    public async void do_refresh_token () {
+        var msg = new Soup.Message(
+            "POST", "https://www.reddit.com/api/v1/access_token"
+        );
+        msg.priority = Soup.MessagePriority.VERY_HIGH;
+
+        var form = Soup.Form.encode (
+            "grant_type", "refresh_token",
+            "refresh_token", this.refresh_token,
+            "redirect_uri", "redditgtk://done",
+            null
+        );
+        msg.set_request(
+            "application/x-www-form-urlencoded",
+            Soup.MemoryUse.COPY,
+            form.data
+        );
+        msg.request_headers.append(
+            "Authorization", "Basic V0NOM2pxb0oxLTByMFE6Cg=="
+        );
+
+        var stream = yield this.session.send_async (msg);
+        var parser = new Json.Parser ();
+        yield parser.load_from_stream_async (stream);
+        var root = parser.get_root ().get_object ();
+
+        if (root.has_member ("error")) {
+            error (
+                "Error refreshing token: %s",
+                root.get_string_member ("error")
+            );
+        }
+
+        this.access_token = root.get_string_member ("access_token");
+        debug ("Got new token: %s", this.access_token);
     }
 
     public override void load_json (Json.Object root) {
