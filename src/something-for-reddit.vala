@@ -16,21 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-class SFR.Account : Object {
-    public string username {
-        get { return "Annon"; }
-    }
-}
-
-class SFR.AccountAuthed : SFR.Account {
-    private string access_token;
-    private string refresh_token;
-
-    public AccountAuthed.new_from_authorization_code (Json.Object root) {
-        this.access_token = root.get_string_member ("access_token");
-        this.refresh_token = root.get_string_member ("refresh_token");
-    }
-}
+const string APPLICATION_MODEL_PATH = "/tmp/something-for-reddit.json";
 
 class SFR.ApplicationModel : Object {
     public Soup.Session soup_session;
@@ -38,125 +24,90 @@ class SFR.ApplicationModel : Object {
 
     public ApplicationModel () {
         this.soup_session = new Soup.Session ();
-    }
 
-    public bool should_show_welcome {
-        get { return this.accounts.length () == 0; }
-    }
 
-    public signal void should_show_welcome_changed ();
-
-    public void add_account (SFR.Account acc) {
-        this.accounts.append (acc);
-        if (this.accounts.length () == 1) {
-            this.should_show_welcome_changed ();
-        }
-    }
-
-    public SFR.Account active_account {
-        get { return this.accounts.nth_data (0); }
-    }
-}
-
-const string API_SCOPE = "edit history identity mysubreddits privatemessages submit subscribe vote read save";
-const string CLIENT_ID = "WCN3jqoJ1-0r0Q";
-
-[GtkTemplate (ui="/today/sam/reddit-is-gtk/sign-in-view.ui")]
-class SFR.SignInView : Gtk.Stack {
-    private string state;
-    private SFR.ApplicationModel model;
-
-    [GtkChild]
-    private Gtk.ScrolledWindow webview_sw;
-
-    public SignInView (SFR.ApplicationModel model) {
-        this.model = model;
-        this.state = "FIXME-make-a-real-random";
-
-        var webview = new WebKit.WebView ();
-
-        var ctx = webview.get_context ();
-        ctx.register_uri_scheme ("redditgtk", this.uri_scheme);
-
-        var uri = new Soup.URI (
-            "https://www.reddit.com/api/v1/authorize.compact"
-        );
-        uri.set_query_from_fields (
-            "client_id", CLIENT_ID,
-            "response_type", "code",
-            "redirect_uri", "redditgtk://done",
-            "state", this.state,
-            "duration", "permanent",
-            "scope", API_SCOPE
-        );
-
-        webview.load_uri (uri.to_string (false));
-        this.webview_sw.add (webview);
-        webview.show ();
-    }
-
-    [GtkChild]
-    private Gtk.Label error_label;
-
-    private void uri_scheme (WebKit.URISchemeRequest request) {
-        var uri = new Soup.URI (request.get_uri ());
-        var query = Soup.form_decode (uri.get_query ());
-        string state = query.lookup ("state");
-
-        if (state != this.state) {
-            this.display_error ("OAuth flow did not preserve state");
-            return;
-        }
-
-        if (query.contains ("code")) {
-            this.visible_child_name = "loading";
-            string code = query.lookup ("code");
-            this.grant_authorization_code (code);
-        } else {
-            this.display_error (query.lookup ("error"));
-            return;
-        }
-    }
-
-    private void grant_authorization_code (string code) {
-        var msg = new Soup.Message(
-            "POST", "https://www.reddit.com/api/v1/access_token"
-        );
-        msg.priority = Soup.MessagePriority.VERY_HIGH;
-        var form = Soup.form_encode(
-            "grant_type", "authorization_code",
-            "code", code,
-            "redirect_uri", "redditgtk://done",
-            null
-        );
-        msg.set_request(
-            "application/x-www-form-urlencoded",
-            Soup.MemoryUse.COPY,
-            form.data
-        );
-        msg.request_headers.append(
-            "Authorization", "Basic V0NOM2pxb0oxLTByMFE6Cg=="
-        );
-
-        this.model.soup_session.queue_message (msg, (session, msg) => {
+        try {
             var parser = new Json.Parser ();
-            parser.load_from_data (
-                (string) msg.response_body.flatten ().data, -1
-            );
-            var root = parser.get_root ().get_object ();
-
-            if (root.has_member ("error")) {
-                this.display_error (root.get_string_member ("error"));
-            }
-
-            var acc = new SFR.AccountAuthed.new_from_authorization_code (root);
-            this.model.add_account (acc);
+            parser.load_from_file (APPLICATION_MODEL_PATH);
+            this.load_json (parser.get_root ().get_object ());
+        } catch (Error e) {
+            stdout.printf ("Couldn't read model file: %s\n", e.message);
+            this.accounts.append (new SFR.AccountAnnon());
+            this.active_account = this.accounts.nth_data (0);
+        }
+        
+        this.notify.connect((s, p) => {
+            this.save ();
         });
     }
 
-    private void display_error (string message) {
-        this.visible_child_name = "error";
-        this.error_label.label = message;
+    public bool should_show_welcome { get; set; default = true; }
+
+    public SFR.Account active_account { get; set; }
+
+    public void add_account (SFR.Account acc) {
+        this.accounts.append (acc);
+        this.active_account = acc;
+        this.should_show_welcome = false;
+        this.save ();
+    }
+
+    public void load_json (Json.Object root) {
+        this.should_show_welcome =
+            root.get_boolean_member ("should_show_welcome");
+
+        root.get_array_member ("accounts").foreach_element ((a, i, node) => {
+            var item = node.get_object ();
+            var type = item.get_int_member ("type");
+
+            SFR.Account acc = new SFR.AccountAnnon ();
+            if (type == SFR.AccountType.AUTHED) {
+                acc = new SFR.AccountAuthed ();
+            }
+            acc.load_json (item.get_object_member ("data"));
+            this.accounts.append (acc);
+        });
+
+        this.active_account = this.accounts.nth_data (
+            (int) root.get_int_member ("active_account")
+        );
+    }
+
+    public void to_json (Json.Builder builder) {
+        builder.set_member_name ("should_show_welcome");
+        builder.add_boolean_value (this.should_show_welcome);
+
+        builder.set_member_name ("accounts");
+        builder.begin_array ();
+        foreach (var a in this.accounts) {
+            builder.begin_object ();
+
+            builder.set_member_name ("type");
+            builder.add_int_value (a.get_type_id ());
+
+            builder.set_member_name ("data");
+            builder.begin_object ();
+            a.to_json (builder);
+            builder.end_object ();
+
+            builder.end_object ();
+        }
+        builder.end_array ();
+
+        builder.set_member_name ("active_account");
+        builder.add_int_value (this.accounts.index (this.active_account));
+    }
+
+    public void save () {
+        var builder = new Json.Builder ();
+
+        builder.begin_object ();
+        this.to_json (builder);
+        builder.end_object ();
+
+        var gen = new Json.Generator ();
+        gen.set_root (builder.get_root ());
+        gen.to_file (APPLICATION_MODEL_PATH);
     }
 }
 
@@ -173,6 +124,11 @@ class SFR.WelcomeWindowContent : Gtk.Box {
     [GtkCallback]
     private void sign_in_clicked_cb (Gtk.Button button) {
         this.request_login ();
+    }
+
+    [GtkCallback]
+    private void continue_clicked_cb (Gtk.Button button) {
+        this.model.should_show_welcome = false;
     }
 }
 
@@ -191,7 +147,7 @@ class SFR.App : Gtk.Application {
 
         this.reset_content (window);
         window.show();
-        this.model.should_show_welcome_changed.connect ((m) => {
+        this.model.notify["should-show-welcome"].connect ((s, p) => {
             this.reset_content (window);
         });
     }

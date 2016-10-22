@@ -1,0 +1,9 @@
+	../data/app-menu.ui \
+	../data/post-top-bar.ui \
+	../data/reddit-is-gtk.appdata.xml.in \
+	../data/reddit-is-gtk.desktop.in \
+	../data/row-link.ui \
+	../data/submit-window.ui \
+	../data/subreddit-about.ui \
+	../data/user-about.ui \
+	../data/webview-toolbar.ui
