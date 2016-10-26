@@ -2,7 +2,7 @@ appdir = $(pythondir)/redditisgtk
 
 bin_PROGRAMS = something-for-reddit
 
-reddit-is-gtk.gresource.c: ../data/reddit-is-gtk.gresource.xml ../data/style.css.out ../data/style.dark.css.out ../data/reddit-is-gtk.gresource
+reddit-is-gtk.gresource.c: ../data/reddit-is-gtk.gresource.xml ../data/style.css.out ../data/style.dark.css.out
 	$(AM_V_GEN) $(GLIB_COMPILE_RESOURCES) --target=$@ --sourcedir=$(srcdir)/../data --sourcedir=$(builddir) --generate-source $<
 
 something_for_reddit_SOURCES = \
