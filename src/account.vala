@@ -81,6 +81,18 @@ abstract class SFR.Account {
         this.maybe_log_api_error ("Voting", resp);
     }
 
+    /*
+     * Sets if the user is subscribed to a subreddit, true means subscribed,
+     * false means unsubscribed
+     */
+    public async void set_subscribed (string subreddit, bool subscribed) {
+        var data = new Datalist<string> ();
+        data.set_data ("sr_name", subreddit);
+        data.set_data ("action", subscribed ? "sub" : "unsub");
+        var resp = yield this.send_request_post ("/api/subscribe", data);
+        this.maybe_log_api_error ("Set subscribed", resp);
+    }
+
     private bool maybe_log_api_error (string desc, Json.Object resp) {
         if (resp.has_member ("error")) {
             error (

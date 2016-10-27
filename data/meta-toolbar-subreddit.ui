@@ -39,6 +39,7 @@
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
+                    <signal name="clicked" handler="subscribe_clicked_cb" swapped="no"/>
                     <style>
                       <class name="suggested-action"/>
                     </style>
@@ -54,6 +55,7 @@
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
+                    <signal name="clicked" handler="unsubscribe_clicked_cb" swapped="no"/>
                     <style>
                       <class name="destructive-action"/>
                     </style>
@@ -79,6 +81,7 @@
                 <property name="sensitive">False</property>
                 <property name="can_focus">True</property>
                 <property name="tooltip_text" translatable="yes">Subscribers</property>
+                <property name="width_chars">11</property>
                 <property name="text" translatable="yes">12345</property>
                 <property name="primary_icon_name">system-users-symbolic</property>
               </object>
@@ -95,6 +98,7 @@
                 <property name="sensitive">False</property>
                 <property name="can_focus">True</property>
                 <property name="tooltip_text" translatable="yes">Active Users (Right Now)</property>
+                <property name="width_chars">8</property>
                 <property name="text" translatable="yes">234</property>
                 <property name="primary_icon_name">network-wireless-signal-excellent-symbolic</property>
               </object>

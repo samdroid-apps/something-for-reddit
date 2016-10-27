@@ -65,7 +65,7 @@ class SFR.MetaToolbarSubreddit : Gtk.Box {
         });
 
         this.model.bind_property (
-            "is_subscribed", this.subscribe_stack, "visible-child-name",
+            "is-subscribed", this.subscribe_stack, "visible-child-name",
             BindingFlags.DEFAULT | BindingFlags.SYNC_CREATE,
             (binding, srcval, ref targetval) => {
                 bool src = (bool) srcval;
@@ -73,6 +73,7 @@ class SFR.MetaToolbarSubreddit : Gtk.Box {
                 return true;
             }
         );
+
         this.model.bind_property (
             "subscribers", this.subs, "text",
             BindingFlags.DEFAULT | BindingFlags.SYNC_CREATE,
@@ -92,6 +93,16 @@ class SFR.MetaToolbarSubreddit : Gtk.Box {
             }
         );
     }
+
+    [GtkCallback]
+    private void subscribe_clicked_cb (Gtk.Button button) {
+        this.model.is_subscribed = true;
+    }
+    [GtkCallback]
+    private void unsubscribe_clicked_cb (Gtk.Button button) {
+        this.model.is_subscribed = false;
+    }
+
 
     private void loaded_changed () {
         this.main_stack.visible_child_name = (

@@ -29,7 +29,22 @@ class SFR.MetaModelSubreddit : SFR.MetaModel {
 
     public bool loaded { get; set; default = false; }
 
-    public bool is_subscribed { get; set; }
+    private bool _is_subscribed;
+    public bool is_subscribed {
+        get { return this._is_subscribed; }
+        set {
+            this.loaded = false;
+            this.model.active_account.set_subscribed.begin (
+                this.subreddit,
+                value,
+                (obj, res) => {
+                    this._is_subscribed = value;
+                    this.notify_property ("is-subscribed");
+                    this.loaded = true;
+                }
+            );
+        }
+    }
     public int64 subscribers { get; set; }
     public int64 active_users { get; set; }
 
@@ -45,7 +60,7 @@ class SFR.MetaModelSubreddit : SFR.MetaModel {
                 Json.Object resp = aa.send_request_get.end (res);
                 var data = resp.get_object_member ("data");
                 this.loaded = true;
-                this.is_subscribed =
+                this._is_subscribed =
                     data.get_boolean_member ("user_is_subscriber");
                 this.subscribers =
                     data.get_int_member ("subscribers");
