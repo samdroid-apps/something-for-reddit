@@ -59,10 +59,15 @@ class SFR.MetaToolbarSubreddit : Gtk.Box {
     public MetaToolbarSubreddit (SFR.MetaModelSubreddit model) {
         this.model = model;
 
-        this.loaded_changed ();
-        this.model.notify["loaded"].connect ((s, p) => {
-            this.loaded_changed ();
-        });
+        this.model.bind_property (
+            "loaded", this.main_stack, "visible-child-name",
+            BindingFlags.DEFAULT | BindingFlags.SYNC_CREATE,
+            (binding, srcval, ref targetval) => {
+                bool src = (bool) srcval;
+                targetval.set_string (src ? "loaded" : "loading");
+                return true;
+            }
+        );
 
         this.model.bind_property (
             "is-subscribed", this.subscribe_stack, "visible-child-name",
@@ -101,13 +106,6 @@ class SFR.MetaToolbarSubreddit : Gtk.Box {
     [GtkCallback]
     private void unsubscribe_clicked_cb (Gtk.Button button) {
         this.model.is_subscribed = false;
-    }
-
-
-    private void loaded_changed () {
-        this.main_stack.visible_child_name = (
-            this.model.loaded ? "loaded" : "loading"
-        );
     }
 }
 
