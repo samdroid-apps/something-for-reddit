@@ -1,9 +1,12 @@
+/*
+ * This is the model for one window of the application, it manages
+ * fetching the content for the left and right panes
+ */
 class SFR.AppWindowModel : Object {
     private SFR.ApplicationModel application_model;
 
     public AppWindowModel (SFR.ApplicationModel application_model) {
         this.application_model = application_model;
-        this.load_left_uri ("/r/all");
     }
 
     public string left_uri { get; set; }
@@ -13,20 +16,46 @@ class SFR.AppWindowModel : Object {
         get; set; default = new SFR.MetaModelNone ();
     }
 
+    /* Load an actual uri from the command line or "go to" box */
+    public async void load_uri (string unclean_uri) {
+        var uri = clean_uri (unclean_uri);
+        this.load_left_uri (uri);
+    }
+
+
     public async void load_left_uri (string uri) {
         this.left_uri = uri;
-        if (!this.left_meta.applies_for_path (uri)) {
+
+        if (!this.left_meta.applies_for_path (this.left_uri)) {
             this.left_meta = get_meta_model_for_path (
-                uri, this.application_model
+                this.left_uri, this.application_model
             );
         }
         this.left_loading = true;
 
         var aa = this.application_model.active_account;
-        this.left_listing = yield aa.get_listing (uri);
+        this.left_listing = yield aa.get_listing (this.left_uri);
 
         this.left_loading = false;
     }
+}
+
+const string[] CLEAN_URI_PREFIX = {
+    "http://",
+    "file://",
+    "https://",
+    "www.",
+    "reddit.com"
+};
+string clean_uri (string raw_uri) {
+    string uri = raw_uri;
+    foreach (string prefix in CLEAN_URI_PREFIX) {
+        if (uri.has_prefix (prefix)) {
+            uri = uri.substring (prefix.length);
+            debug (uri);
+        }
+    }
+    return uri;
 }
 
 class SFR.AppWindowManager : Object {
@@ -40,9 +69,9 @@ class SFR.AppWindowManager : Object {
     private Gtk.HeaderBar right_header;
 
     public AppWindowManager (Gtk.ApplicationWindow window,
-                             SFR.ApplicationModel application_model) {
+                             SFR.AppWindowModel model) {
+        this.model = model;
         this.window = window;
-        this.model = new SFR.AppWindowModel (application_model);
 
         this.content_paned = new Gtk.Paned (Gtk.Orientation.HORIZONTAL);
         this.window.add (content_paned);

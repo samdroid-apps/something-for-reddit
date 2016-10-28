@@ -136,7 +136,10 @@ class SFR.App : Gtk.Application {
     private SFR.ApplicationModel model;
 
     public App () {
-        Object (application_id: "today.sam.reddit-is-gtk");
+        Object (
+            application_id: "today.sam.reddit-is-gtk",
+            flags: ApplicationFlags.HANDLES_OPEN
+        );
         this.model = new SFR.ApplicationModel ();
     }
 
@@ -150,6 +153,21 @@ class SFR.App : Gtk.Application {
         this.model.notify["should-show-welcome"].connect ((s, p) => {
             this.reset_content (window);
         });
+    }
+
+    protected override void open (File[] files, string hint) {
+        foreach (File file in files) {
+            string uri = file.get_uri ();
+
+            var window = new Gtk.ApplicationWindow (this);
+            window.title = "Something for Reddit";
+            window.set_default_size (400, 400);
+
+            var model  = new SFR.AppWindowModel (this.model);
+            new SFR.AppWindowManager (window, model);
+            model.load_uri (uri);
+            window.show ();
+        }
     }
 
     private void reset_content (Gtk.ApplicationWindow window) {
@@ -170,7 +188,9 @@ class SFR.App : Gtk.Application {
             window.add (welcome);
             welcome.show();
         } else {
-            var apv = new SFR.AppWindowManager (window, this.model);
+            var model = new SFR.AppWindowModel (this.model);
+            new SFR.AppWindowManager (window, model);
+            model.load_uri ("/r/all");
         }
     }
 
