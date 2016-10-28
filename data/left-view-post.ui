@@ -109,7 +109,7 @@
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <property name="halign">start</property>
-            <property name="label" translatable="yes">This is a 1500 charecter preview of what the user will see when they click through to the post.  Oh my go - this is going to a a pain to impliment for posts that aren't self posts!</property>
+            <property name="label" translatable="yes">This is a 1500 charecter preview of what the user will see when they click through to the post.  Oh my go - this is going to a a pain to implement for posts that aren't self posts!</property>
             <property name="justify">left</property>
             <property name="wrap">True</property>
             <property name="wrap_mode">word-char</property>
