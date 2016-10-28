@@ -47,6 +47,7 @@ class SFR.MetaModelSubreddit : SFR.MetaModel {
     }
     public int64 subscribers { get; set; }
     public int64 active_users { get; set; }
+    public string description { get; set; default = ""; }
 
     public MetaModelSubreddit (string subreddit, SFR.ApplicationModel model) {
         this._subreddit = subreddit;
@@ -60,6 +61,7 @@ class SFR.MetaModelSubreddit : SFR.MetaModel {
                 Json.Object resp = aa.send_request_get.end (res);
                 var data = resp.get_object_member ("data");
                 this.loaded = true;
+                this.description = data.get_string_member ("description");
                 this._is_subscribed =
                     data.get_boolean_member ("user_is_subscriber");
                 this.subscribers =

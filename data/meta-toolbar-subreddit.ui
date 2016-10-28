@@ -28,6 +28,87 @@
           <object class="GtkBox" id="loaded">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
+            <property name="margin_left">6</property>
+            <property name="margin_right">6</property>
+            <child>
+              <object class="GtkEntry" id="subs">
+                <property name="visible">True</property>
+                <property name="sensitive">False</property>
+                <property name="can_focus">True</property>
+                <property name="tooltip_text" translatable="yes">Subscribers</property>
+                <property name="width_chars">11</property>
+                <property name="text" translatable="yes">12345</property>
+                <property name="primary_icon_name">system-users-symbolic</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkEntry" id="active">
+                <property name="visible">True</property>
+                <property name="sensitive">False</property>
+                <property name="can_focus">True</property>
+                <property name="tooltip_text" translatable="yes">Active Users (Right Now)</property>
+                <property name="margin_left">6</property>
+                <property name="margin_right">6</property>
+                <property name="width_chars">8</property>
+                <property name="text" translatable="yes">234</property>
+                <property name="primary_icon_name">network-wireless-signal-excellent-symbolic</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="position">2</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkToggleButton" id="expand_toggle">
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <child>
+                  <object class="GtkImage">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="icon_name">view-more-symbolic</property>
+                  </object>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="pack_type">end</property>
+                <property name="position">2</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="name">loaded</property>
+            <property name="title" translatable="yes">page0</property>
+            <property name="position">1</property>
+          </packing>
+        </child>
+      </object>
+      <packing>
+        <property name="expand">False</property>
+        <property name="fill">True</property>
+        <property name="position">0</property>
+      </packing>
+    </child>
+    <child>
+      <object class="GtkRevealer" id="info_container">
+        <property name="visible">True</property>
+        <property name="can_focus">False</property>
+        <child>
+          <object class="GtkBox">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="margin_left">6</property>
+            <property name="margin_right">6</property>
+            <property name="orientation">vertical</property>
             <child>
               <object class="GtkStack" id="subscribe_stack">
                 <property name="visible">True</property>
@@ -70,86 +151,49 @@
               <packing>
                 <property name="expand">False</property>
                 <property name="fill">True</property>
-                <property name="padding">6</property>
-                <property name="pack_type">end</property>
                 <property name="position">0</property>
               </packing>
             </child>
             <child>
-              <object class="GtkEntry" id="subs">
+              <object class="GtkButton" id="submit">
+                <property name="label" translatable="yes">Submit Post</property>
                 <property name="visible">True</property>
-                <property name="sensitive">False</property>
                 <property name="can_focus">True</property>
-                <property name="tooltip_text" translatable="yes">Subscribers</property>
-                <property name="width_chars">11</property>
-                <property name="text" translatable="yes">12345</property>
-                <property name="primary_icon_name">system-users-symbolic</property>
+                <property name="receives_default">True</property>
+                <property name="margin_top">6</property>
               </object>
               <packing>
                 <property name="expand">False</property>
-                <property name="fill">False</property>
-                <property name="padding">6</property>
+                <property name="fill">True</property>
                 <property name="position">1</property>
               </packing>
             </child>
             <child>
-              <object class="GtkEntry" id="active">
+              <object class="GtkRevealer" id="description_container">
                 <property name="visible">True</property>
-                <property name="sensitive">False</property>
-                <property name="can_focus">True</property>
-                <property name="tooltip_text" translatable="yes">Active Users (Right Now)</property>
-                <property name="width_chars">8</property>
-                <property name="text" translatable="yes">234</property>
-                <property name="primary_icon_name">network-wireless-signal-excellent-symbolic</property>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">False</property>
-                <property name="padding">6</property>
-                <property name="position">2</property>
-              </packing>
-            </child>
-            <child>
-              <placeholder/>
-            </child>
-            <child>
-              <object class="GtkButton" id="compose">
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
+                <property name="can_focus">False</property>
+                <property name="margin_top">6</property>
+                <property name="margin_bottom">6</property>
+                <property name="transition_type">none</property>
+                <property name="reveal_child">True</property>
                 <child>
-                  <object class="GtkImage">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="tooltip_text" translatable="yes">Submit New Post</property>
-                    <property name="icon_name">document-new-symbolic</property>
-                  </object>
+                  <placeholder/>
                 </child>
               </object>
               <packing>
                 <property name="expand">False</property>
                 <property name="fill">True</property>
-                <property name="padding">6</property>
-                <property name="pack_type">end</property>
-                <property name="position">4</property>
+                <property name="position">2</property>
               </packing>
             </child>
           </object>
-          <packing>
-            <property name="name">loaded</property>
-            <property name="title" translatable="yes">page0</property>
-            <property name="position">1</property>
-          </packing>
         </child>
       </object>
       <packing>
         <property name="expand">False</property>
         <property name="fill">True</property>
-        <property name="position">0</property>
+        <property name="position">1</property>
       </packing>
-    </child>
-    <child>
-      <placeholder/>
     </child>
   </template>
 </interface>

@@ -8,6 +8,7 @@ reddit-is-gtk.gresource.c: ../data/reddit-is-gtk.gresource.xml ../data/style.css
 something_for_reddit_SOURCES = \
     something-for-reddit.vala \
     account.vala \
+    reddit-markdown.vala \
     sign-in-view.vala \
     app-view-manager.vala \
     left-header.vala \

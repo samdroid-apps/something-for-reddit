@@ -4,10 +4,8 @@ class SFR.LeftView : Gtk.Box {
 
     [GtkChild]
     Gtk.ListBox list_box;
-
-    // the only GtkBin like thing I found in glade
     [GtkChild]
-    Gtk.Revealer meta_bin;
+    Gtk.Bin meta_bin;
 
     public LeftView (SFR.AppWindowModel model) {
         this.model = model;
@@ -50,6 +48,12 @@ class SFR.MetaToolbarSubreddit : Gtk.Box {
     [GtkChild]
     private Gtk.Stack main_stack;
     [GtkChild]
+    private Gtk.ToggleButton expand_toggle;
+    [GtkChild]
+    private Gtk.Revealer info_container;
+    [GtkChild]
+    private Gtk.Bin description_container;
+    [GtkChild]
     private Gtk.Stack subscribe_stack;
     [GtkChild]
     private Gtk.Entry active;
@@ -58,6 +62,16 @@ class SFR.MetaToolbarSubreddit : Gtk.Box {
 
     public MetaToolbarSubreddit (SFR.MetaModelSubreddit model) {
         this.model = model;
+
+        this.expand_toggle.bind_property (
+            "active", this.info_container, "reveal-child",
+            BindingFlags.DEFAULT | BindingFlags.SYNC_CREATE
+        );
+
+        this.set_description ();
+        this.model.notify["description"].connect ((s, p) => {
+            this.set_description ();
+        });
 
         this.model.bind_property (
             "loaded", this.main_stack, "visible-child-name",
@@ -98,6 +112,18 @@ class SFR.MetaToolbarSubreddit : Gtk.Box {
             }
         );
     }
+
+    private void set_description () {
+        Gtk.Widget? ch = this.description_container.get_child ();
+        if (ch != null) {
+            this.description_container.remove (ch);
+        }
+
+        ch = new SFR.RedditMarkdownWidget (this.model.description);
+        this.description_container.add (ch);
+        ch.show();
+    }
+
 
     [GtkCallback]
     private void subscribe_clicked_cb (Gtk.Button button) {
@@ -187,7 +213,6 @@ class SFR.LeftViewPost : Gtk.Box {
                 return true;
             }
         );
-
     }
 
     private void update_info_label () {
