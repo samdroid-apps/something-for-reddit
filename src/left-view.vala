@@ -122,6 +122,7 @@ class SFR.MetaToolbarSubreddit : Gtk.Box {
         ch = new SFR.RedditMarkdownWidget (this.model.description);
         this.description_container.add (ch);
         ch.show();
+        debug ("Showing markdown widget");
     }
 
 
