@@ -81,9 +81,18 @@ namespace Snudown {
     }
 
     namespace CallbackTypes {
-        /* blockcode, blockquote, blockhtml, paragraph, normal_text */
+        /* blockquote, blockhtml, paragraph, normal_text */
         public static delegate void block (
             Buffer ob, Buffer text, GLib.Object user_data
+        );
+
+        public static delegate void blockcode (
+            Buffer ob, Buffer text, Buffer lang, GLib.Object user_data
+        );
+
+        [CCode]
+        public static delegate void enter (
+            Buffer ob, GLib.Object user_data
         );
 
         [CCode]
@@ -112,9 +121,11 @@ namespace Snudown {
     [CCode (cname = "SDCallbacks")]
     struct Callbacks {
         [CCode]
-        public CallbackTypes.block? blockcode;
+        public CallbackTypes.blockcode? blockcode;
         [CCode]
         public CallbackTypes.block? blockquote;
+        [CCode]
+        public CallbackTypes.enter? enter_blockquote;
         [CCode]
         public CallbackTypes.block? blockhtml;
         [CCode]
@@ -143,6 +154,8 @@ namespace Snudown {
         public CallbackTypes.block? emphasis;
         [CCode]
         public CallbackTypes.block? double_emphasis;
+        [CCode]
+        public CallbackTypes.block? triple_emphasis;
 
         /*int (*codespan)(struct buf *ob, const struct buf *text, void *opaque);
         int (*double_emphasis)(struct buf *ob, const struct buf *text, void *opaque);

@@ -23,5 +23,7 @@
     <file preprocess="xml-stripblanks">left-view.ui</file>
     <file preprocess="xml-stripblanks">left-view-post.ui</file>
     <file preprocess="xml-stripblanks">meta-toolbar-subreddit.ui</file>
+    <file preprocess="xml-stripblanks">markdown-tester.ui</file>
+    <file>markdown.css</file>
   </gresource>
 </gresources>

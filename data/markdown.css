@@ -1,0 +1,17 @@
+.mkd-box > * {
+    margin: 3px;
+}
+
+.mkd-blockquote {
+    border-left: 3px solid grey;
+    border-radius: 1px;
+}
+
+.mkd-blockcode {
+    padding: 3px;
+    border-radius: 3px;
+    border: 1px solid grey;
+
+    font-family: monospace;
+    background: red;
+}

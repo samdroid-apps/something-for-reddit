@@ -76,6 +76,6 @@ Makefile.in
 
 .deps
 /src/*.c
-/src/something-for-reddit
+/src/something-for-reddit*
 /src/something_for_reddit*
 *.so
