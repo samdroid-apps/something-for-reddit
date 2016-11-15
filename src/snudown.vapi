@@ -25,8 +25,8 @@ namespace Snudown {
     }
 
     [Flags]
-    [CCode (cprefix = "MKD_TABLE_")]
-    enum TableFlags {
+    [CCode (cprefix = "MKD_TABLE_", cname = "int", has_type_id = false)]
+    public enum TableFlags {
         ALIGN_L,
         ALIGN_R,
         ALIGN_CENTER,
@@ -35,8 +35,8 @@ namespace Snudown {
     }
 
     [Flags]
-    [CCode (cprefix = "MKDEXT_")]
-    enum mkd_extensions {
+    [CCode (cprefix = "MKDEXT_", cname = "int", has_type_id = false)]
+    enum Extensions {
         NO_INTRA_EMPHASIS,
         TABLES,
         FENCED_CODE,
@@ -66,12 +66,17 @@ namespace Snudown {
         [CCode (cname = "bufputs")]
         public void puts (string data);
 
+        [CCode (cname = "bufputc")]
+        private void stupid_putc (int data);
+
+        public void putc (char data) {
+            this.stupid_putc ((int) data);
+        }
+
         [CCode]
         public size_t unit;
-
         [CCode]
         public size_t size;
-
         [CCode (array_length_cname = "size", array_length_type = "size_t")]
 	public char[] data;
 
@@ -100,7 +105,10 @@ namespace Snudown {
             Buffer ob, Buffer text, int level, GLib.Object user_data
         );
 
-        public static delegate void hrule (Buffer ob);
+        [CCode]
+        public static delegate void hrule (
+            Buffer ob, GLib.Object user_data
+        );
 
         /* list, listitem */
         [CCode]
@@ -115,6 +123,19 @@ namespace Snudown {
         [CCode]
         public static delegate void link (
             Buffer ob, Buffer link, Buffer? title, Buffer content, GLib.Object user_data
+        );
+
+        [CCode]
+        public static delegate void enter_tableflags (
+            Buffer ob, TableFlags tableflags, GLib.Object user_data
+        );
+        [CCode]
+        public static delegate void table (
+            Buffer ob, Buffer header, Buffer body, GLib.Object user_data
+        );
+        [CCode]
+        public static delegate void table_cell (
+            Buffer ob, Buffer text, TableFlags flags, GLib.Object user_data
         );
     }
 
@@ -135,14 +156,26 @@ namespace Snudown {
         [CCode]
         public CallbackTypes.list? list;
         [CCode]
+        public CallbackTypes.enter? enter_list;
+        [CCode]
         public CallbackTypes.list? listitem;
         [CCode]
+        public CallbackTypes.enter? enter_listitem;
+        [CCode]
         public CallbackTypes.block? paragraph;
-        /*
-            void (*table)(struct buf *ob, const struct buf *header, const struct buf *body, void *opaque);
-            void (*table_row)(struct buf *ob, const struct buf *text, void *opaque);
-            void (*table_cell)(struct buf *ob, const struct buf *text, int flags, void *opaque, int col_span);
-        */
+
+        [CCode]
+        public CallbackTypes.enter? enter_table;
+        [CCode]
+        public CallbackTypes.enter_tableflags? enter_table_row;
+        [CCode]
+        public CallbackTypes.enter_tableflags? enter_table_cell;
+        [CCode]
+        public CallbackTypes.table? table;
+        [CCode]
+        public CallbackTypes.block? table_row;
+        [CCode]
+        public CallbackTypes.table_cell? table_cell;
 
         /* span level callbacks - NULL or return 0 prints the span verbatim */
         [CCode]
@@ -156,26 +189,21 @@ namespace Snudown {
         public CallbackTypes.block? double_emphasis;
         [CCode]
         public CallbackTypes.block? triple_emphasis;
+        [CCode]
+        public CallbackTypes.block? strikethrough;
+        [CCode]
+        public CallbackTypes.block? superscript;
+        [CCode]
+        public CallbackTypes.block? codespan;
 
-        /*int (*codespan)(struct buf *ob, const struct buf *text, void *opaque);
-        int (*double_emphasis)(struct buf *ob, const struct buf *text, void *opaque);
-        int (*emphasis)(struct buf *ob, const struct buf *text, void *opaque);
-        int (*image)(struct buf *ob, const struct buf *link, const struct buf *title, const struct buf *alt, void *opaque);
+        /*int (*image)(struct buf *ob, const struct buf *link, const struct buf *title, const struct buf *alt, void *opaque);
         int (*linebreak)(struct buf *ob, void *opaque);
-        int (*raw_html_tag)(struct buf *ob, const struct buf *tag, void *opaque);
-        int (*triple_emphasis)(struct buf *ob, const struct buf *text, void *opaque);
-        int (*strikethrough)(struct buf *ob, const struct buf *text, void *opaque);
-        int (*superscript)(struct buf *ob, const struct buf *text, void *opaque);*/
+        int (*raw_html_tag)(struct buf *ob, const struct buf *tag, void *opaque);*/
 
-        /* low level callbacks - NULL copies input directly into the output */
         [CCode]
         public CallbackTypes.block? entity;
         [CCode]
         public CallbackTypes.block? normal_text;
-
-        /* header and footer */
-        /*void (*doc_header)(struct buf *ob, void *opaque);
-        void (*doc_footer)(struct buf *ob, void *opaque);*/
     }
 
     [Compact]
@@ -186,7 +214,7 @@ namespace Snudown {
     class Markdown<T> {
         [CCode (cname = "sd_markdown_new")]
         public Markdown (
-            uint extentions, 
+            Extensions extentions,
             size_t max_nesting,
             size_t max_table_cols,
             Callbacks callbacks,

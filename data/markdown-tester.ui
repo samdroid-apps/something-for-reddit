@@ -3,6 +3,57 @@
 <interface>
   <requires lib="gtk+" version="3.20"/>
   <object class="GtkTextBuffer" id="text_buffer">
+    <property name="text">Hello World
+
+_Emphasis_ or **Double Emphasis** or ***Triple Emphasis*** or ~~crossed out~~ or high^up.
+
+---
+
+/r/linux, sam@sam.today, https://www.sam.today/ and /u/spez (autolink)
+
+[A named link](https://www.sam.today) [Can have **inline formatting**](https://google.com)
+
+---
+
+&gt; Block quotes
+&gt;
+&gt; # Can have every
+&gt; ## Type
+&gt; ### Of
+&gt; #### Heading
+
+##### Heading 5
+###### Heading 6
+
+---
+
+* Lists
+* Without
+* Order
+	* Can contain
+	* Sublists
+		1. or numbered
+		2. sublists
+		3. OMG YES
+	* YES!
+
+---
+
+# Tables
+
+	the table code is:
+
+	some|header|labels
+	:---|:--:|---:
+	Left-justified|center-justified|right-justified
+	a|b|c
+	d|e|f
+
+Some|header|labels
+:---|:--:|---:
+Left-justified|center-justified|right-justified
+a|b|c
+d|e|f</property>
     <signal name="changed" handler="text_buffer_changed_cb" swapped="no"/>
   </object>
   <template class="SFRMarkdownTester" parent="GtkPaned">

@@ -66,11 +66,14 @@ class SFR.MarkdownTesterApp : Gtk.Application {
 class SFR.MarkdownTester : Gtk.Paned {
     [GtkChild]
     Gtk.Bin preview_bin;
+    [GtkChild]
+    Gtk.TextBuffer text_buffer;
 
     public MarkdownTester (string? text) {
         this.size_allocate.connect ((w, alloc) => {
             this.position = alloc.width / 2;
         });
+        this.text_buffer_changed_cb (this.text_buffer);
     }
     
     [GtkCallback]

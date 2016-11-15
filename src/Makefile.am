@@ -40,7 +40,7 @@ something_for_reddit_markdown_tester_CPPFLAGS = $(something_for_reddit_CPPFLAGS)
 something_for_reddit_markdown_tester_VALAFLAGS = $(something_for_reddit_VALAFLAGS)
 
 snudown/build/lib.linux-x86_64-2.7/snudown.so: snudown/src/markdown.h snudown/src/markdown.c
-	python2.7 setup.py build
+	sh -c "cd snudown; python2.7 setup.py build"
 snudown.so: snudown/build/lib.linux-x86_64-2.7/snudown.so
 	cp snudown/build/lib.linux-x86_64-2.7/snudown.so snudown.so
 
