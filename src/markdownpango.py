@@ -21,6 +21,7 @@ from markdown.extensions import Extension
 from markdown.inlinepatterns import Pattern, SimpleTagPattern
 
 from gi.repository import Gtk
+from gi.repository import Pango
 
 
 _URI_RE = r'(https?://[^ \r\t\n]+)'
@@ -103,7 +104,8 @@ class SaneLabel(Gtk.Label):
 def set_markup_sane(label, markup):
     label.props.xalign = 0
     label.props.justify = Gtk.Justification.LEFT
-    label.set_line_wrap(True)
+    label.props.wrap = True
+    label.props.wrap_mode = Pango.WrapMode.WORD_CHAR
     label.set_markup(markup)
     label.connect('activate-link', __activate_link_cb)
 
