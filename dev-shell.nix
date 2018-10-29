@@ -35,6 +35,5 @@ stdenv.mkDerivation rec {
     export PATH=$PREFIX/bin:$PATH
 
     echo '${helpMessage}'
-    fish; exit
   '';
 }

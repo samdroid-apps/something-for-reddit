@@ -10,6 +10,8 @@
 , itstool
 , gnome3
 , autoconf
+, pango
+, atk
 , sass }:
 
 let
@@ -29,16 +31,20 @@ stdenv.mkDerivation rec {
     itstool
     sass
     py.pkgs.pytest
+    py.pkgs.pytestcov
   ];
 
   buildInputs = [
     gtk3
     glib
+    gdk_pixbuf
+    pango
     py 
     hicolor_icon_theme
     gnome3.gsettings_desktop_schemas
     makeWrapper
     gnome3.webkitgtk
+    gnome3.libsoup
   ] ++ (with py.pkgs; [
     pygobject3
     markdown
@@ -49,8 +55,22 @@ stdenv.mkDerivation rec {
     ./autogen.sh
   '';
 
-  extraTypelibPath = "${gnome3.webkitgtk}/lib/girepository-1.0/";
-  extraLibPath = stdenv.lib.makeLibraryPath [ glib gtk3 gnome3.webkitgtk ];
+  extraLibs = [
+    gnome3.webkitgtk
+    gnome3.libsoup
+    gtk3
+    glib
+    pango
+    # full output for the gi typelib files:
+    pango.out
+    atk
+    gdk_pixbuf
+  ];
+  extraTypelibPath = let
+    paths = map (lib: "${lib}/lib/girepository-1.0/") extraLibs;
+  in
+    builtins.concatStringsSep ":" paths;
+  extraLibPath = stdenv.lib.makeLibraryPath extraLibs;
 
   preFixup = ''
     wrapProgram "$out/bin/reddit-is-gtk" \

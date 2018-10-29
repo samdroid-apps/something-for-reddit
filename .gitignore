@@ -75,3 +75,4 @@ Makefile.in
 /debian/reddit-is-gtk.substvars
 /__build_prefix
 /.pytest_cache/
+.coverage
