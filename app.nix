@@ -48,14 +48,14 @@ stdenv.mkDerivation rec {
     ./autogen.sh
   '';
 
-  preFixup = let
-    libPath = stdenv.lib.makeLibraryPath [ glib gtk3 gnome3.webkitgtk ];
-  in
-  ''
+  extraTypelibPath = "${gnome3.webkitgtk}/lib/girepository-1.0/";
+  extraLibPath = stdenv.lib.makeLibraryPath [ glib gtk3 gnome3.webkitgtk ];
+
+  preFixup = ''
     wrapProgram "$out/bin/reddit-is-gtk" \
       --prefix XDG_DATA_DIRS : "${gnome3.gnome_themes_standard}/share:$XDG_ICON_DIRS:$GSETTINGS_SCHEMAS_PATH" \
-      --prefix GI_TYPELIB_PATH : "${gnome3.webkitgtk}/lib/girepository-1.0/:$GI_TYPELIB_PATH" \
-      --prefix LD_LIBRARY_PATH : "${libPath}" \
+      --prefix GI_TYPELIB_PATH : "${extraTypelibPath}:$GI_TYPELIB_PATH" \
+      --prefix LD_LIBRARY_PATH : "${extraLibPath}" \
       --prefix PYTHONPATH : "$PYTHONPATH"
   '';
 
@@ -67,4 +67,3 @@ stdenv.mkDerivation rec {
     platforms = platforms.linux;
   };
 }
-

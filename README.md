@@ -44,6 +44,17 @@ There is a .desktop file, but it is also `reddit-is-gtk` command
 
 Please report the bugs or deficiencies that you find via Github Issues.
 
+# Development
+
+A development shell using Nix is provided in `dev-shell.nix`.  You can run it
+with the following command:
+
+```sh
+nix-shell dev-shell.nix
+```
+
+This will include instructions to run the app.
+
 # Roadmap
 
 Feel free to contribute and do whatever you want.
