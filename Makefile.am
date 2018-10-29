@@ -3,7 +3,7 @@ NULL =
 
 bin_SCRIPTS = reddit-is-gtk
 
-SUBDIRS = data src po
+SUBDIRS = src data po
 
 EXTRA_DIST = \
 	reddit-is-gtk.in  \

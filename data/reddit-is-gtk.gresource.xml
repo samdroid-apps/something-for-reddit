@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <gresources>
   <gresource prefix="/today/sam/reddit-is-gtk">
-    <!-- You can probably delete these -->
     <file alias="style.css">style.css.out</file>
     <file alias="style.dark.css">style.dark.css.out</file>
     <file preprocess="xml-stripblanks">app-menu.ui</file>
@@ -15,15 +14,5 @@
     <file preprocess="xml-stripblanks">webview-toolbar.ui</file>
     <file preprocess="xml-stripblanks">shortcuts-window.ui</file>
     <file preprocess="xml-stripblanks">settings-window.ui</file>
-
-    <!-- Used in the new app -->
-    <file preprocess="xml-stripblanks">welcome-window-content.ui</file>
-    <file preprocess="xml-stripblanks">sign-in-view.ui</file>
-    <file preprocess="xml-stripblanks">left-header.ui</file>
-    <file preprocess="xml-stripblanks">left-view.ui</file>
-    <file preprocess="xml-stripblanks">left-view-post.ui</file>
-    <file preprocess="xml-stripblanks">meta-toolbar-subreddit.ui</file>
-    <file preprocess="xml-stripblanks">markdown-tester.ui</file>
-    <file>markdown.css</file>
   </gresource>
 </gresources>
