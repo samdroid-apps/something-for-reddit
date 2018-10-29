@@ -44,7 +44,7 @@ AC_SUBST(GLIB_COMPILE_RESOURCES)
 AC_CONFIG_FILES([
   Makefile
   data/Makefile
-  src/Makefile
+  redditisgtk/Makefile
   po/Makefile.in
 ])
 AC_OUTPUT

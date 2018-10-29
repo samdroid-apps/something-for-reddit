@@ -31,7 +31,7 @@ stdenv.mkDerivation rec {
     export XDG_DATA_DIRS=$PREFIX/share:${gnome3.gnome_themes_standard}/share:$XDG_DATA_DIRS:$XDG_ICON_DIRS:$GSETTINGS_SCHEMAS_PATH
     export GI_TYPELIB_PATH=${app.extraTypelibPath}:$GI_TYPELIB_PATH
     export LD_LIBRARY_PATH=${app.extraLibPath}:$LD_LIBRARY_PATH
-    export PYTHONPATH=$PREFIX/lib/python3.6/site-packages:$PYTHONPATH
+    export PYTHONPATH=.:$PREFIX/lib/python3.6/site-packages:$PYTHONPATH
     export PATH=$PREFIX/bin:$PATH
 
     echo '${helpMessage}'
