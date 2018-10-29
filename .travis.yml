@@ -8,6 +8,9 @@ before_script:
   - ./cc-test-reporter before-build
 script:
   - nix-shell dev-shell.nix --command 'echo Downloaded deps'
-  - nix-shell dev-shell.nix --command './autogen.sh --prefix=$PREFIX && make && make install && pytest --cov=redditisgtk'
+  - nix-shell dev-shell.nix --command './autogen.sh --prefix=$PREFIX && make && make install && pytest --cov=redditisgtk --cov-report xml'
 after_script:
-  - ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT
+  - sudo apt-get update
+  - sudo apt-get install -y python3-dev gcc python3-pip
+  - sudo pip3 install coverage
+  - ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT -t coverage.py

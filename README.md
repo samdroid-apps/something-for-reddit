@@ -1,5 +1,7 @@
 # Something For Reddit
 
+[![Maintainability](https://api.codeclimate.com/v1/badges/99d7155d2d7ad46df42e/maintainability)](https://codeclimate.com/github/samdroid-apps/something-for-reddit/maintainability)[![Test Coverage](https://api.codeclimate.com/v1/badges/99d7155d2d7ad46df42e/test_coverage)](https://codeclimate.com/github/samdroid-apps/something-for-reddit/test_coverage)
+
 A simple Reddit client for GNOME, built for touch, mouse and VIM keyboards.
 
 ![Screenshot 1](http://people.sugarlabs.org/sam/reddit-screenshots/SS1.png)
