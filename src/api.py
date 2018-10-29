@@ -25,7 +25,7 @@ from gi.repository import GLib
 from gi.repository import GObject
 from gi.repository import GdkPixbuf
 
-from redditisgtk.identity import get_identity_controller
+from redditisgtk import identity
 
 
 USER_AGENT = 'GNU:something-for-reddit:v0.2 (by /u/samtoday)'
@@ -100,14 +100,23 @@ class RedditAPI(GObject.GObject):
     '''
     request_failed = GObject.Signal('request-failed', arg_types=[object, str])
 
-    def __init__(self):
+    def __init__(self,
+            session: Soup.Session,
+            identity_controller: identity.IdentityController):
+        '''
+        Args:
+            session (Soup.Session): dependency
+            identity_controller (identity.IdentityController): dependency
+        '''
         GObject.GObject.__init__(self)
         self._token = None
-        get_identity_controller().token_changed.connect(
-            self.__token_changed_cb)
         self.user_name = None
 
-        self.session = Soup.Session()
+        self._identity_controller = identity_controller
+        self._identity_controller.token_changed.connect(
+            self.__token_changed_cb)
+
+        self.session = session
         self.session.props.user_agent = USER_AGENT
 
     def __token_changed_cb(self, identity, token):
@@ -223,7 +232,7 @@ class RedditAPI(GObject.GObject):
             if j['error'] == 401:
                 def callback():
                     self.resend_message(my_args)
-                get_identity_controller().refresh(callback)
+                self._identity_controller.refresh(callback)
                 return
 
             self.request_failed.emit(
@@ -385,7 +394,13 @@ class RedditAPI(GObject.GObject):
         callback(pbl.get_pixbuf())
 
 
-_api = RedditAPI()
+def build_reddit_api():
+    session = Soup.Session()
+    ic = identity.get_identity_controller()
+    return RedditAPI(session, ic)
+
+
+_api = build_reddit_api()
 
 
 def get_reddit_api():

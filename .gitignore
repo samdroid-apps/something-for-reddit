@@ -74,3 +74,4 @@ Makefile.in
 /debian/reddit-is-gtk.debhelper.log
 /debian/reddit-is-gtk.substvars
 /__build_prefix
+/.pytest_cache/

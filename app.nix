@@ -28,6 +28,7 @@ stdenv.mkDerivation rec {
     intltool
     itstool
     sass
+    py.pkgs.pytest
   ];
 
   buildInputs = [
