@@ -22,6 +22,7 @@ A simple Reddit client for GNOME, built for touch, mouse and VIM keyboards.
 | Fedora | `dnf copr enable samtoday/something-for-reddit; dnf install something-for-reddit` | https://copr.fedorainfracloud.org/coprs/samtoday/something-for-reddit/ |
 | Archlinux | `yaourt -S something-for-reddit-git` | https://aur.archlinux.org/packages/something-for-reddit-git/ |
 | openSUSE | | https://software.opensuse.org/package/something-for-reddit |
+| NixOS | `nix-shell --command reddit-is-gtk` | see `app.nix` for package |
 
 # Installing
 

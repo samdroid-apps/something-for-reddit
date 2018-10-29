@@ -15,7 +15,7 @@ AM_PATH_PYTHON([3.3])
 
 AC_PROG_CC
 AM_PROG_CC_C_O
-LT_INIT([disable-static])
+# LT_INIT([disable-static])
 
 PKG_PROG_PKG_CONFIG([0.22])
 
@@ -25,13 +25,17 @@ AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE, "$GETTEXT_PACKAGE",
                    [The prefix for our gettext translation domains.])
 IT_PROG_INTLTOOL(0.26)
 
-AX_PYTHON_MODULE([arrow], [For date humanization])
-AX_PYTHON_MODULE([markdown], [For reddit markdown])
+# I don't know how to get this working on Nix
+# TODO: uncomment the following once build works
+# AX_PYTHON_MODULE([arrow], [For date humanization])
+# AX_PYTHON_MODULE([markdown], [For reddit markdown])
 
 GLIB_GSETTINGS
-GOBJECT_INTROSPECTION_REQUIRE([1.35.9])
+# TODO: get this working on Nix
+# GOBJECT_INTROSPECTION_REQUIRE([1.35.9])
 PKG_CHECK_MODULES([GTK], [gtk+-3.0 >= 3.13.2])
 PKG_CHECK_MODULES([LIBSOUP], [libsoup-2.4 >= 2.4])
+# TODO: get this working on Nix
 # AX_PATH_PROG([sass], [For compiling style sheets])
 
 GLIB_COMPILE_RESOURCES=`$PKG_CONFIG --variable glib_compile_resources gio-2.0`
