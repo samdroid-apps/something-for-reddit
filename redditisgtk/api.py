@@ -18,15 +18,15 @@
 import os
 import re
 import json
+import time
 import urllib.parse
+import warnings
+import typing
 
 from gi.repository import Soup
 from gi.repository import GLib
 from gi.repository import GObject
 from gi.repository import GdkPixbuf
-
-from redditisgtk import identity
-
 
 USER_AGENT = 'GNU:something-for-reddit:v0.2 (by /u/samtoday)'
 PREPEND_SUBS = ['/r/all', '/inbox']
@@ -81,13 +81,144 @@ def describe_soup_transport_error(code, msg):
                                        uri.to_string(False))
 
 
+class TokenManager(GObject.GObject):
+    '''
+    This class manages a single account token.
+    '''
+
+    value_changed = GObject.Signal('value-changed')
+    user_name = None
+    is_anonymous = False
+
+    def __init__(self):
+        super().__init__()
+
+    def refresh(self, done_callback: typing.Callable[[], typing.Any]):
+        '''
+        Request a refresh of the token, if applicable to this type of account
+        '''
+        raise NotImplementedError()
+
+    def wrap_path(self, path: str) -> str:
+        '''
+        Take a path and put the domain part in front of it
+        '''
+        raise NotImplementedError()
+
+    def add_message_headers(self, msg: Soup.Message):
+        '''
+        Mutate the soup message and add any required headers to signify
+        this token
+        '''
+        raise NotImplementedError()
+    
+    def serialize(self) -> dict:
+        raise NotImplementedError()
+
+
+class AnonymousTokenManager(TokenManager):
+    user_name = 'Anonymous'
+    is_anonymous = True
+
+    def refresh(self, done_callback):
+        done_callback()
+
+    def wrap_path(self, path: str) -> str:
+        return 'https://api.reddit.com' + path
+
+    def add_message_headers(self, msg: Soup.Message):
+        pass
+
+
+class OAuthTokenManager(TokenManager):
+
+    def __init__(
+            self, session: Soup.Session,
+            token: dict = None, code: str = None,
+            ready_callback: typing.Callable[[], typing.Any] = None):
+        super().__init__()
+        self._token = token or {}
+        self._session = session
+        if code is not None:
+            self._call_access_token(dict(
+                code=code,
+                grant_type='authorization_code',
+                redirect_uri='redditgtk://done'),
+                callback=ready_callback)
+        else:
+            self.refresh(ready_callback)
+
+    def _call_access_token(self, data, callback=None):
+        msg = Soup.Message.new(
+            'POST', 'https://www.reddit.com/api/v1/access_token')
+        msg.props.priority = Soup.MessagePriority.VERY_HIGH
+        body = urllib.parse.urlencode(data)
+        msg.set_request(
+            'application/x-www-form-urlencoded',
+            Soup.MemoryUse.COPY, bytes(body, 'utf8'))
+        msg.props.request_headers.append(
+            'Authorization', 'Basic V0NOM2pxb0oxLTByMFE6Cg==')
+
+        self._session.queue_message(
+            msg, self.__message_done_cb, callback)
+
+    def __message_done_cb(self, session, msg, user_data):
+        callback = user_data
+
+        data = msg.props.response_body.data
+        if data is None:
+            # TODO:  Show this error to the user
+            print('Token refresh failed')
+            print(data,
+                  msg.props.status_code,
+                  describe_soup_transport_error(msg.props.status_code, msg))
+            return
+
+        # We must keep some things we only get the 1st time, eg.
+        # the refresh token
+        self._token.update(json.loads(data))
+        self._token['time'] = time.time()
+
+        self.value_changed.emit()
+
+        if callback is not None:
+            callback()
+
+    def set_user_name(self, name: str):
+        self._token['username'] = name
+        self.value_changed.emit()
+
+    @property
+    def user_name(self):
+        return self._token.get('username', '**loading username**')
+
+    def refresh(self, done_callback):
+        self._call_access_token(
+            dict(
+                grant_type='refresh_token',
+                refresh_token=self._token['refresh_token'],
+            ),
+            callback=done_callback)
+
+    def wrap_path(self, path: str) -> str:
+        return 'https://oauth.reddit.com' + path
+
+    def add_message_headers(self, msg: Soup.Message):
+        token = self._token['access_token']
+        msg.props.request_headers.append(
+            'Authorization',
+            'bearer {}'.format(token))
+
+    def serialize(self):
+        return self._token
+
+
 class RedditAPI(GObject.GObject):
 
     subs_changed = GObject.Signal('subs-changed')
     user_changed = GObject.Signal('user-changed')
     user_subs = DEFAULT_SUBS
     lower_user_subs = [x.lower() for x in DEFAULT_SUBS]
-    user_name = None
 
     '''
     Emitted after request fail due to no network connection,
@@ -100,39 +231,33 @@ class RedditAPI(GObject.GObject):
     '''
     request_failed = GObject.Signal('request-failed', arg_types=[object, str])
 
-    def __init__(self,
-            session: Soup.Session,
-            identity_controller: identity.IdentityController):
+    def __init__(self, session: Soup.Session, token: TokenManager):
         '''
         Args:
             session (Soup.Session): dependency
-            identity_controller (identity.IdentityController): dependency
+            token (TokenManager): token to use
         '''
         GObject.GObject.__init__(self)
-        self._token = None
-        self.user_name = None
-
-        self._identity_controller = identity_controller
-        self._identity_controller.token_changed.connect(
-            self.__token_changed_cb)
+        self._token = token
 
         self.session = session
         self.session.props.user_agent = USER_AGENT
 
-    def __token_changed_cb(self, identity, token):
-        self._token = token
-        if self._token is not None:
-            self.update_subscriptions()
-            self.send_request('GET', '/api/v1/me', self.__whoami_cb)
-        else:
-            self.user_name = None
+        if self._token.is_anonymous:
             self.user_changed.emit()
             self.user_subs = DEFAULT_SUBS
             self.lower_user_subs = [x.lower() for x in self.user_subs]
             self.subs_changed.emit()
+        else:
+            self.update_subscriptions()
+            self.send_request('GET', '/api/v1/me', self.__whoami_cb)
+
+    @property
+    def user_name(self):
+        return self._token.user_name
 
     def __whoami_cb(self, msg):
-        self.user_name = msg['name']
+        self._token.set_user_name(msg['name'])
         self.user_changed.emit()
 
     def update_subscriptions(self):
@@ -189,21 +314,15 @@ class RedditAPI(GObject.GObject):
         using_oauth = self._token is not None
         my_args = (method, path, callback, post_data, handle_errors, user_data)
 
-        root = 'https://oauth.reddit.com' if using_oauth \
-            else 'https://api.reddit.com'
         if path[0] != '/':
             path = '/' + path
-        msg = Soup.Message.new(method, root + path)
+        msg = Soup.Message.new(method, self._token.wrap_path(path))
         if post_data is not None:
             msg.set_request(
                 'application/x-www-form-urlencoded',
                 Soup.MemoryUse.COPY,
                 bytes(urllib.parse.urlencode(post_data), 'utf8'))
-        if using_oauth:
-            token = self._token['access_token']
-            msg.props.request_headers.append(
-                'Authorization',
-                'bearer {}'.format(token))
+        self._token.add_message_headers(msg)
         self.session.queue_message(msg, self.__message_done_cb, my_args)
         return msg
 
@@ -232,7 +351,7 @@ class RedditAPI(GObject.GObject):
             if j['error'] == 401:
                 def callback():
                     self.resend_message(my_args)
-                self._identity_controller.refresh(callback)
+                self._token.refresh(callback)
                 return
 
             self.request_failed.emit(
@@ -394,14 +513,19 @@ class RedditAPI(GObject.GObject):
         callback(pbl.get_pixbuf())
 
 
-def build_reddit_api():
-    session = Soup.Session()
-    ic = identity.get_identity_controller()
-    return RedditAPI(session, ic)
+class APIFactory(GObject.GObject):
+    '''
+    Get an api given a token
 
+    Given the same token, the api will be the same
+    '''
 
-_api = build_reddit_api()
+    def __init__(self, session: Soup.Session):
+        super().__init__()
+        self._session = session
+        self._apis = {}
 
-
-def get_reddit_api():
-    return _api
+    def get_for_token(self, token: TokenManager) -> RedditAPI:
+        if token not in self._apis:
+            self._apis[token] = RedditAPI(self._session, token)
+        return self._apis[token]

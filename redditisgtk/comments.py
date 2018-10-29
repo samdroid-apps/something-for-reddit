@@ -22,7 +22,7 @@ from gi.repository import GLib
 
 from redditisgtk.markdownpango import markdown_to_pango, SaneLabel
 from redditisgtk.palettebutton import connect_palette
-from redditisgtk.api import get_reddit_api
+from redditisgtk.api import RedditAPI
 from redditisgtk.buttons import (ScoreButtonBehaviour, AuthorButtonBehaviour,
                                  TimeButtonBehaviour, SubButtonBehaviour,
                                  process_shortcuts)
@@ -33,11 +33,12 @@ class CommentsView(Gtk.ScrolledWindow):
 
     got_post_data = GObject.Signal('got-post-data', arg_types=[object])
 
-    def __init__(self, post=None, comments=None, permalink=None):
+    def __init__(self, api: RedditAPI, post=None, comments=None, permalink=None):
         Gtk.ScrolledWindow.__init__(self)
         self.add_events(Gdk.EventMask.KEY_PRESS_MASK)
         self.get_style_context().add_class('root-comments-view')
         self.props.hscrollbar_policy = Gtk.PolicyType.NEVER
+        self._api = api
         self._post = post
         self._msg = None
 
@@ -66,7 +67,7 @@ class CommentsView(Gtk.ScrolledWindow):
     def _init_post(self, post):
         self.got_post_data.emit(post)
 
-        self._top = _PostTopBar(post, self, hideable=False,
+        self._top = _PostTopBar(self._api, post, self, hideable=False,
                                 refreshable=True, show_subreddit=True)
         self._top.get_style_context().add_class('root-comments-bar')
         self._box.add(self._top)
@@ -96,12 +97,12 @@ class CommentsView(Gtk.ScrolledWindow):
 
     def refresh(self, caller=None):
         self._spinner.start()
-        self._msg = get_reddit_api().send_request(
+        self._msg = self._api.send_request(
             'GET', self._permalink, self.__message_done_cb)
 
     def do_unrealize(self):
         if self._msg is not None:
-            get_reddit_api().cancel(self._msg)
+            self._api.cancel(self._msg)
 
     def __message_done_cb(self, j):
         self._spinner.stop()
@@ -135,9 +136,9 @@ class CommentsView(Gtk.ScrolledWindow):
             self._comments.action.connect(self.__add_comment_clicked_cb)
         else:
             # The 0th one is just the self post
-            self._comments = _CommentsView(j[1]['data']['children'],
-                                           self,
-                                           first=True)
+            self._comments = _CommentsView(
+                    self._api, j[1]['data']['children'],
+                    self, first=True)
         self._box.add(self._comments)
         self._comments.show()
 
@@ -283,8 +284,9 @@ class _CommentsView(Gtk.ListBox):
         | CommentRow
     '''
 
-    def __init__(self, data, toplevel_cv, first=False, depth=0):
+    def __init__(self, api: RedditAPI, data, toplevel_cv, first=False, depth=0):
         Gtk.ListBox.__init__(self)
+        self._api = api
         self._first_row = None
         self._is_first = first
         self._depth = depth
@@ -300,7 +302,7 @@ class _CommentsView(Gtk.ListBox):
     def _add_comments(self, data):
         for comment in data:
             comment_data = comment['data']
-            row = CommentRow(comment_data, self._depth, self._toplevel_cv)
+            row = CommentRow(self._api, comment_data, self._depth, self._toplevel_cv)
             row.recurse()
             row.got_more_comments.connect(self.__got_more_comments_cb)
             self.insert(row, -1)
@@ -362,10 +364,11 @@ class _PostTopBar(Gtk.Bin):
 
     hide_toggled = GObject.Signal('hide-toggled', arg_types=[bool])
 
-    def __init__(self, data, toplevel_cv, hideable=True,
+    def __init__(self, api: RedditAPI, data, toplevel_cv, hideable=True,
                  refreshable=False, show_subreddit=False):
         Gtk.Bin.__init__(self, can_focus=True)
         self.add_events(Gdk.EventMask.KEY_PRESS_MASK)
+        self._api = api
         self.data = data
         self._toplevel_cv = toplevel_cv
 
@@ -391,7 +394,8 @@ class _PostTopBar(Gtk.Bin):
         self._score_button = self._b.get_object('score')
         self._score_button.props.visible = 'score' in data
         if 'score' in data:
-            self._sbb = ScoreButtonBehaviour(self._score_button, self.data)
+            self._sbb = ScoreButtonBehaviour(
+                self._api, self._score_button, self.data)
 
         self._time_button = self._b.get_object('time')
         self._tbb = TimeButtonBehaviour(self._time_button, self.data)
@@ -474,7 +478,7 @@ class _PostTopBar(Gtk.Bin):
 
     def read_toggled_cb(self, toggle):
         if toggle.props.active:
-            get_reddit_api().read_message(self.data['name'])
+            self._api.read_message(self.data['name'])
             self._read.get_style_context().remove_class('unread')
             self._read.props.active = True
             self._read.props.sensitive = False
@@ -484,7 +488,7 @@ class _PostTopBar(Gtk.Bin):
         self.hide_toggled.emit(not toggle.props.active)
 
     def favorite_toggled_cb(self, button):
-        get_reddit_api().set_saved(self.data['name'], button.props.active,
+        self._api.set_saved(self.data['name'], button.props.active,
                                    None)
 
     def _make_reply_palette(self):
@@ -547,7 +551,7 @@ class _ReplyPopoverContents(Gtk.Box):
         self._done.props.sensitive = False
         b = self._textview.props.buffer
         text = b.get_text(b.get_start_iter(), b.get_end_iter(), False)
-        get_reddit_api().reply(self.data['name'], text, self.__reply_done_cb)
+        self._api.reply(self.data['name'], text, self.__reply_done_cb)
 
     def __reply_done_cb(self, data):
         new_id = data['json']['data']['things'][0]['data']['id']
@@ -564,9 +568,10 @@ class CommentRow(Gtk.ListBoxRow):
     refresh = GObject.Signal('refresh')
     got_more_comments = GObject.Signal('got-more-comments', arg_types=[object])
 
-    def __init__(self, data, depth, toplevel_cv):
+    def __init__(self, api: RedditAPI, data, depth, toplevel_cv):
         Gtk.ListBoxRow.__init__(self, selectable=False)
         self.add_events(Gdk.EventMask.KEY_PRESS_MASK)
+        self._api = api
         self.data = data
         self.depth = depth
         self._toplevel_cv = toplevel_cv
@@ -602,7 +607,7 @@ class CommentRow(Gtk.ListBoxRow):
 
     def __load_more_cb(self, button):
         button.props.sensitive = False
-        get_reddit_api().load_more(
+        self._api.load_more(
             self._toplevel_cv.get_link_name(),
             self.data, self.__loaded_more_cb)
 
@@ -610,7 +615,7 @@ class CommentRow(Gtk.ListBoxRow):
         self.got_more_comments.emit(comments)
 
     def _show_normal_comment(self):
-        self._top = _PostTopBar(self.data, self._toplevel_cv)
+        self._top = _PostTopBar(self._api, self.data, self._toplevel_cv)
         self._top.hide_toggled.connect(self.__hide_toggled_cb)
         self._box.add(self._top)
         self._top.show()
@@ -634,6 +639,7 @@ class CommentRow(Gtk.ListBoxRow):
             self._revealer.show()
 
             self._sub = _CommentsView(
+                self._api,
                 self.data['replies']['data']['children'],
                 self._toplevel_cv,
                 depth=self.depth + 1)

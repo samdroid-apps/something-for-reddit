@@ -23,14 +23,16 @@ from gi.repository import Gtk
 from gi.repository import Gdk
 from gi.repository import Gio
 from gi.repository import GLib
+from gi.repository import Soup
 
 from redditisgtk.sublist import SubList
 from redditisgtk.subentry import SubEntry
-from redditisgtk.api import get_reddit_api
+from redditisgtk.api import RedditAPI, APIFactory
 from redditisgtk.webviews import (FullscreenableWebview, ProgressContainer,
                                   WebviewToolbar)
 from redditisgtk.readcontroller import get_read_controller
-from redditisgtk.identity import IdentityButton
+from redditisgtk.identity import IdentityController
+from redditisgtk.identitybutton import IdentityButton
 from redditisgtk.comments import CommentsView
 from redditisgtk.settings import get_settings, show_settings
 
@@ -41,12 +43,21 @@ VIEW_COMMENTS = 1
 
 class RedditWindow(Gtk.Window):
 
-    def __init__(self, start_sub=None):
+    def __init__(
+            self,
+            ic: IdentityController,
+            api_factory: APIFactory,
+            start_sub: str = None):
         Gtk.Window.__init__(self, title='Something For Reddit',
                             icon_name='reddit-is-a-dead-bird')
         self.add_events(Gdk.EventMask.KEY_PRESS_MASK)
         self.set_default_size(600, 600)
         self.set_wmclass("reddit-is-gtk", "Something For Reddit")
+
+        self._ic = ic
+        self._ic.token_changed.connect(self._token_changed_cb)
+        self._api = None
+        self._api_factory = api_factory
 
         settings = Gtk.Settings.get_default()
         screen = Gdk.Screen.get_default()
@@ -74,19 +85,15 @@ class RedditWindow(Gtk.Window):
         #self._paned.child_set_property(self._stack, 'shrink', True)
         self._stack.show()
 
-        if start_sub is None:
-            start_sub = get_settings()['default-sub']
-        self._sublist = SubList()
-        self._sublist.new_other_pane.connect(self.__new_other_pane_cb)
-        self._paned.add1(self._sublist)
-        #self._paned.child_set_property(self._sublist, 'shrink', True)
-        self._sublist.show()
-        self._sublist.goto(start_sub)
+        self._sublist_bin = Gtk.Box()
+        self._paned.add1(self._sublist_bin)
+        self._sublist_bin.show()
+        self._sublist = None
 
-        self._make_header(start_sub)
+        self._make_header()
         left = Gtk.SizeGroup(mode=Gtk.SizeGroupMode.HORIZONTAL)
         left.add_widget(self._left_header)
-        left.add_widget(self._sublist)
+        left.add_widget(self._sublist_bin)
         self._paned.connect('notify::position',
                             self.__notify_position_cb,
                             self._header_paned)
@@ -94,7 +101,41 @@ class RedditWindow(Gtk.Window):
                                    self.__notify_position_cb,
                                    self._paned)
 
-        get_reddit_api().request_failed.connect(self.__request_failed_cb)
+        self._token_changed_cb(self._ic)
+
+    def _token_changed_cb(self, ic):
+        api = self._api_factory.get_for_token(self._ic.active_token)
+        if self._api != api:
+            self.connect_api(api)
+
+    def connect_api(self, api: RedditAPI):
+        start_sub = None
+        if start_sub is None:
+            start_sub = get_settings()['default-sub']
+
+        if self._api is not None:
+            # TODO: swap right panel
+            print('Swapping', self._api, 'for', api)
+
+            start_sub = self._sublist.get_uri()
+            # FIXME: do we need to disconnect the callbacks?
+            self._sublist.destroy()
+            self._subentry.destroy()
+
+        self._api = api
+        self._api.request_failed.connect(self.__request_failed_cb)
+
+        self._sublist = SubList(self._api, start_sub)
+        self._sublist.new_other_pane.connect(self.__new_other_pane_cb)
+        self._sublist_bin.add(self._sublist)
+        #self._paned.child_set_property(self._sublist, 'shrink', True)
+        self._sublist.show()
+
+        self._subentry = SubEntry(self._api, start_sub)
+        self._subentry.activate.connect(self.__subentry_activate_cb)
+        self._subentry.escape_me.connect(self.__subentry_escape_me_cb)
+        self._left_header.props.custom_title = self._subentry
+        self._subentry.show()
 
     def __request_failed_cb(self, api, msg, info):
         dialog = Gtk.Dialog(use_header_bar=True)
@@ -109,7 +150,7 @@ class RedditWindow(Gtk.Window):
         dialog.props.transient_for = self
         response = dialog.run()
         if response == Gtk.ResponseType.ACCEPT:
-            get_reddit_api().resend_message(msg)
+            self._api.resend_message(msg)
         dialog.destroy()
 
     def do_event(self, event):
@@ -175,7 +216,7 @@ class RedditWindow(Gtk.Window):
     def __notify_position_cb(self, caller, pspec, other):
         other.props.position = caller.props.position
 
-    def _make_header(self, start_sub):
+    def _make_header(self):
         self._header_paned = Gtk.Paned()
         self.set_titlebar(self._header_paned)
 
@@ -187,17 +228,11 @@ class RedditWindow(Gtk.Window):
         self._right_header.set_decoration_layout(':'+layout.split(':')[1])
         self._right_header.props.show_close_button = True
 
-        self._subentry = SubEntry(start_sub)
-        self._subentry.activate.connect(self.__subentry_activate_cb)
-        self._subentry.escape_me.connect(self.__subentry_escape_me_cb)
-        self._left_header.props.custom_title = self._subentry
-        self._subentry.show()
-
         self._header_paned.add1(self._left_header)
         self._header_paned.add2(self._right_header)
         self._header_paned.show_all()
 
-        self._identity = IdentityButton()
+        self._identity = IdentityButton(self._ic)
         self._right_header.pack_start(self._identity)
         self._identity.show()
 
@@ -241,7 +276,7 @@ class RedditWindow(Gtk.Window):
             self.goto_sublist(uri)
         if parts[2] == 'comments':
             self.goto_sublist('/r/{}/'.format(parts[1]))
-            cv = CommentsView(permalink=uri)
+            cv = CommentsView(self._api, permalink=uri)
             cv.got_post_data.connect(self.__cv_got_post_data_cb)
             self.__new_other_pane_cb(None, None, cv, False)
 
@@ -259,7 +294,7 @@ class RedditWindow(Gtk.Window):
 
 class Application(Gtk.Application):
 
-    def __init__(self):
+    def __init__(self, ic: IdentityController, api_factory: APIFactory):
         Gtk.Application.__init__(self,
                                  application_id='today.sam.reddit-is-gtk')
         self.connect('startup', self.__do_startup_cb)
@@ -267,9 +302,11 @@ class Application(Gtk.Application):
         GLib.set_prgname("reddit-is-gtk")
         self._w = None
         self._queue_uri = None
+        self._ic = ic
+        self._api_factory = api_factory
 
     def do_activate(self):
-        self._w = RedditWindow()
+        self._w = RedditWindow(self._ic, self._api_factory)
         self.add_window(self._w)
         self._w.show()
         if self._queue_uri is not None:
@@ -343,7 +380,11 @@ def run():
     if args.dark:
         settings.props.gtk_application_prefer_dark_theme = True
 
-    a = Application()
+    session = Soup.Session()
+    ic = IdentityController(session)
+    api_factory = APIFactory(session)
+
+    a = Application(ic, api_factory)
     if args.uri is not None:
         a.goto_reddit_uri(args.uri)
     status = a.run()

@@ -21,7 +21,7 @@ from gi.repository import Gdk
 
 from redditisgtk.palettebutton import connect_palette
 from redditisgtk.markdownpango import SaneLabel
-from redditisgtk.api import get_reddit_api
+from redditisgtk.api import RedditAPI
 
 '''
 So you come here and you ask, why are these ButtonBehaviours rather
@@ -34,7 +34,8 @@ Glade probably.
 
 class ScoreButtonBehaviour():
 
-    def __init__(self, button, data):
+    def __init__(self, api: RedditAPI, button, data):
+        self._api = api
         self._button = button
         self._data = data
         self._p = connect_palette(button, self._make_score_palette)
@@ -69,7 +70,7 @@ class ScoreButtonBehaviour():
         return palette
 
     def vote(self, direction):
-        get_reddit_api().vote(self._data['name'], direction)
+        self._api.vote(self._data['name'], direction)
 
         new_score = self._data['score'] + direction
         if self._data['likes'] is True:
@@ -227,13 +228,14 @@ class _TimePalette(Gtk.Popover):
 
 class SubscribeButtonBehaviour():
 
-    def __init__(self, button, subreddit_name):
+    def __init__(self, api: RedditAPI, button, subreddit_name):
+        self._api = api
         self._button = button
         self._subreddit_name = subreddit_name
 
         self._button.props.active = \
             '/r/{}/'.format(subreddit_name.lower()) \
-            in get_reddit_api().lower_user_subs
+            in self._api.lower_user_subs
         self._button.connect('toggled', self.__toggled_cb)
         self._set_label()
 
@@ -246,14 +248,14 @@ class SubscribeButtonBehaviour():
             if self._button.props.active else 'Unsubscribing...'
         self._button.props.sensitive = False
 
-        get_reddit_api().set_subscribed(self._subreddit_name,
-                                        self._button.props.active,
-                                        self.__subscribe_cb)
+        self._api.set_subscribed(self._subreddit_name,
+                                 self._button.props.active,
+                                 self.__subscribe_cb)
 
     def __subscribe_cb(self, j):
         self._button.props.sensitive = True
         self._set_label()
-        get_reddit_api().update_subscriptions()
+        self._api.update_subscriptions()
 
 
 def process_shortcuts(shortcuts, event):

@@ -5,6 +5,7 @@ app_PYTHON = \
 	comments.py \
 	webviews.py \
 	identity.py \
+	identitybutton.py \
 	__init__.py \
 	main.py \
 	Makefile \

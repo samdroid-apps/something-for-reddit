@@ -19,7 +19,7 @@ from gi.repository import Gtk
 from gi.repository import Gdk
 from gi.repository import GObject
 
-from redditisgtk.api import (get_reddit_api, PREPEND_SUBS, is_special_sub,
+from redditisgtk.api import (RedditAPI, PREPEND_SUBS, is_special_sub,
                              SPECIAL_SUBS, SORTING_TIMES)
 
 
@@ -51,7 +51,7 @@ class SubEntry(Gtk.Box):
     activate = GObject.Signal('reddit-activate', arg_types=[str])
     escape_me = GObject.Signal('escape-me')
 
-    def __init__(self, text='/r/all'):
+    def __init__(self, api: RedditAPI, text='/r/all'):
         Gtk.Box.__init__(self, orientation=Gtk.Orientation.HORIZONTAL)
         self.get_style_context().add_class('linked')
 
@@ -63,7 +63,7 @@ class SubEntry(Gtk.Box):
         self.add(self._entry)
         self._entry.show()
 
-        self._palette = _ListPalette(self)
+        self._palette = _ListPalette(api, self)
         self._palette.selected.connect(self.__selected_cb)
 
         show_palette = Gtk.MenuButton(popover=self._palette)
@@ -155,14 +155,15 @@ class _ListPalette(VScrollingPopover):
 
     selected = GObject.Signal('selected', arg_types=[str])
 
-    def __init__(self, parent, **kwargs):
+    def __init__(self, api: RedditAPI, parent, **kwargs):
         VScrollingPopover.__init__(self, **kwargs)
         self.get_style_context().add_class('subentry-palette')
         self._parent = parent
         self._filter = None
 
-        get_reddit_api().subs_changed.connect(self.__changed_cb)
-        get_reddit_api().user_changed.connect(self.__changed_cb)
+        self._api = api
+        self._api.subs_changed.connect(self.__changed_cb)
+        self._api.user_changed.connect(self.__changed_cb)
         self._rebuild()
 
     def __changed_cb(self, caller, *args):
@@ -209,7 +210,7 @@ class _ListPalette(VScrollingPopover):
 
         # Only show suggestions if it is /r/aaa, not /r/aaa/sort
         if self._filter and len(self._filter.split('/')) == 3:
-            subs = list(self._do_filter(get_reddit_api().user_subs))
+            subs = list(self._do_filter(self._api.user_subs))
             if subs:
                 self._add_header('Searching Subscribed')
                 self._add_subs(subs)
@@ -227,14 +228,14 @@ class _ListPalette(VScrollingPopover):
 
         if not self._filter:
             self._add_header('Subscribed')
-            self._add_subs(get_reddit_api().user_subs)
+            self._add_subs(self._api.user_subs)
 
         user_name = None
         if self._filter is not None:
             if self._filter.startswith('/user'):
                 user_name = self._filter.split('/')[2]
         else:
-            user_name = get_reddit_api().user_name
+            user_name = self._api.user_name
 
         if user_name is not None:
             self._add_header('Profile')

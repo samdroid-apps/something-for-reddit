@@ -28,7 +28,7 @@ from redditisgtk.buttons import (ScoreButtonBehaviour, AuthorButtonBehaviour,
                                  SubButtonBehaviour, TimeButtonBehaviour,
                                  SubscribeButtonBehaviour, process_shortcuts)
 from redditisgtk.markdownpango import markdown_to_pango, set_markup_sane
-from redditisgtk.api import get_reddit_api
+from redditisgtk.api import RedditAPI
 from redditisgtk.readcontroller import get_read_controller
 from redditisgtk.mediapreview import get_preview_palette
 from redditisgtk.submit import SubmitWindow
@@ -50,16 +50,20 @@ class SubList(Gtk.ScrolledWindow):
             the default view
     '''
 
-    def __init__(self):
+    def __init__(self, api: RedditAPI, sub: str = None):
         Gtk.ScrolledWindow.__init__(self)
         self.props.hscrollbar_policy = Gtk.PolicyType.NEVER
-        self._sub = None
+        self._api = api
+        self._sub = sub
         self._msg = None
         self._first_load = True
 
         self._spinner = Gtk.Spinner()
         self.add(self._spinner)
         self._spinner.show()
+
+        if self._sub is not None:
+            self.goto(self._sub)
 
     def get_uri(self):
         return self._sub
@@ -70,7 +74,7 @@ class SubList(Gtk.ScrolledWindow):
         or even '/message/inbox'
         '''
         if self._msg is not None:
-            get_reddit_api().cancel(self._msg)
+            self._api.cancel(self._msg)
         self._sub = sub
         width = self.get_allocated_width()
         self.remove(self.get_child())
@@ -80,7 +84,7 @@ class SubList(Gtk.ScrolledWindow):
         self._spinner.start()
         self.set_size_request(width, -1)
 
-        self._msg = get_reddit_api().get_list(sub, self.__got_list_cb)
+        self._msg = self._api.get_list(sub, self.__got_list_cb)
 
     def __got_list_cb(self, j):
         self._msg = None
@@ -107,7 +111,7 @@ class SubList(Gtk.ScrolledWindow):
             self._first_load = False
 
         self._first_row = None
-        row = get_about_row(self._sub)
+        row = get_about_row(self._api, self._sub)
         if row is not None:
             row.get_style_context().add_class('about-row')
             self._listbox.insert(row, -1)
@@ -156,10 +160,10 @@ class SubList(Gtk.ScrolledWindow):
 
         for post in j['data']['children']:
             if post['kind'] == 't3':
-                row = SubItemRow(post)
+                row = SubItemRow(self._api, post)
                 row.goto_comments.connect(self.__row_goto_comments_cb)
             elif post['kind'] == 't1' or post['kind'] == 't4':
-                row = MessageRow(post)
+                row = MessageRow(self._api, post)
             else:
                 row = Gtk.Label(label=str(post))
                 row.set_line_wrap(True)
@@ -174,7 +178,7 @@ class SubList(Gtk.ScrolledWindow):
         row.show()
 
     def __load_more_cb(self, caller, after):
-        self._msg = get_reddit_api().get_list(
+        self._msg = self._api.get_list(
             '{}?after={}'.format(self._sub, after),
             self.insert_data
         )
@@ -205,7 +209,7 @@ class SubList(Gtk.ScrolledWindow):
             if not data.get('is_self') and 'url' in data:
                 link = data['url']
 
-        comments = CommentsView(data, permalink=permalink)
+        comments = CommentsView(self._api, data, permalink=permalink)
         self.new_other_pane.emit(link, comments, link_first)
 
     def __row_goto_comments_cb(self, row):
@@ -240,12 +244,13 @@ class SubItemRow(Gtk.ListBoxRow):
 
     goto_comments = GObject.Signal('goto-comments')
 
-    def __init__(self, data):
+    def __init__(self, api: RedditAPI, data):
         Gtk.ListBoxRow.__init__(self)
         self.add_events(Gdk.EventMask.KEY_PRESS_MASK)
         self.get_style_context().add_class('link-row')
         self.data = data['data']
         self._msg = None
+        self._api = api
 
         self._builder = Gtk.Builder.new_from_resource(
             '/today/sam/reddit-is-gtk/row-link.ui')
@@ -257,7 +262,7 @@ class SubItemRow(Gtk.ListBoxRow):
             self.read()
 
         # Keep a reference so the GC doesn't collect them
-        self._sbb = ScoreButtonBehaviour(self._g('score'), self.data)
+        self._sbb = ScoreButtonBehaviour(self._api, self._g('score'), self.data)
         self._abb = AuthorButtonBehaviour(self._g('author'), self.data)
         self._srbb = SubButtonBehaviour(self._g('subreddit'), self.data)
         self._tbb = TimeButtonBehaviour(self._g('time'), self.data)
@@ -304,12 +309,12 @@ class SubItemRow(Gtk.ListBoxRow):
     def _fetch_thumbnail(self, url):
         if not url or url in ['default', 'self', 'nsfw']:
             return
-        self._msg = get_reddit_api().download_thumb(
+        self._msg = self._api.download_thumb(
             url, self.__message_done_cb)
 
     def do_unrealize(self):
         if self._msg is not None:
-            get_reddit_api().cancel(self._msg)
+            self._api.cancel(self._msg)
 
     def __message_done_cb(self, pixbuf):
         self._msg = None
@@ -320,16 +325,17 @@ class SubItemRow(Gtk.ListBoxRow):
     def __image_clicked_cb(self, button):
         if self._preview_palette is None:
             self._preview_palette = get_preview_palette(
-                self.data, relative_to=button)
+                self._api, self.data, relative_to=button)
         self._preview_palette.show()
 
 
 class MessageRow(Gtk.ListBoxRow):
 
-    def __init__(self, data):
+    def __init__(self, api: RedditAPI, data):
         Gtk.ListBoxRow.__init__(self)
         self.get_style_context().add_class('link-row')
         self.add_events(Gdk.EventMask.KEY_PRESS_MASK)
+        self._api = api
         self.data = data['data']
         self._msg = None
 
@@ -377,7 +383,7 @@ class MessageRow(Gtk.ListBoxRow):
 
     def read(self):
         if 'new' in self.data and self.data['new']:
-            get_reddit_api().read_message(self.data['name'])
+            self._api.read_message(self.data['name'])
             self.data['new'] = False
         self.get_style_context().add_class('read')
         self._g('unread').props.visible = False
@@ -385,10 +391,11 @@ class MessageRow(Gtk.ListBoxRow):
 
 class _SubredditAboutRow(Gtk.ListBoxRow):
 
-    def __init__(self, subreddit_name):
+    def __init__(self, api: RedditAPI, subreddit_name: str):
         Gtk.ListBoxRow.__init__(self, selectable=False)
 
         self._subreddit_name = subreddit_name
+        self._api = api
         self._loaded = False
 
         self._builder = Gtk.Builder.new_from_resource(
@@ -398,7 +405,7 @@ class _SubredditAboutRow(Gtk.ListBoxRow):
         self.add(self._g('box'))
         self._g('subreddit').props.label = self._subreddit_name
         self._sbb = SubscribeButtonBehaviour(
-            self._g('subscribe'), self._subreddit_name)
+            self._api, self._g('subscribe'), self._subreddit_name)
         self._g('submit').connect('clicked', self.__submit_clicked_cb)
         self._g('expander').connect(
             'notify::expanded', self.__notify_expanded_cb)
@@ -409,7 +416,7 @@ class _SubredditAboutRow(Gtk.ListBoxRow):
 
     def __notify_expanded_cb(self, expander, pspec):
         if not self._loaded:
-            get_reddit_api().get_subreddit_info(
+            self._api.get_subreddit_info(
                 self._subreddit_name, self.__got_info_cb)
             self._loaded = True
 
@@ -421,7 +428,7 @@ class _SubredditAboutRow(Gtk.ListBoxRow):
 
 class _UserAboutRow(Gtk.ListBoxRow):
 
-    def __init__(self, name):
+    def __init__(self, api: RedditAPI, name: str):
         Gtk.ListBoxRow.__init__(self, selectable=False)
 
         self._name = name
@@ -433,7 +440,7 @@ class _UserAboutRow(Gtk.ListBoxRow):
         self.add(self._g('box'))
         self._g('name').props.label = self._name
 
-        get_reddit_api().get_user_info(
+        api.get_user_info(
             self._name, self.__got_info_cb)
 
     def __got_info_cb(self, data):
@@ -442,16 +449,16 @@ class _UserAboutRow(Gtk.ListBoxRow):
             '{link_karma}l / {comment_karma}c'.format(**data)
 
 
-def get_about_row(sub):
+def get_about_row(api: RedditAPI, sub: str):
     # Disregard leading slash
     url_parts = sub.strip('/').split('/')
 
     # Show if it is like /r/sub
     if len(url_parts) >= 2 and url_parts[0] == 'r' and url_parts[1] != 'all':
-        return _SubredditAboutRow(url_parts[1])
+        return _SubredditAboutRow(api, url_parts[1])
 
     # Eg. /user/name(/*)
     if len(url_parts) >= 2 and url_parts[0] in ('user', 'u'):
-        return _UserAboutRow(url_parts[1])
+        return _UserAboutRow(api, url_parts[1])
 
     return None

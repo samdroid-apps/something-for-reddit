@@ -23,7 +23,7 @@ from tempfile import mkstemp
 import urllib.parse
 from html.parser import HTMLParser
 
-from redditisgtk.api import get_reddit_api
+from redditisgtk.api import RedditAPI
 from redditisgtk.webviews import FullscreenableWebview
 
 
@@ -43,7 +43,7 @@ class _IframeSrcGetter(HTMLParser):
                     self.src = v
 
 
-def get_preview_palette(listing, **kwargs):
+def get_preview_palette(api: RedditAPI, listing, **kwargs):
     if 'content' in listing.get('media_embed', {}):
         embed = listing['media_embed']
         parser = _IframeSrcGetter()
@@ -55,7 +55,7 @@ def get_preview_palette(listing, **kwargs):
     elif len(listing.get('preview', {}).get('images', [])):
         uri = listing['preview']['images'][0]['source']['url']
         return _ImagePreviewPalette(
-            uri, **kwargs)
+            api, uri, **kwargs)
     return None
 
 
@@ -76,13 +76,13 @@ class WebViewPopover(Gtk.Popover):
 class _ImagePreviewPalette(Gtk.Popover):
     # TODO:  Scrolling and scaling
 
-    def __init__(self, uri, **kwargs):
+    def __init__(self, api: RedditAPI, uri, **kwargs):
         Gtk.Popover.__init__(self, **kwargs)
         overlay = Gtk.Overlay()
         self.add(overlay)
         overlay.show()
 
-        self._image = _RemoteImage(uri)
+        self._image = _RemoteImage(api, uri)
         win_w, win_h = self.get_toplevel().get_size()
         max_w, max_h = win_w / 2, win_h / 2
         self._image.set_size_request(min(Gdk.Screen.width() / 3, max_w),
@@ -106,7 +106,9 @@ class _ImagePreviewPalette(Gtk.Popover):
 class _RemoteImage(Gtk.Bin):
     # TODO:  Reload on error
 
-    def __init__(self, uri):
+    def __init__(self, api: RedditAPI, uri):
+        # TODO: this really shouldn't need a reddit api.  Maybe just a soup
+        # session?  This feels like a bad DI pattern right now
         Gtk.Bin.__init__(self)
 
         self._spinner = Gtk.Spinner()
@@ -115,7 +117,7 @@ class _RemoteImage(Gtk.Bin):
 
         self._image = Gtk.Image()
         self.add(self._image)
-        get_reddit_api().download_thumb(uri, self.__message_done_cb)
+        api.download_thumb(uri, self.__message_done_cb)
 
     def __message_done_cb(self, pixbuf):
         old_sr = self.get_size_request()

@@ -9,7 +9,7 @@ def test_is_special_sub():
     assert not api.is_special_sub('/r/something')
     assert api.is_special_sub('/user/somebody/hidden')
 
-def build_fake_api(responses=None):
+def build_fake_api(responses=None, is_anonymous=True):
     '''
     Responses is a dictionary of url -> resp
 
@@ -39,16 +39,17 @@ def build_fake_api(responses=None):
 
     session.queue_message = queue_message
             
-    ic = MagicMock()
-    return api.RedditAPI(session, ic), session, ic
+    token = MagicMock()
+    token.wrap_path = lambda p: 'https://example.com' + p
+    token.is_anonymous = is_anonymous
+    return api.RedditAPI(session, token), session, token
 
 def test_create_api():
-    api, session, ic = build_fake_api()
-    assert ic.token_changed.connect.called
+    api, session, token = build_fake_api()
     assert api
 
 def test_token_changed_gets_username():
-    api, session, ic = build_fake_api({
+    api, session, token = build_fake_api({
         '/subreddits/mine/subscriber?limit=100': {
             'data': {
                 'children': [],
@@ -57,23 +58,20 @@ def test_token_changed_gets_username():
         '/api/v1/me': {
             'name': 'myname',
         },
-    })
-    assert ic.token_changed.connect.called
-    token_changed_cb = ic.token_changed.connect.call_args[0][0]
+    }, is_anonymous=False)
+    assert token.set_user_name.called
+    (name,), _ = token.set_user_name.call_args
+    assert name == 'myname'
 
-    token_changed_cb(ic, {'access_token': 'tok'})
-    assert api.user_name == 'myname'
+    token.user_name = 'something'
+    assert api.user_name is token.user_name
 
 def test_token_changed_to_annon():
-    api, session, ic = build_fake_api()
-    assert ic.token_changed.connect.called
-    token_changed_cb = ic.token_changed.connect.call_args[0][0]
-
-    token_changed_cb(ic, None)
-    assert api.user_name == None
+    api, session, token = build_fake_api()
+    assert api.user_name is token.user_name
 
 def test_update_subscriptions():
-    api, session, ic = build_fake_api({
+    api, session, token = build_fake_api({
         '/subreddits/mine/subscriber?limit=100': {
             'data': {
                 'children': [{
@@ -102,7 +100,7 @@ def test_update_subscriptions():
     assert api.subs_changed.emit.called
 
 def test_retry_on_401():
-    api, session, ic = build_fake_api({
+    api, session, token = build_fake_api({
         '/test': [
             {
                 'error': 401,
@@ -115,8 +113,8 @@ def test_retry_on_401():
 
     done_cb = MagicMock()
     api.send_request('GET', '/test', done_cb)
-    assert ic.refresh.called
-    (inner_cb,), _ = ic.refresh.call_args
+    assert token.refresh.called
+    (inner_cb,), _ = token.refresh.call_args
     inner_cb()
     assert done_cb.call_count == 1
     (data,), _ = done_cb.call_args
@@ -124,7 +122,7 @@ def test_retry_on_401():
 
 
 def test_bubble_error():
-    api, session, ic = build_fake_api({
+    api, session, token = build_fake_api({
         '/test': {'error': 403},
     })
 
@@ -139,7 +137,7 @@ def test_bubble_error():
 
 
 def test_callback_user_data():
-    api, session, ic = build_fake_api({
+    api, session, token = build_fake_api({
         '/test': {'win': True},
     })
 
@@ -154,7 +152,7 @@ def test_callback_user_data():
 def test_load_more(datadir):
     with open(datadir / 'api__load-more.json') as f:
         j = json.load(f)
-    api, session, ic = build_fake_api({
+    api, session, token = build_fake_api({
         '/api/morechildren?api_type=json&children=a%2Cb&link_id=link_name': (
             j['input']),
     })
