@@ -18,15 +18,16 @@
 from gi.repository import Gtk
 from gi.repository import GObject
 
-from redditisgtk.api import get_reddit_api
+from redditisgtk.api import RedditAPI
 
 
 class SubmitWindow(GObject.GObject):
 
     done = GObject.Signal('done', arg_types=[str, str])
 
-    def __init__(self, sub=''):
+    def __init__(self, api: RedditAPI, sub=''):
         GObject.GObject.__init__(self)
+        self._api = api
 
         self._b = Gtk.Builder.new_from_resource(
             '/today/sam/reddit-is-gtk/submit-window.ui')
@@ -55,7 +56,7 @@ class SubmitWindow(GObject.GObject):
             buf = self._b.get_object('self-textview').props.buffer
             data['text'] = buf.get_text(buf.get_start_iter(),
                                         buf.get_end_iter(), False)
-        get_reddit_api().submit(data, self.__submit_done_cb)
+        self._api.submit(data, self.__submit_done_cb)
 
     def __submit_done_cb(self, data):
         # This response is the most dumb thing for an api I have ever seen.

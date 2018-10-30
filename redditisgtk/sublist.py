@@ -411,7 +411,7 @@ class _SubredditAboutRow(Gtk.ListBoxRow):
             'notify::expanded', self.__notify_expanded_cb)
 
     def __submit_clicked_cb(self, button):
-        w = SubmitWindow(sub=self._subreddit_name)
+        w = SubmitWindow(self._api, sub=self._subreddit_name)
         w.show()
 
     def __notify_expanded_cb(self, expander, pspec):
