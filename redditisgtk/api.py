@@ -146,7 +146,8 @@ class OAuthTokenManager(TokenManager):
                 redirect_uri='redditgtk://done'),
                 callback=ready_callback)
         else:
-            self.refresh(ready_callback)
+            if ready_callback is not None:
+                ready_callback()
 
     def _call_access_token(self, data, callback=None):
         msg = Soup.Message.new(
