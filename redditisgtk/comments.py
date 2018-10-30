@@ -493,14 +493,14 @@ class _PostTopBar(Gtk.Bin):
 
     def _make_reply_palette(self):
         popover = Gtk.Popover()
-        contents = _ReplyPopoverContents(self.data)
+        contents = _ReplyPopoverContents(self._api, self.data)
         contents.posted.connect(self.__reply_posted_cb)
         popover.add(contents)
         return popover
 
     def _show_reply_modal(self):
         dialog = Gtk.Dialog(use_header_bar=True)
-        contents = _ReplyPopoverContents(self.data,
+        contents = _ReplyPopoverContents(self._api, self.data,
                                          header_bar=dialog.get_header_bar())
         dialog.get_content_area().add(contents)
         contents.posted.connect(self.__reply_posted_cb)
@@ -516,9 +516,10 @@ class _ReplyPopoverContents(Gtk.Box):
 
     posted = GObject.Signal('posted', arg_types=[str])
 
-    def __init__(self, data, header_bar=None, **kwargs):
+    def __init__(self, api: RedditAPI, data, header_bar=None, **kwargs):
         Gtk.Box.__init__(self, orientation=Gtk.Orientation.VERTICAL)
         self.data = data
+        self._api = api
 
         sw = Gtk.ScrolledWindow()
         sw.set_size_request(500, 300)
