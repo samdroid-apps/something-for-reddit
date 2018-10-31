@@ -59,6 +59,8 @@ class SubEntry(Gtk.Box):
         self._entry.connect('event', self.__event_cb)
         self._entry.connect('changed', self.__changed_cb)
         self._entry.connect('activate', self.__activate_cb)
+        self._entry.connect('focus-in-event', self.__focus_in_event_cb)
+        self._entry.connect('focus-out-event', self.__focus_out_event_cb)
         self._entry.set_size_request(300, 0)
         self.add(self._entry)
         self._entry.show()
@@ -74,6 +76,15 @@ class SubEntry(Gtk.Box):
     def focus(self):
         self._entry.grab_focus()
 
+    # When the entry is unfocused, we should make the popover behave in a
+    # normal way.  When it is focused, we make it not modal so that it can
+    # behave as a suggestions list
+    def __focus_in_event_cb(self, entry, event):
+        self._palette.props.modal = False
+
+    def __focus_out_event_cb(self, entry, event):
+        self._palette.props.modal = True
+
     def __event_cb(self, entry, event):
         if event.type != Gdk.EventType.KEY_PRESS:
             return
@@ -88,7 +99,7 @@ class SubEntry(Gtk.Box):
 
     def __changed_cb(self, entry):
         if entry.is_focus():
-            self._palette.show()
+            self._palette.popup()
             self._palette.set_filter(entry.props.text)
             entry.grab_focus_without_selecting()
 
@@ -99,7 +110,7 @@ class SubEntry(Gtk.Box):
 
     def _show_palette(self):
         self._palette.set_filter(None)
-        self._palette.show()
+        self._palette.popup()
 
     def __selected_cb(self, palette, sub):
         self._entry.props.text = sub
@@ -118,7 +129,7 @@ class SubEntry(Gtk.Box):
             self.get_toplevel().goto_reddit_uri(text)
         else:
             self.activate.emit(self.get_real_sub())
-        self._palette.hide()
+        self._palette.popdown()
 
         # If we don't override the selection, the whole text will be selected
         # This is confusing - as it makes the entry look :focused
