@@ -26,7 +26,8 @@ from gi.repository import GObject
 from redditisgtk.comments import CommentsView
 from redditisgtk.buttons import (ScoreButtonBehaviour, AuthorButtonBehaviour,
                                  SubButtonBehaviour, TimeButtonBehaviour,
-                                 SubscribeButtonBehaviour, process_shortcuts)
+                                 SubscribeButtonBehaviour)
+from redditisgtk.gtkutil import process_shortcuts
 from redditisgtk.markdownpango import markdown_to_pango, set_markup_sane
 from redditisgtk.api import RedditAPI
 from redditisgtk.readcontroller import get_read_controller

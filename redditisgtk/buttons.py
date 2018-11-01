@@ -17,7 +17,6 @@
 
 import arrow
 from gi.repository import Gtk
-from gi.repository import Gdk
 
 from redditisgtk.palettebutton import connect_palette
 from redditisgtk.markdownpango import SaneLabel
@@ -256,28 +255,3 @@ class SubscribeButtonBehaviour():
         self._button.props.sensitive = True
         self._set_label()
         self._api.update_subscriptions()
-
-
-def process_shortcuts(shortcuts, event):
-    '''
-    Shortcuts is a dict of:
-        accelerator string: (self._function, [arguments])
-
-    Accelerator is passed to Gtk.accelerator_parse
-    Event is the GdkEvent
-    '''
-    if event.type != Gdk.EventType.KEY_PRESS:
-        return
-    for accel_string, value in shortcuts.items():
-        key, mods = Gtk.accelerator_parse(accel_string)
-        emods = event.state & (Gdk.ModifierType.CONTROL_MASK |
-                               Gdk.ModifierType.SHIFT_MASK)
-
-        if event.keyval == key and (emods & mods or mods == emods == 0):
-            func, args = value
-            try:
-                func(*args)
-            except Exception as e:
-                print(e)
-                return False
-            return True

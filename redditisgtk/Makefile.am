@@ -3,6 +3,7 @@ appdir = $(pythondir)/redditisgtk
 app_PYTHON = \
 	api.py \
 	comments.py \
+	gtkutil.py \
 	webviews.py \
 	identity.py \
 	identitybutton.py \

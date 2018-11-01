@@ -1,4 +1,5 @@
 from pathlib import Path
+from tempfile import TemporaryDirectory
 
 from pytest import fixture
 
@@ -10,3 +11,7 @@ def datadir() -> Path:
     '''
     return Path(__file__).absolute().parent / 'tests-data'
 
+@fixture
+def tempdir() -> Path:
+    with TemporaryDirectory() as dirname:
+        yield Path(dirname).absolute()

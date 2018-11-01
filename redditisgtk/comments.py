@@ -24,8 +24,8 @@ from redditisgtk.markdownpango import markdown_to_pango, SaneLabel
 from redditisgtk.palettebutton import connect_palette
 from redditisgtk.api import RedditAPI
 from redditisgtk.buttons import (ScoreButtonBehaviour, AuthorButtonBehaviour,
-                                 TimeButtonBehaviour, SubButtonBehaviour,
-                                 process_shortcuts)
+                                 TimeButtonBehaviour, SubButtonBehaviour)
+from redditisgtk.gtkutil import process_shortcuts
 
 
 class CommentsView(Gtk.ScrolledWindow):

@@ -1,0 +1,1 @@
+{"tokens": {"testid": {"access_token": "AT", "token_type": "bearer", "expires_in": 3600, "refresh_token": "RT", "scope": "edit history identity mysubreddits privatemessages read save submit subscribe vote", "time": 1540967369.7608967, "username": "myname"}}, "active": "testid"}
