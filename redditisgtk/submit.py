@@ -31,14 +31,14 @@ class SubmitWindow(GObject.GObject):
 
         self._b = Gtk.Builder.new_from_resource(
             '/today/sam/reddit-is-gtk/submit-window.ui')
-        self._window = self._b.get_object('submit-window')
+        self.window = self._b.get_object('submit-window')
 
         self._b.get_object('sub-entry').props.text = sub
         self._b.get_object('submit-button').connect(
             'clicked', self.__submit_clicked_cb)
 
     def show(self):
-        self._window.show()
+        self.window.show()
 
     def __submit_clicked_cb(self, button):
         submit = self._b.get_object('submit-button')
@@ -52,7 +52,7 @@ class SubmitWindow(GObject.GObject):
             data['kind'] = 'link'
             data['url'] = self._b.get_object('link-entry').props.text
         else:
-            data['kind'] = 'link'
+            data['kind'] = 'self'
             buf = self._b.get_object('self-textview').props.buffer
             data['text'] = buf.get_text(buf.get_start_iter(),
                                         buf.get_end_iter(), False)
@@ -95,5 +95,5 @@ class SubmitWindow(GObject.GObject):
         elif uri is not None:
             self.done.emit(self._b.get_object('sub-entry').props.text,
                            uri)
-            self._window.hide()
-            self._window.destroy()
+            self.window.hide()
+            self.window.destroy()

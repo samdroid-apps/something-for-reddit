@@ -13,5 +13,8 @@ def datadir() -> Path:
 
 @fixture
 def tempdir() -> Path:
+    '''
+    Fixture that gives you the path of a new temporary directory
+    '''
     with TemporaryDirectory() as dirname:
         yield Path(dirname).absolute()
