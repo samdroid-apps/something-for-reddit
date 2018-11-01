@@ -1,13 +1,15 @@
 import time
 import typing
+import functools
 
 from gi.repository import Gtk
 from gi.repository import GLib
 from gi.repository import Gio
 
 
-def with_test_mainloop(function):
-    def f(*args, **kwargs):
+def with_test_mainloop(func):
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
         # It would probably be slightly better to find this from PATH
         r = Gio.resource_load('./__build_prefix/share/something-for-reddit'
                               '/reddit-is-gtk.gresource')
@@ -21,7 +23,7 @@ def with_test_mainloop(function):
 
             def do_activate(self):
                 try:
-                    self.retval = function(*args, **kwargs)
+                    self.retval = func(*args, **kwargs)
                 except Exception as e:
                     self.exception = e
                 app.quit()
@@ -33,7 +35,7 @@ def with_test_mainloop(function):
             raise app.exception
         return app.retval
 
-    return f
+    return wrapper
 
 def _iter_all_widgets(root: Gtk.Widget):
     yield root

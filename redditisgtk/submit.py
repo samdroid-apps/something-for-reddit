@@ -59,32 +59,11 @@ class SubmitWindow(GObject.GObject):
         self._api.submit(data, self.__submit_done_cb)
 
     def __submit_done_cb(self, data):
-        # This response is the most dumb thing for an api I have ever seen.
-        # It would be better if they put it in a bloody pdf document than
-        # this weird thing.
-        jquery = data['jquery']
-        # It seems to be instructions for jquery, so hijack those to find
-        # it it tells jquery to set an error text
-        current_attr = None
-        in_error = False
-        error_text = None
-        uri = None
-        for i, i_plus_one, action, args in jquery:
-            if action == 'attr':
-                current_attr = args
-            elif action == 'call':
-                if current_attr == 'find' and '.error' in args[0]:
-                    in_error = True
-                elif in_error and current_attr == 'text':
-                    error_text = args[0]
-                    break
-                elif current_attr == 'redirect':
-                    uri = args[0]
-                    if 'already_submitted=true' not in uri:
-                        # Because for 1 error message they have a redirect :'(
-                        break
+        data = data['json']
+        if data.get('errors'):
+            errors = data['errors']
+            error_name, error_text, error_name_lower = errors[0]
 
-        if error_text is not None:
             error = self._b.get_object('error-label')
             error.props.label = error_text
             error.show()
@@ -92,7 +71,8 @@ class SubmitWindow(GObject.GObject):
             submit = self._b.get_object('submit-button')
             submit.props.sensitive = True
             submit.props.label = 'Submit'
-        elif uri is not None:
+        else:
+            uri = data['data']['url']
             self.done.emit(self._b.get_object('sub-entry').props.text,
                            uri)
             self.window.hide()

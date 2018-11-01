@@ -1,3 +1,4 @@
+import json
 from unittest.mock import MagicMock
 
 from gi.repository import Gtk
@@ -82,3 +83,43 @@ def test_submit_self():
         'title': 'Some Title',
         'text': 'self',
     }
+
+@with_test_mainloop
+def test_submit_error(datadir):
+    api = MagicMock()
+    window = submit.SubmitWindow(api)
+    root = window.window
+
+    submit_button = find_widget(root, label='Submit', kind=Gtk.Button)
+    submit_button.emit('clicked')
+    wait_for(lambda: api.submit.called)
+    (data, callback), _ = api.submit.call_args
+
+    with open(datadir / 'submit--ratelimit-response.json') as f:
+        data = json.load(f)
+        msg = data['json']['errors'][0][1]
+        callback(data)
+
+    assert submit_button.props.sensitive
+    label = find_widget(root, label=msg)
+    assert label.props.visible
+
+
+@with_test_mainloop
+def test_submit_good(datadir):
+    api = MagicMock()
+    window = submit.SubmitWindow(api)
+    window.done = MagicMock()
+    root = window.window
+
+    submit_button = find_widget(root, label='Submit', kind=Gtk.Button)
+    submit_button.emit('clicked')
+    wait_for(lambda: api.submit.called)
+    (data, callback), _ = api.submit.call_args
+
+    with open(datadir / 'submit--good-response.json') as f:
+        callback(json.load(f))
+
+    assert window.done.emit.called
+    (sub, uri), _ = window.done.emit.call_args
+    assert uri == 'https://www.reddit.com/r/test/comments/9teb69/test/'

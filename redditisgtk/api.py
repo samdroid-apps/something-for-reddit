@@ -424,6 +424,7 @@ class RedditAPI(GObject.GObject):
                                  post_data={'id': thing_id})
 
     def submit(self, data, callback):
+        data['api_type'] = 'json'
         return self.send_request('POST', '/api/submit', callback,
                                  post_data=data, handle_errors=False)
 
