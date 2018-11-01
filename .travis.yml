@@ -8,7 +8,7 @@ before_script:
   - ./cc-test-reporter before-build
 script:
   - nix-shell dev-shell.nix --command 'echo Downloaded deps'
-  - nix-shell dev-shell.nix --command './autogen.sh --prefix=$PREFIX && make && make install && pytest --cov=redditisgtk --cov-report xml'
+  - xvfb-run nix-shell dev-shell.nix --command './autogen.sh --prefix=$PREFIX && make && make install && pytest --cov=redditisgtk --cov-report xml'
 after_script:
   - sudo apt-get update
   - sudo apt-get install -y python3-dev gcc python3-pip
