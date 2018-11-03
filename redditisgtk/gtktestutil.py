@@ -37,11 +37,32 @@ def with_test_mainloop(func):
 
     return wrapper
 
+
 def _iter_all_widgets(root: Gtk.Widget):
     yield root
     if isinstance(root, Gtk.Container):
         for child in root.get_children():
             yield from _iter_all_widgets(child)
+
+
+def get_label_for_widget(widget: Gtk.Widget):
+    my_label = None
+    if hasattr(widget, 'get_label'):
+        my_label = widget.get_label()
+
+    # Mainly for the stackswitcher radio buttons
+    if not my_label and hasattr(widget, 'get_child'):
+        child = widget.get_child()
+        if hasattr(child, 'get_label'):
+            my_label = child.get_label()
+
+    return my_label
+
+
+def debug_print_widgets(root: Gtk.Widget):  # pragma: no cover
+    for widget in _iter_all_widgets(root):
+        print(widget, get_label_for_widget(widget))
+
 
 def find_widget(root: Gtk.Widget,
                 kind: typing.Type[Gtk.Widget] = None,
@@ -53,15 +74,7 @@ def find_widget(root: Gtk.Widget,
         if kind is not None and not isinstance(widget, kind):
             continue
 
-        my_label = None
-        if hasattr(widget, 'get_label'):
-            my_label = widget.get_label()
-        # Mainly for the stackswitcher radio buttons
-        if not my_label and hasattr(widget, 'get_child'):
-            child = widget.get_child()
-            if hasattr(child, 'get_label'):
-                my_label = child.get_label()
-        if label is not None and my_label != label:
+        if label is not None and get_label_for_widget(widget) != label:
             continue
 
         my_placeholder = None
@@ -75,8 +88,11 @@ def find_widget(root: Gtk.Widget,
     if many:
         return found
     else:
-        assert len(found) == 1
-        return found[0]
+        if len(found) == 1:
+            return found[0]
+        else:
+            debug_print_widgets(root)
+            assert len(found) == 1
 
 
 def wait_for(cond: typing.Callable[[], bool], timeout: float= 5):

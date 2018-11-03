@@ -26,6 +26,7 @@ from redditisgtk.api import RedditAPI
 from redditisgtk.buttons import (ScoreButtonBehaviour, AuthorButtonBehaviour,
                                  TimeButtonBehaviour, SubButtonBehaviour)
 from redditisgtk.gtkutil import process_shortcuts
+from redditisgtk import emptyview
 
 
 class CommentsView(Gtk.ScrolledWindow):
@@ -132,7 +133,8 @@ class CommentsView(Gtk.ScrolledWindow):
             self._comments.destroy()
 
         if len(j[1]['data']['children']) == 0:
-            self._comments = EmptyView('No Comments', action='Add a comment')
+            self._comments = emptyview.EmptyView(
+                'No Comments', action='Add a comment')
             self._comments.action.connect(self.__add_comment_clicked_cb)
         else:
             # The 0th one is just the self post
@@ -658,27 +660,3 @@ class CommentRow(Gtk.ListBoxRow):
             rc = not self._revealer.props.reveal_child
             self._revealer.props.reveal_child = rc
             self._top.expand.props.active = not rc
-
-
-class EmptyView(Gtk.Bin):
-
-    action = GObject.Signal('action')
-
-    def __init__(self, title, action=None):
-        Gtk.Bin.__init__(self)
-
-        builder = Gtk.Builder.new_from_resource(
-            '/today/sam/reddit-is-gtk/empty-view.ui')
-        self._g = builder.get_object
-        self.add(self._g('box'))
-        self.get_child().show()
-
-        self._g('title').props.label = title
-
-        if action is not None:
-            self._g('action').props.label = action
-            self._g('action').props.visible = True
-            self._g('action').connect('clicked', self.__action_clicked_cb)
-
-    def __action_clicked_cb(self, button):
-        self.action.emit()

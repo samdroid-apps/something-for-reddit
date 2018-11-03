@@ -1,23 +1,25 @@
 appdir = $(pythondir)/redditisgtk
 
 app_PYTHON = \
-	api.py \
-	comments.py \
-	gtkutil.py \
-	webviews.py \
-	identity.py \
-	identitybutton.py \
-	__init__.py \
-	main.py \
 	Makefile \
 	Makefile.am \
 	Makefile.in \
-	palettebutton.py \
+	__init__.py \
+	aboutrow.py \
+	api.py \
 	buttons.py \
+	comments.py \
+	emptyview.py \
+	gtkutil.py \
+	identity.py \
+	identitybutton.py \
+	main.py \
 	markdownpango.py \
 	mediapreview.py \
+	palettebutton.py \
 	readcontroller.py \
+	settings.py \
 	subentry.py \
 	sublist.py \
-	settings.py \
-	submit.py
+	submit.py \
+	webviews.py
