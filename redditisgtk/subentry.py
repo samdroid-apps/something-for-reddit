@@ -19,27 +19,45 @@ from gi.repository import Gtk
 from gi.repository import Gdk
 from gi.repository import GObject
 
-from redditisgtk.api import (RedditAPI, PREPEND_SUBS, is_special_sub,
+from redditisgtk.api import (RedditAPI, PREPEND_SUBS,
                              SPECIAL_SUBS, SORTING_TIMES)
 
 
-def _clean_sub(sub):
-    if sub == '/r/' or sub == '/r' or sub == '/':
-        return None
+SORTINGS = [
+    'hot', 'new', 'random', 'top?t=all', 'controversial?t=all'
+]
+
+def clean_sub(sub):
+    '''
+    Normalize paths to have a leading slash and no trailing slash, like
+        /hello/world
+
+    And normalize /u/ -> /user/
+    '''
     if sub.endswith('/'):
         sub = sub[:-1]
     if not sub.startswith('/'):
         sub = '/' + sub
+
     if sub.startswith('/u/'):
         sub = '/user/' + sub[len('/u/'):]
-        if len(sub.split('/')) == 3:  # []/[user]/[name]
-            sub = sub + '/overview'
-    if sub == '/inbox':
-        sub = '/message/inbox'
-    if not is_special_sub(sub):
-        if not sub.startswith('/r/'):
-            sub = '/r' + sub
+
     return sub
+
+
+def format_sub_for_api(sub):
+    sub = clean_sub(sub)
+    empty, *parts = sub.split('/')
+
+    if len(parts) == 2 and parts[0] == 'user':  # /user/name
+        parts.append('overview')
+
+    if len(parts) == 2 and parts[0] == 'r': # /r/name
+        parts.append('hot')
+    if len(parts) == 1 and not parts[0]: # / --> /hot
+        parts[0] = 'hot'
+
+    return '/' + '/'.join(parts)
 
 
 class SubEntry(Gtk.Box):
@@ -100,7 +118,7 @@ class SubEntry(Gtk.Box):
     def __changed_cb(self, entry):
         if entry.is_focus():
             self._palette.popup()
-            self._palette.set_filter(entry.props.text)
+            self._palette.set_filter(self.current_location)
             entry.grab_focus_without_selecting()
 
     def __show_palette_toggled_cb(self, button):
@@ -116,19 +134,20 @@ class SubEntry(Gtk.Box):
         self._entry.props.text = sub
         self.__activate_cb()
 
-    def get_real_sub(self):
-        sub = self._entry.props.text
-        return _clean_sub(sub)
-
     def goto(self, sub):
         self._entry.props.text = sub
+
+    @property
+    def current_location(self):
+        return clean_sub(self._entry.props.text)
 
     def __activate_cb(self, entry=None):
         text = self._entry.props.text
         if text.startswith('http://') or text.startswith('https://'):
             self.get_toplevel().goto_reddit_uri(text)
         else:
-            self.activate.emit(self.get_real_sub())
+            formatted = format_sub_for_api(self._entry.props.text)
+            self.activate.emit(formatted)
         self._palette.popdown()
 
         # If we don't override the selection, the whole text will be selected
@@ -189,14 +208,14 @@ class _ListPalette(VScrollingPopover):
         if not filter:
             filter = None
         else:
-            filter = _clean_sub(filter)
+            filter = clean_sub(filter)
         self._filter = filter
         self._rebuild()
 
     def _do_filter(self, sub_list):
         if self._filter is None:
-            # Flake8 says F999, but I don't care
-            return sub_list
+            yield from sub_list
+            return
 
         for sub in sub_list:
             if sub.lower().startswith(self._filter.lower()):
@@ -219,30 +238,40 @@ class _ListPalette(VScrollingPopover):
 
         self._add_subs(self._do_filter(PREPEND_SUBS))
 
-        # Only show suggestions if it is /r/aaa, not /r/aaa/sort
-        if self._filter and len(self._filter.split('/')) == 3:
-            subs = list(self._do_filter(self._api.user_subs))
-            if subs:
-                self._add_header('Searching Subscribed')
-                self._add_subs(subs)
+        # If the user is typing for a subreddit, show them suggestions
+        if self._filter:
+            empty, *filter_parts = self._filter.split('/')
+            # Only show suggestions if it is /r/aaa, not /r/aaa/sort
+            if filter_parts[0] in ('', 'r') and len(filter_parts) <= 2:
+                subs = list(self._do_filter(self._api.user_subs))
+                if subs:
+                    self._add_header('Searching Subscribed')
+                    self._add_subs(subs)
 
-        sub = self._filter or self._parent.get_real_sub() or ''
-        if sub.startswith('/r/'):
-            by_slash = sub.split('/')
+        # Show sorting suggestions
+        current_location = self._parent.current_location
+        if current_location.startswith('/r/'):
+            by_slash = current_location.split('/')
             name = by_slash[2]  # get the /r/[thing]/whatever part
 
             self._add_header('Sorting')
-            for x in ['hot', 'new', 'random']:
-                self._add_subs(('/r/{}/{}'.format(name, x),))
+            self._add_subs([
+                '/r/{}/{}'.format(name, x)
+                for x in ['hot', 'new', 'random']
+            ])
             for x in ['top', 'controversial']:
                 self._add_expander_sub('/r/{}/{}'.format(name, x))
 
+        # If there is no filter, show the subscribed subreddits
         if not self._filter:
             self._add_header('Subscribed')
             self._add_subs(self._api.user_subs)
 
+        # Show user related stuff last
+        # This should end up first if you are typing /u/...
         user_name = None
         if self._filter is not None:
+            empty, *filter_parts = self._filter.split('/')
             if self._filter.startswith('/user'):
                 user_name = self._filter.split('/')[2]
         else:

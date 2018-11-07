@@ -29,7 +29,7 @@ from gi.repository import GObject
 from gi.repository import GdkPixbuf
 
 USER_AGENT = 'GNU:something-for-reddit:v0.2 (by /u/samtoday)'
-PREPEND_SUBS = ['/r/all', '/inbox']
+PREPEND_SUBS = ['/', '/r/all', '/message/inbox']
 DEFAULT_SUBS = ['/r/gnome', '/r/gnu+linux']
 SPECIAL_SUBS = [
     '/message/inbox', '/message/unread', '/message/sent',
@@ -37,20 +37,10 @@ SPECIAL_SUBS = [
     '/user/USER/upvoted', '/user/USER/downvoted', '/user/USER/hidden',
     '/user/USER/saved', '/user/USER/gilded'
 ]
-SORTINGS = [
-    'hot', 'new', 'random', 'top?t=all', 'controversial?t=all'
-]
 SORTING_TIMES = [
     'hour', 'day', 'week', 'month', 'year', 'all'
 ]
 DEBUG = 'REDDIT_IS_GTK_DEBUG' in os.environ
-
-
-def is_special_sub(sub):
-    for s in SPECIAL_SUBS:
-        if s == sub or re.match(s.replace('USER', '.+'), sub):
-            return True
-    return False
 
 
 # macro from

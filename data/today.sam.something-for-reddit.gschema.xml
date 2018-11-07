@@ -7,7 +7,7 @@
     </enum>
     <schema path="/today/sam/something-for-reddit/" id="today.sam.something-for-reddit">
         <key type="s" name="default-sub">
-            <default>'/r/all'</default>
+            <default>'/'</default>
             <summary>Default subreddit</summary>
             <description>What to open when you open the app</description>
         </key>

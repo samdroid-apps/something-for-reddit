@@ -5,11 +5,6 @@ from unittest.mock import MagicMock
 from redditisgtk import api
 
 
-def test_is_special_sub():
-    assert api.is_special_sub('/message/inbox')
-    assert not api.is_special_sub('/r/something')
-    assert api.is_special_sub('/user/somebody/hidden')
-
 def build_fake_soup_session(responses):
     '''
     Responses is a dictionary of url -> resp
