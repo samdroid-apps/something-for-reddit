@@ -317,6 +317,12 @@ class RedditAPI(GObject.GObject):
 
         if path[0] != '/':
             path = '/' + path
+
+        if '?' in path:
+            path = path + '&raw_json=1'
+        else:
+            path = path + '?raw_json=1'
+
         msg = Soup.Message.new(method, self._token.wrap_path(path))
         if post_data is not None:
             msg.set_request(

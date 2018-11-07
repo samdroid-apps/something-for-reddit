@@ -51,12 +51,12 @@ def test_create_api():
 
 def test_token_changed_gets_username():
     api, session, token = build_fake_api({
-        '/subreddits/mine/subscriber?limit=100': {
+        '/subreddits/mine/subscriber?limit=100&raw_json=1': {
             'data': {
                 'children': [],
             },
         },
-        '/api/v1/me': {
+        '/api/v1/me?raw_json=1': {
             'name': 'myname',
         },
     }, is_anonymous=False)
@@ -73,7 +73,7 @@ def test_token_changed_to_annon():
 
 def test_update_subscriptions():
     api, session, token = build_fake_api({
-        '/subreddits/mine/subscriber?limit=100': {
+        '/subreddits/mine/subscriber?limit=100&raw_json=1': {
             'data': {
                 'children': [{
                     'data': {
@@ -83,7 +83,7 @@ def test_update_subscriptions():
             },
             'after': 'afterkey',
         },
-        '/subreddits/mine/subscriber?limit=100&after=afterkey': {
+        '/subreddits/mine/subscriber?limit=100&after=afterkey&raw_json=1': {
             'data': {
                 'children': [{
                     'data': {
@@ -102,7 +102,7 @@ def test_update_subscriptions():
 
 def test_retry_on_401():
     api, session, token = build_fake_api({
-        '/test': [
+        '/test?raw_json=1': [
             {
                 'error': 401,
             },
@@ -124,7 +124,7 @@ def test_retry_on_401():
 
 def test_bubble_error():
     api, session, token = build_fake_api({
-        '/test': {'error': 403},
+        '/test?raw_json=1': {'error': 403},
     })
 
     done_cb = MagicMock()
@@ -139,7 +139,7 @@ def test_bubble_error():
 
 def test_callback_user_data():
     api, session, token = build_fake_api({
-        '/test': {'win': True},
+        '/test?raw_json=1': {'win': True},
     })
 
     done_cb = MagicMock()
@@ -154,7 +154,7 @@ def test_load_more(datadir):
     with open(datadir / 'api__load-more.json') as f:
         j = json.load(f)
     api, session, token = build_fake_api({
-        '/api/morechildren?api_type=json&children=a%2Cb&link_id=link_name': (
+        '/api/morechildren?api_type=json&children=a%2Cb&link_id=link_name&raw_json=1': (
             j['input']),
     })
 

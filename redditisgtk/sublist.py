@@ -283,7 +283,7 @@ class SubItemRow(Gtk.ListBoxRow):
         self._g('title').props.label = self.data['title']
         self._g('domain').props.label = self.data['domain']
 
-        self._fetch_thumbnail(self.data.get('thumbnail'))
+        self._fetch_thumbnail()
         self._preview_palette = None
 
     def read(self):
@@ -306,11 +306,25 @@ class SubItemRow(Gtk.ListBoxRow):
     def __comments_clicked_cb(self, button):
         self.goto_comments.emit()
 
-    def _fetch_thumbnail(self, url):
+    def _fetch_thumbnail(self):
+        # Old style thumbnail data
+        url = self.data.get('thumbnail')
         if not url or url in ['default', 'self', 'nsfw']:
             return
-        self._msg = self._api.download_thumb(
-            url, self.__message_done_cb)
+
+        # I think this is new style data
+        preview_images = self.data.get('preview', {}).get('images', [])
+        if preview_images:
+            image = preview_images[0]
+            # choose smallest height
+            thumbs = sorted(image.get('resolutions', []),
+                            key=lambda d: d.get('width'))
+            if thumbs:
+                url = thumbs[0]['url']
+
+        if url.startswith('http'):
+            self._msg = self._api.download_thumb(
+                url, self.__message_done_cb)
 
     def do_unrealize(self):
         if self._msg is not None:
