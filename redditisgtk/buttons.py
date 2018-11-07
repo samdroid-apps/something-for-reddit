@@ -17,6 +17,7 @@
 
 import arrow
 from gi.repository import Gtk
+from gi.repository import Pango
 
 from redditisgtk.palettebutton import connect_palette
 from redditisgtk.markdownpango import SaneLabel
@@ -29,6 +30,13 @@ the uis via Gtk.Builder, and I can't seem to get Gtk.Builder.expose_object
 to work from python.  Also, if we use custom widgets, it will annoy
 Glade probably.
 '''
+
+
+def make_label_shrinkable(label: Gtk.Label):
+    '''
+    Make a label shrinkable in the most aggressive way possible
+    '''
+    label.props.ellipsize = Pango.EllipsizeMode.END
 
 
 class ScoreButtonBehaviour():
@@ -96,7 +104,7 @@ class ScoreButtonBehaviour():
         likes = self._data['likes']
         hidden = self._data.get('score_hidden')
 
-        score_string = 'score hidden' if hidden else '{} points'.format(score)
+        score_string = 'score hidden' if hidden else '{}p'.format(score)
         self._button.props.label = score_string
 
         ctx = self._button.get_style_context()
@@ -107,10 +115,12 @@ class ScoreButtonBehaviour():
         elif likes is False:
             ctx.add_class('downvoted')
 
+        make_label_shrinkable(self._button.get_child())
         if self._data.get('gilded') > 0:
             gold = '★{} '.format(self._data.get('gilded'))
             gold_label = Gtk.Label(label=gold)
             gold_label.get_style_context().add_class('gilded')
+            make_label_shrinkable(gold_label)
 
             label = self._button.get_child()
             self._button.remove(label)
@@ -119,6 +129,7 @@ class ScoreButtonBehaviour():
             box.add(label)
             self._button.add(box)
             box.show_all()
+
 
 class AuthorButtonBehaviour():
 
@@ -130,6 +141,7 @@ class AuthorButtonBehaviour():
         disti = data['distinguished']
         is_op = data['author'] == original_poster
         flair = data['author_flair_text'] if show_flair else None
+        make_label_shrinkable(button.get_child())
         if disti is not None or is_op or flair is not None:
             label = button.get_child()
             button.remove(label)
@@ -143,17 +155,20 @@ class AuthorButtonBehaviour():
                     'special': 'SP'
                 }[disti]
                 l.get_style_context().add_class(disti)
+                make_label_shrinkable(l)
                 box.add(l)
 
             if is_op:
                 l = Gtk.Label(label='OP')
                 l.get_style_context().add_class('op')
+                make_label_shrinkable(l)
                 box.add(l)
 
             box.add(label)
             if flair is not None:
                 l = Gtk.Label(label=flair)
                 l.get_style_context().add_class('flair')
+                make_label_shrinkable(l)
                 box.add(l)
 
             button.add(box)
@@ -169,6 +184,7 @@ class SubButtonBehaviour():
     def __init__(self, button, data):
         button.props.label = data['subreddit']
         button.connect('clicked', self.__sub_clicked_cb)
+        make_label_shrinkable(button.get_child())
 
     def __sub_clicked_cb(self, button):
         window = button.get_toplevel()
@@ -183,6 +199,7 @@ class TimeButtonBehaviour():
         button.props.label = time.humanize()
         self._p = connect_palette(button, self._make_time_palette,
                                   modalify=True)
+        make_label_shrinkable(button.get_child())
 
     def _make_time_palette(self):
         t = _TimePalette(self.data)
@@ -241,6 +258,7 @@ class SubscribeButtonBehaviour():
     def _set_label(self):
         self._button.props.label = 'Subscribed' \
             if self._button.props.active else 'Subscribe'
+        make_label_shrinkable(self._button.get_child())
 
     def __toggled_cb(self, toggle):
         self._button.props.label = 'Subscribing...'  \
