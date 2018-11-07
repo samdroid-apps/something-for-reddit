@@ -38,9 +38,14 @@ def get_data_file_path(name):
 
 class ReadController(GObject.GObject):
 
-    def __init__(self):
+    def __init__(self, data_path: str = None):
         GObject.GObject.__init__(self)
+
         self._set = set([])
+        self._data_path = data_path
+        if self._data_path is None:
+            self._data_path = get_data_file_path('read')
+
         self.load()
 
     def read(self, name):
@@ -51,14 +56,14 @@ class ReadController(GObject.GObject):
         return name in self._set
 
     def save(self):
-        with open(get_data_file_path('read'), 'w') as f:
+        with open(self._data_path, 'w') as f:
             for i in self._set:
                 f.write(i)
                 f.write('\n')
 
     def load(self):
-        if os.path.isfile(get_data_file_path('read')):
-            with open(get_data_file_path('read')) as f:
+        if os.path.isfile(self._data_path):
+            with open(self._data_path) as f:
                 l = 0
                 for i in f:
                     self._set.add(i.strip())
