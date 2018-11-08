@@ -42,8 +42,9 @@ class _RedditExtension(Extension):
             try:
                 root = ElementTree.fromstring('<div>'+raw_html+'</div>')
             except ElementTree.ParseError:
-                # This is not proper html, so just escape it
-                return html.escape(raw_html)
+                # This is not proper html, so pass it through rather than
+                # extracting it into an unchangeable stash
+                return raw_html
             else:
                 # This is proper html, so pass it through
                 return old(data)
@@ -101,10 +102,10 @@ def _make_inline_label(el: Element, initial_text: str = None) -> Gtk.Label:
         if not root:
             start, end = _html_inline_tag_to_pango(el)
             fragments.append(start)
-        fragments.append((el.text or '').replace('\n', ''))
+        fragments.append(html.escape(el.text or '').replace('\n', ''))
         for inner in el:
             extract_text(inner)
-            fragments.append((inner.tail or '').replace('\n', ''))
+            fragments.append(html.escape(inner.tail or '').replace('\n', ''))
         if not root:
             fragments.append(end)
 

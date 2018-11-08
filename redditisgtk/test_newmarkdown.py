@@ -89,3 +89,6 @@ def test_escaping(datadir):
 
     w = newmarkdown.make_markdown_widget('Code: `<hello></hello>`')
     assert_matches_snapshot('newmarkdown--escaping-code', snapshot_widget(w))
+
+    w = newmarkdown.make_markdown_widget('& I <3 you')
+    assert_matches_snapshot('newmarkdown--escaping-amp', snapshot_widget(w))
