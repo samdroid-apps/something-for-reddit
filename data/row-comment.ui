@@ -56,7 +56,7 @@
       </packing>
     </child>
     <child>
-      <object class="GtkGrid">
+      <object class="GtkGrid" id="grid">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
         <property name="column_homogeneous">True</property>
@@ -169,23 +169,7 @@
           </packing>
         </child>
         <child>
-          <object class="GtkLabel" id="text">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="label" translatable="yes">I wrote a 
-very
-
-very
-
-long
-
-reply</property>
-          </object>
-          <packing>
-            <property name="left_attach">0</property>
-            <property name="top_attach">2</property>
-            <property name="width">3</property>
-          </packing>
+          <placeholder/>
         </child>
       </object>
       <packing>

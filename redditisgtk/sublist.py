@@ -27,7 +27,7 @@ from redditisgtk.comments import CommentsView
 from redditisgtk.buttons import (ScoreButtonBehaviour, AuthorButtonBehaviour,
                                  SubButtonBehaviour, TimeButtonBehaviour)
 from redditisgtk.gtkutil import process_shortcuts
-from redditisgtk.markdownpango import markdown_to_pango, set_markup_sane
+from redditisgtk import newmarkdown
 from redditisgtk.api import RedditAPI
 from redditisgtk.readcontroller import get_read_controller
 from redditisgtk.mediapreview import get_preview_palette
@@ -378,8 +378,8 @@ class MessageRow(Gtk.ListBoxRow):
 
         self._g('title').props.label = (self.data.get('link_title') or
                                         self.data['subject'])
-        body_pango = markdown_to_pango(self.data['body'])
-        set_markup_sane(self._g('text'), body_pango)
+        content = newmarkdown.make_markdown_widget(self.data['body'])
+        self._g('grid').attach(content, 0, 2, 3, 1)
 
         if is_comment_reply:
             self._g('type-private-message').props.visible = False

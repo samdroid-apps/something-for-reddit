@@ -14,7 +14,6 @@ app_PYTHON = \
 	identity.py \
 	identitybutton.py \
 	main.py \
-	markdownpango.py \
 	mediapreview.py \
 	newmarkdown.py \
 	palettebutton.py \

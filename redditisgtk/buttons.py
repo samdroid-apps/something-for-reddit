@@ -20,7 +20,6 @@ from gi.repository import Gtk
 from gi.repository import Pango
 
 from redditisgtk.palettebutton import connect_palette
-from redditisgtk.markdownpango import SaneLabel
 from redditisgtk.api import RedditAPI
 
 '''
@@ -216,15 +215,16 @@ class _TimePalette(Gtk.Popover):
         box.show()
 
         created = arrow.get(data['created_utc'])
-        s = 'Created {} ({})'.format(created.format('hh:mm a, MMM YY'),
-                                     created.humanize())
+        lines = ['Created {} ({})'.format(
+            created.format('hh:mm a, MMM YY'), created.humanize())]
         if data.get('edited') is True:
-            s = s + '\nEdited ages ago'
+            lines.append('Edited ages ago')
         elif data.get('edited'):
             edited = arrow.get(data['edited'])
-            s = s + '\nEdited {} ({})'.format(edited.format('hh:mm a, MMM YY'),
-                                              edited.humanize())
-        label = SaneLabel(s)
+            lines.append('Edited {} ({})'.format(
+                edited.format('hh:mm a, MMM YY'), edited.humanize()))
+
+        label = Gtk.Label(label='\n'.join(lines))
         box.add(label)
         label.show()
 

@@ -17,7 +17,7 @@
 
 from gi.repository import Gtk
 
-from redditisgtk.markdownpango import set_markup_sane, markdown_to_pango
+from redditisgtk import newmarkdown
 from redditisgtk.buttons import SubscribeButtonBehaviour
 from redditisgtk import submit
 from redditisgtk.api import RedditAPI
@@ -55,9 +55,14 @@ class _SubredditAboutRow(Gtk.ListBoxRow):
             self._loaded = True
 
     def __got_info_cb(self, data):
-        data = data['data']
-        set_markup_sane(self._g('sidebar'),
-                        markdown_to_pango(data['description']))
+        expander = self._g('expander')
+        child = expander.get_child()
+        if child is not None:
+            expander.remove(ch)
+            ch.destroy()
+
+        markdown = data['data']['description']
+        expander.add(newmarkdown.make_markdown_widget(markdown))
 
 
 class _UserAboutRow(Gtk.ListBoxRow):
