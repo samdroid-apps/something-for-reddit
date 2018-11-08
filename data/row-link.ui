@@ -71,6 +71,7 @@
       <object class="GtkGrid">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
+        <property name="column_homogeneous">True</property>
         <child>
           <object class="GtkToggleButton" id="score">
             <property name="label" translatable="yes">3024</property>
