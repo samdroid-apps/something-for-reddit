@@ -1,0 +1,42 @@
+{
+  "children": [
+    {
+      "children": [
+        {
+          "classes": [],
+          "label": "1. hello",
+          "type": "AlignedLabel"
+        },
+        {
+          "classes": [],
+          "label": "2. world",
+          "type": "AlignedLabel"
+        },
+        {
+          "classes": [],
+          "label": "3. yeah",
+          "type": "AlignedLabel"
+        },
+        {
+          "classes": [],
+          "label": "4. sam",
+          "type": "AlignedLabel"
+        }
+      ],
+      "classes": [
+        "vertical",
+        "mdx-block",
+        "mdx-block-ol"
+      ],
+      "label": null,
+      "type": "Box"
+    }
+  ],
+  "classes": [
+    "vertical",
+    "mdx-block",
+    "mdx-block-div"
+  ],
+  "label": null,
+  "type": "Box"
+}

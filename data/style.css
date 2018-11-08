@@ -323,3 +323,55 @@ popover revealer {
         border-bottom: 1px solid black;
     }
 }
+
+
+/* MARKDOWN STYLES */
+.mdx-block-blockquote {
+    border-left: 3px solid grey;
+    padding-left: 6px;
+    margin-left: 3px;
+}
+.mdx-block-code {
+    font-family: monospace;
+    color: green;
+}
+.mdx-block > * {
+    /* Paragraph spacing */
+    margin-top: 6px;
+}
+.mdx-block > *:first-child {
+    margin-top: 0;
+}
+.mdx-block-ol > *,
+.mdx-block-ul > * {
+    margin-top: 2px;
+}
+
+.mdx-heading {
+    font-weight: bolder;
+}
+.mdx-heading-h1 {
+    font-size: 2em;
+    margin-top: .67em;
+    margin-bottom: .67em;
+}
+.mdx-heading-h2 {
+    font-size: 1.5em;
+    margin-top: .75em;
+    margin-bottom: .75em;
+}
+.mdx-heading-h3 {
+    font-size: 1.17em;
+    margin-top: .83em;
+    margin-bottom: .83em;
+}
+.mdx-heading-h5 {
+    font-size: .83em;
+    margin-top: 1.5em;
+    margin-bottom: 1.5em;
+}
+.mdx-heading-h6 {
+    font-size: .75em;
+    margin-top: 1.67em;
+    margin-bottom: 1.67em;
+}

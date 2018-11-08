@@ -16,6 +16,7 @@ app_PYTHON = \
 	main.py \
 	markdownpango.py \
 	mediapreview.py \
+	newmarkdown.py \
 	palettebutton.py \
 	readcontroller.py \
 	settings.py \

@@ -1,0 +1,16 @@
+{
+  "children": [
+    {
+      "classes": [],
+      "label": "Please refer to &lt;url&gt; for",
+      "type": "AlignedLabel"
+    }
+  ],
+  "classes": [
+    "vertical",
+    "mdx-block",
+    "mdx-block-div"
+  ],
+  "label": null,
+  "type": "Box"
+}

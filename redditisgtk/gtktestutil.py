@@ -64,6 +64,19 @@ def debug_print_widgets(root: Gtk.Widget):  # pragma: no cover
         print(widget, get_label_for_widget(widget))
 
 
+def snapshot_widget(root: Gtk.Widget) -> dict:
+    style = root.get_style_context()
+    snap = {
+        'type': type(root).__name__,
+        'label': get_label_for_widget(root),
+        'classes': style.list_classes()}
+
+    if isinstance(root, Gtk.Container):
+        snap['children'] = list(map(snapshot_widget, root.get_children()))
+
+    return snap
+
+
 def find_widget(root: Gtk.Widget,
                 kind: typing.Type[Gtk.Widget] = None,
                 label: str = None,

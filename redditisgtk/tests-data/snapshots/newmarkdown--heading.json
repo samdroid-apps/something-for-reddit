@@ -1,0 +1,27 @@
+{
+  "children": [
+    {
+      "classes": [
+        "mdx-heading",
+        "mdx-heading-h1"
+      ],
+      "label": "big",
+      "type": "AlignedLabel"
+    },
+    {
+      "classes": [
+        "mdx-heading",
+        "mdx-heading-h3"
+      ],
+      "label": "small",
+      "type": "AlignedLabel"
+    }
+  ],
+  "classes": [
+    "vertical",
+    "mdx-block",
+    "mdx-block-div"
+  ],
+  "label": null,
+  "type": "Box"
+}

@@ -20,7 +20,7 @@ from gi.repository import Gtk
 from gi.repository import Gdk
 from gi.repository import GLib
 
-from redditisgtk.markdownpango import markdown_to_pango, SaneLabel
+from redditisgtk import newmarkdown
 from redditisgtk.palettebutton import connect_palette
 from redditisgtk.api import RedditAPI
 from redditisgtk.buttons import (ScoreButtonBehaviour, AuthorButtonBehaviour,
@@ -74,11 +74,11 @@ class CommentsView(Gtk.ScrolledWindow):
         self._box.add(self._top)
         self._top.show()
 
-        selfpost_label = SaneLabel(
-            '<big>{title}</big>\n'
-            '{selftext_pango}'.format(
-                selftext_pango=markdown_to_pango(post.get('selftext')),
-                title=post['title']))
+        body = '# ' + post['title']
+        if post.get('selftext'):
+            bost = body + '\n' + post['selftext']
+
+        selfpost_label = newmarkdown.make_markdown_widget(body)
         selfpost_label.get_style_context().add_class('root-comments-label')
         self._box.add(selfpost_label)
         selfpost_label.show()
@@ -623,8 +623,7 @@ class CommentRow(Gtk.ListBoxRow):
         self._box.add(self._top)
         self._top.show()
 
-        body_pango = markdown_to_pango(self.data['body'])
-        self._label = SaneLabel(body_pango)
+        self._label = newmarkdown.make_markdown_widget(self.data['body'])
         self._box.add(self._label)
         self._label.show()
 

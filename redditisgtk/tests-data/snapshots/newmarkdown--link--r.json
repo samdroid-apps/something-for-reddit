@@ -1,0 +1,16 @@
+{
+  "children": [
+    {
+      "classes": [],
+      "label": "<a href=\"/r/linux\">/r/linux</a>",
+      "type": "AlignedLabel"
+    }
+  ],
+  "classes": [
+    "vertical",
+    "mdx-block",
+    "mdx-block-div"
+  ],
+  "label": null,
+  "type": "Box"
+}

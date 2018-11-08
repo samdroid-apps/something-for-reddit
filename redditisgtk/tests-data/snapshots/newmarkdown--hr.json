@@ -1,0 +1,28 @@
+{
+  "children": [
+    {
+      "classes": [],
+      "label": "hello",
+      "type": "AlignedLabel"
+    },
+    {
+      "classes": [
+        "horizontal"
+      ],
+      "label": null,
+      "type": "Separator"
+    },
+    {
+      "classes": [],
+      "label": "world",
+      "type": "AlignedLabel"
+    }
+  ],
+  "classes": [
+    "vertical",
+    "mdx-block",
+    "mdx-block-div"
+  ],
+  "label": null,
+  "type": "Box"
+}

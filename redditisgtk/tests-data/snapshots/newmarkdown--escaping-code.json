@@ -1,0 +1,16 @@
+{
+  "children": [
+    {
+      "classes": [],
+      "label": "Code: <tt>&lt;hello&gt;&lt;/hello&gt;</tt>",
+      "type": "AlignedLabel"
+    }
+  ],
+  "classes": [
+    "vertical",
+    "mdx-block",
+    "mdx-block-div"
+  ],
+  "label": null,
+  "type": "Box"
+}

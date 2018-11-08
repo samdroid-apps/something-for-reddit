@@ -1,0 +1,48 @@
+{
+  "children": [
+    {
+      "classes": [],
+      "label": "hello world",
+      "type": "AlignedLabel"
+    },
+    {
+      "children": [
+        {
+          "classes": [],
+          "label": "<b>quoted</b>",
+          "type": "AlignedLabel"
+        },
+        {
+          "children": [
+            {
+              "classes": [],
+              "label": "sub quote",
+              "type": "AlignedLabel"
+            }
+          ],
+          "classes": [
+            "vertical",
+            "mdx-block",
+            "mdx-block-blockquote"
+          ],
+          "label": null,
+          "type": "Box"
+        }
+      ],
+      "classes": [
+        "vertical",
+        "mdx-block",
+        "mdx-block-blockquote"
+      ],
+      "label": null,
+      "type": "Box"
+    }
+  ],
+  "classes": [
+    "vertical",
+    "mdx-block",
+    "mdx-block-div"
+  ],
+  "label": null,
+  "type": "Box"
+}
