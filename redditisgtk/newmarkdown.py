@@ -14,6 +14,8 @@ from gi.repository import Pango
 
 
 _URI_RE = r'(https?://|/r/|/u/)([^ \r\t\n]+)'
+_STRIKE_RE = r'(~~)([^~]+)~~'
+_SUPER_RE = r'(\^)(\([^\^\)]+\)|[^\^ ]+)'
 
 
 class _URIPattern(Pattern):
@@ -25,12 +27,28 @@ class _URIPattern(Pattern):
         return el
 
 
+class _SuperPattern(Pattern):
+    def handleMatch(self, match):
+        text = match.group(3)
+        print(text)
+        if text.startswith('(') and text.endswith(')'):
+            text = text[1:-1]
+
+        el = Element('sup')
+        el.text = text
+        return el
+
+
 class _RedditExtension(Extension):
     def extendMarkdown(self, md, md_globals):
         md.inlinePatterns['uriregex'] = _URIPattern(_URI_RE, md)
 
-        s_tag = SimpleTagPattern('(~~)([^~]+)~~', 'strike')
+        s_tag = SimpleTagPattern(_STRIKE_RE, 'strike')
         md.inlinePatterns.add('s', s_tag, '>not_strong')
+
+        sup_tag = _SuperPattern(_SUPER_RE, md)
+        md.inlinePatterns.add('sup', sup_tag, '>not_strong')
+
 
         html_pattern = md.inlinePatterns['html']
         old = html_pattern.handleMatch
@@ -68,7 +86,10 @@ HTML_TO_PANGO_INLINE_TAG = {
     'strong': ('<b>', '</b>'),
     'em': ('<i>', '</i>'),
     'strike': ('<s>', '</s>'),
+    'sup': ('<sup>', '</sup>'),
     'br': ('\n', ''),
+    # We never make these, but sometimes the reddit api does
+    'del': ('<s>', '</s>'),
 }
 
 def _html_inline_tag_to_pango(el: Element) -> (str, str):
@@ -212,8 +233,16 @@ def make_html_widget(html: str) -> Gtk.Widget:
     '''
     Make a widget given some html text.  Must have a single element as root.
     '''
-    root = ElementTree.fromstring('<div>'+html+'</div>')
-    return convert_tree_to_widgets(root)
+    try:
+        root = ElementTree.fromstring('<div>'+html+'</div>')
+    except ElementTree.ParseError as e:
+        print('Error parsing html,', e, 'for html:')
+        print(html)
+        label = AlignedLabel(label=f'Error formatting text:\n\n{html}')
+        label.show()
+        return label
+    else:
+        return convert_tree_to_widgets(root)
 
 
 if __name__ == '__main__':
