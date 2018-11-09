@@ -15,6 +15,10 @@
 # You should have received a copy of the GNU General Public License
 # along with Something for Reddit.  If not, see <http://www.gnu.org/licenses/>.
 
+import os
+import time
+import cProfile
+
 from gi.repository import GObject
 from gi.repository import Gtk
 from gi.repository import Gdk
@@ -27,6 +31,14 @@ from redditisgtk.buttons import (ScoreButtonBehaviour, AuthorButtonBehaviour,
                                  TimeButtonBehaviour, SubButtonBehaviour)
 from redditisgtk.gtkutil import process_shortcuts
 from redditisgtk import emptyview
+
+
+ENABLE_PROFILE = 'COMMENTS_PROFILE' in os.environ
+
+if ENABLE_PROFILE:  # pragma: no cover
+    profile = cProfile.Profile()
+    profile.done = True
+    profile.start = 0
 
 
 class CommentsView(Gtk.ScrolledWindow):
@@ -129,7 +141,6 @@ class CommentsView(Gtk.ScrolledWindow):
 
         if self._comments is not None:
             self._box.remove(self._comments)
-            self._comments.hide()
             self._comments.destroy()
 
         if len(j[1]['data']['children']) == 0:
@@ -137,10 +148,17 @@ class CommentsView(Gtk.ScrolledWindow):
                 'No Comments', action='Add a comment')
             self._comments.action.connect(self.__add_comment_clicked_cb)
         else:
+            if ENABLE_PROFILE:  # pragma: no cover
+                print('[COMMENTS PROFILE] Start')
+                profile.enable()
+                profile.done = False
+                profile.start = time.time()
+
             # The 0th one is just the self post
             self._comments = _CommentsView(
                     self._api, j[1]['data']['children'],
                     self, first=True)
+
         self._box.add(self._comments)
         self._comments.show()
 
@@ -183,10 +201,10 @@ class CommentsView(Gtk.ScrolledWindow):
             if i+1 < len(kids) and kids[i+1].get_mapped():
                 return kids[i+1]
             else:
-                # FIXME:  This must be bad
-                # Me > List > Box > Revealer > Box > Next Row!!
-                row = row.get_parent().get_parent().get_parent() \
-                         .get_parent().get_parent()
+                # Walk up to next CommentRow
+                row = row.get_parent()
+                while not isinstance(row, CommentRow):
+                    row = row.get_parent()
         return None
 
     def _get_last_child_of(self, row):
@@ -213,10 +231,12 @@ class CommentsView(Gtk.ScrolledWindow):
                 # Return parent is there is no row before us
                 if row.depth == 0:
                     return self._load_full or self._top
-                # FIXME:  This must be bad
-                # Me > List > Box > Revealer > Box > Next Row!!
-                return row.get_parent().get_parent().get_parent() \
-                          .get_parent().get_parent()
+
+                # Walk up to next CommentRow
+                row = row.get_parent()
+                while not isinstance(row, CommentRow):
+                    row = row.get_parent()
+                return row
             else:
                 return self._get_last_child_of(kids[i-1])
         return None
@@ -226,10 +246,10 @@ class CommentsView(Gtk.ScrolledWindow):
             if jump:
                 row = self._selected
                 while isinstance(row, CommentRow) and row.depth > 0:
-                    # FIXME:  This must be bad
-                    # Me > List > Box > Revealer > Box > Next Row!!
-                    row = row.get_parent().get_parent().get_parent() \
-                             .get_parent().get_parent()
+                    # Walk up to next CommentRow
+                    row = row.get_parent()
+                    while not isinstance(row, CommentRow):
+                        row = row.get_parent()
                 kids = [self._top] + self._comments.get_children()
                 i = kids.index(row)
                 if 0 <= i + direction < len(kids):
@@ -301,14 +321,36 @@ class _CommentsView(Gtk.ListBox):
         ctx.add_class('depth-{}'.format(depth % 5))
         self._add_comments(data)
 
+        if first and ENABLE_PROFILE:  # pragma: no cover
+            self.connect_after('draw', self.__draw_cb)
+
+    def __draw_cb(self, widget, cr):
+        if not profile.done:
+            profile.done = True
+            profile.disable()
+            profile.print_stats(sort='tottime')
+            print('[COMMENTS PROFILE] Done', time.time() - profile.start)
+
     def _add_comments(self, data):
-        for comment in data:
-            comment_data = comment['data']
+        index = 0
+        def do_add_comment():
+            nonlocal index
+
+            if index >= len(data):
+                return
+
+            comment_data = data[index]['data']
             row = CommentRow(self._api, comment_data, self._depth, self._toplevel_cv)
             row.recurse()
             row.got_more_comments.connect(self.__got_more_comments_cb)
             self.insert(row, -1)
             row.show()
+
+            index += 1
+            if index < len(data):
+                GLib.idle_add(do_add_comment)
+
+        do_add_comment()
 
     def do_row_activated(self, row):
         if self._is_first:
@@ -421,7 +463,7 @@ class _PostTopBar(Gtk.Bin):
 
     def do_get_preferred_width(self):
         minimum, natural = Gtk.Bin.do_get_preferred_width(self)
-        return 1, natural
+        return 0, natural
 
     def do_get_preferred_height_for_width(self, width):
         # FIXME:  Worse for performance than the nested ListBoxes??
@@ -623,7 +665,7 @@ class CommentRow(Gtk.ListBoxRow):
         self._box.add(self._top)
         self._top.show()
 
-        self._label = newmarkdown.make_markdown_widget(self.data['body'])
+        self._label = newmarkdown.make_html_widget(self.data['body_html'])
         self._box.add(self._label)
         self._label.show()
 
@@ -634,9 +676,6 @@ class CommentRow(Gtk.ListBoxRow):
                 transition_type=Gtk.RevealerTransitionType.SLIDE_DOWN,
                 reveal_child=True
             )
-            revealer_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-            self._revealer.add(revealer_box)
-            revealer_box.show()
             self._box.add(self._revealer)
             self._revealer.show()
 
@@ -645,7 +684,7 @@ class CommentRow(Gtk.ListBoxRow):
                 self.data['replies']['data']['children'],
                 self._toplevel_cv,
                 depth=self.depth + 1)
-            revealer_box.add(self._sub)
+            self._revealer.add(self._sub)
             self._sub.show()
         else:
             self._top.expand.hide()

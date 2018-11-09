@@ -205,6 +205,13 @@ def make_markdown_widget(text: str) -> Gtk.Widget:
         text - markdown text input
     '''
     html = MDX_CONTEXT.convert(text)
+    return make_html_widget(html)
+
+
+def make_html_widget(html: str) -> Gtk.Widget:
+    '''
+    Make a widget given some html text.  Must have a single element as root.
+    '''
     root = ElementTree.fromstring('<div>'+html+'</div>')
     return convert_tree_to_widgets(root)
 
