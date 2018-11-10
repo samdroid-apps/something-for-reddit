@@ -1,0 +1,18 @@
+# [Unreleased] bugfix release
+
+## Added
+
+- The frontpage is now visible.  You can see it by going to `/` in the url bar.
+  (#56)
+- The codebase is now tested!  I'm pretty sure we are one of the only GTK apps
+  which has proper UI tests - so this should stop more regressions into the
+  future!
+
+## Changed
+
+- Replaced the markdown engine, should now support more features (#66)
+- The alignment in subreddit listings should now be more uniform. (#64)
+- The subreddit listings should now be more responsively sized. (#47)
+- The url bar is now less lenient on formatting.  Previously, going to `/linux`
+  would take you to `/r/linux`.  Due to the frontpage changes, this no longer
+  happens
