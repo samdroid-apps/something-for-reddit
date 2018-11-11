@@ -16,3 +16,4 @@
 - The url bar is now less lenient on formatting.  Previously, going to `/linux`
   would take you to `/r/linux`.  Due to the frontpage changes, this no longer
   happens
+- [PACKAGING] Moved icons from pixmaps to the hicolor directory

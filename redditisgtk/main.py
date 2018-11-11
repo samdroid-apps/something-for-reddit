@@ -49,7 +49,7 @@ class RedditWindow(Gtk.Window):
             api_factory: APIFactory,
             start_sub: str = None):
         Gtk.Window.__init__(self, title='Something For Reddit',
-                            icon_name='reddit-is-a-dead-bird')
+                            icon_name='today.sam.reddit-is-gtk')
         self.add_events(Gdk.EventMask.KEY_PRESS_MASK)
         self.set_default_size(600, 600)
         self.set_wmclass("reddit-is-gtk", "Something For Reddit")
@@ -340,7 +340,7 @@ class Application(Gtk.Application):
             comments=('A simple but powerful Reddit client, built for GNOME '
                       'powered by Gtk+ 3.0'),
             license_type=Gtk.License.GPL_3_0,
-            logo_icon_name='reddit-is-a-dead-bird',
+            logo_icon_name='today.sam.reddit-is-gtk',
             authors=['Sam P. <sam@sam.today>'],
             website='https://github.com/samdroid-apps/something-for-reddit',
             website_label='Git Repo and Issue Tracker on GitHub',

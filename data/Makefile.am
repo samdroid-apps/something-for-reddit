@@ -22,10 +22,33 @@ appdata_in_files = reddit-is-gtk.appdata.xml.in
 
 @INTLTOOL_XML_RULE@
 
-please_draw_new_iconsdir = $(datadir)/pixmaps
-please_draw_new_icons_DATA = reddit-is-a-dead-bird.svg reddit-is-a-dead-bird-symbolic.svg
+hicolor_app_iconsdir = $(datadir)/icons/hicolor/scalable/apps
+hicolor_app_icons_DATA = icons/today.sam.reddit-is-gtk.svg
+hicolor_app_icons_symbolicdir = $(datadir)/icons/hicolor/symbolic/apps
+hicolor_app_icons_symbolic_DATA = icons/today.sam.reddit-is-gtk-symbolic.svg
+hicolor_icons_symbolicdir = $(datadir)/icons/hicolor/scalable/actions
+hicolor_icons_symbolic_DATA = \
+	icons/mail-reply-all-symbolic.svg \
+	icons/detach-symbolic.svg
+hicolor_icon_files = \
+	$(hicolor_app_icons_DATA) \
+	$(hicolor_app_icons_symbolic_DATA) \
+	$(hicolor_icons_symbolic_DATA)
 
 gsettings_SCHEMAS = today.sam.something-for-reddit.gschema.xml
+
+
+install-data-hook: update-icon-cache
+uninstall-hook: update-icon-cache
+update-icon-cache:
+	@-if test -z "$(DESTDIR)"; then \
+		echo "Updating Gtk hicolor icon cache."; \
+		$(gtk_update_hicolor_icon_cache); \
+	else \
+		echo "*** Icon cache not updated.  After (un)install, run this:"; \
+		echo "***   $(gtk_update_hicolor_icon_cache)"; \
+	fi
+
 
 # For uninstalled use
 gschemas.compiled: $(gsettings_SCHEMAS) Makefile
@@ -35,7 +58,7 @@ gschemas.compiled: $(gsettings_SCHEMAS) Makefile
 
 EXTRA_DIST = \
 	$(resource_files) \
-	$(please_draw_new_icons_DATA) \
+	$(hicolor_icon_files) \
 	reddit-is-gtk.desktop.in \
 	reddit-is-gtk.appdata.xml.in \
 	reddit-is-gtk.gresource.xml \

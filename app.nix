@@ -74,7 +74,7 @@ stdenv.mkDerivation rec {
 
   preFixup = ''
     wrapProgram "$out/bin/reddit-is-gtk" \
-      --prefix XDG_DATA_DIRS : "${gnome3.gnome_themes_standard}/share:$XDG_ICON_DIRS:$GSETTINGS_SCHEMAS_PATH" \
+      --prefix XDG_DATA_DIRS : "$out/share:${gnome3.gnome_themes_standard}/share:$XDG_ICON_DIRS:$GSETTINGS_SCHEMAS_PATH" \
       --prefix GI_TYPELIB_PATH : "${extraTypelibPath}:$GI_TYPELIB_PATH" \
       --prefix LD_LIBRARY_PATH : "${extraLibPath}" \
       --prefix PYTHONPATH : "$PYTHONPATH"
