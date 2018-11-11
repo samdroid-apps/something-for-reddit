@@ -88,7 +88,7 @@ class CommentsView(Gtk.ScrolledWindow):
 
         body = '# ' + post['title']
         if post.get('selftext'):
-            bost = body + '\n' + post['selftext']
+            body = body + '\n\n' + post['selftext']
 
         selfpost_label = newmarkdown.make_markdown_widget(body)
         selfpost_label.get_style_context().add_class('root-comments-label')
