@@ -56,7 +56,32 @@ nix-shell dev-shell.nix
 
 This will include instructions to run the app.
 
-# Roadmap
+# Flatpak
+
+You can build the flatpak with the following commands:
+
+```sh
+# Build
+flatpak-builder build-dir today.sam.reddit-is-gtk.json --force-clean --repo=flatpak-repo --subject="Development build of Something for Reddit"
+flatpak build-update-repo --prune --prune-depth=20 flatpak-repo
+```
+
+Note that flatpak builds it from the git repo, not your local source.  So you
+need to push to a branch and change the flatpak config if you are testing
+changes to the source inside of flatpak.
+
+You can install it from your local repository:
+
+```sh
+# Initial setup (run only once):
+flatpak --user remote-add --no-gpg-verify sfr-local ./flatpak-repo
+flatpak --user install sfr-local today.sam.reddit-is-gtk
+
+# To update:
+flatpak update --user today.sam.reddit-is-gtk
+```
+
+# Outdated Roadmap
 
 Feel free to contribute and do whatever you want.
 

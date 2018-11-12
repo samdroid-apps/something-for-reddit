@@ -27,6 +27,8 @@
     "*.a"
   ],
 
+  "rename-desktop-file": "reddit-is-gtk.desktop",
+
   "modules": [
     {
       "name": "pipdeps",
