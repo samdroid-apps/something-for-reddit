@@ -23,7 +23,7 @@ BuildRequires: pkgconfig(libsoup-2.4) >= %{soup_version}
 BuildRequires: python3-rpm-macros
 BuildRequires: python3-arrow
 BuildRequires: python3-markdown
-BuildRequires: rubygem-sass
+BuildRequires: sassc
 BuildRequires: gnome-common
 
 Requires:      libsoup
@@ -66,7 +66,8 @@ desktop-file-validate %{buildroot}/%{_datadir}/applications/reddit-is-gtk.deskto
 %license COPYING
 %{_bindir}/reddit-is-gtk
 %{_datadir}/%{name}
-%{_datadir}/pixmaps/
+%{_datadir}/icons
+%{_datadir}/something-for-reddit
 %{_datadir}/appdata/reddit-is-gtk.appdata.xml
 %{_datadir}/glib-2.0/schemas/today.sam.something-for-reddit.gschema.xml
 %{_datadir}/applications/reddit-is-gtk.desktop

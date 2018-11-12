@@ -1,3 +1,0 @@
-arrow
-markdown
-git+https://github.com/r0wb0t/markdown-urlize
