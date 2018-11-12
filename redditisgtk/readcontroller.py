@@ -30,7 +30,8 @@ def get_data_file_path(name):
     Args:
         name (str)
     '''
-    d = os.path.expanduser('~/.local/share/reddit-is-gtk')
+    data_dir = GLib.get_user_data_dir()
+    d = os.path.join(data_dir, 'reddit-is-gtk')
     if not os.path.isdir(d):
         os.makedirs(d)
     return os.path.join(d, name)
