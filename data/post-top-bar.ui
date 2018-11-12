@@ -116,7 +116,7 @@
           <object class="GtkImage">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="icon_name">mail-reply-all-symbolic</property>
+            <property name="icon_name">reddit-mail-reply-all-symbolic</property>
           </object>
         </child>
       </object>

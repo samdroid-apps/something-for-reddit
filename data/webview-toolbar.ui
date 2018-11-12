@@ -34,7 +34,7 @@
           <object class="GtkImage">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="icon_name">detach-symbolic</property>
+            <property name="icon_name">reddit-detach-symbolic</property>
           </object>
         </child>
         <accelerator key="e" signal="clicked" modifiers="GDK_CONTROL_MASK"/>
