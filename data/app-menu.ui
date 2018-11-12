@@ -17,6 +17,10 @@
         <attribute name="label" translatable="yes">About</attribute>
       </item>
       <item>
+        <attribute name="action">app.issues</attribute>
+        <attribute name="label" translatable="yes">GitHub Issues</attribute>
+      </item>
+      <item>
         <attribute name="action">app.quit</attribute>
         <attribute name="label" translatable="yes">Quit</attribute>
         <attribute name="accel">&lt;Primary&gt;q</attribute>

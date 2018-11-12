@@ -35,6 +35,7 @@ from redditisgtk.identity import IdentityController
 from redditisgtk.identitybutton import IdentityButton
 from redditisgtk.comments import CommentsView
 from redditisgtk.settings import get_settings, show_settings
+from redditisgtk import webviews
 
 
 VIEW_WEB = 0
@@ -321,7 +322,9 @@ class Application(Gtk.Application):
 
     # TODO:  Using do_startup causes SIGSEGV for me
     def __do_startup_cb(self, app):
-        actions = [('about', self.__about_cb), ('quit', self.__quit_cb),
+        actions = [('about', self.__about_cb),
+                   ('quit', self.__quit_cb),
+                   ('issues', self.__issues_cb),
                    ('shortcuts', self.__shortcuts_cb),
                    ('settings', self.__settings_cb)]
         for name, cb in actions:
@@ -348,6 +351,10 @@ class Application(Gtk.Application):
             transient_for=self._w,
             modal=True)
         about_dialog.present()
+
+    def __issues_cb(self, action, param):
+        webviews.open_uri_external(
+            'https://github.com/samdroid-apps/something-for-reddit/issues')
 
     def __quit_cb(self, action, param):
         self.quit()

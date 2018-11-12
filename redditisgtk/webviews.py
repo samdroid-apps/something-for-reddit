@@ -21,6 +21,13 @@ from gi.repository import Gtk
 from gi.repository import WebKit2
 
 
+def open_uri_external(uri: str):
+    '''
+    Open the given uri in an external browser
+    '''
+    subprocess.call(['xdg-open', uri])
+
+
 class FullscreenableWebview(WebKit2.WebView):
 
     def do_enter_fullscreen(self):
@@ -106,7 +113,7 @@ class WebviewToolbar(Gtk.Bin):
 
     def __external_cb(self, button):
         uri = self._webview.props.uri
-        subprocess.call(['xdg-open', uri])
+        open_uri_external(uri)
 
     def __clicked_cb(self, button, func):
         func()
