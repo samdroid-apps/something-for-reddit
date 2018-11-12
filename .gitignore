@@ -76,3 +76,5 @@ Makefile.in
 /__build_prefix
 /.pytest_cache/
 .coverage
+.flatpak-builder
+build-dir

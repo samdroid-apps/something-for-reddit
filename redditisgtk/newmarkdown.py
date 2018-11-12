@@ -100,7 +100,7 @@ def _html_inline_tag_to_pango(el: Element) -> (str, str):
             return '', ''
 
         href = html.escape(el.get('href'))
-        return f'<a href="{href}">', '</a>'
+        return '<a href="{}">'.format(href), '</a>'
     else:  # pragma: no cover
         print('Unknown inline tag', el)
         # ElementTree.dump(el) 
@@ -155,7 +155,7 @@ HEADING_TAGS = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6']
 def _make_li_widget(el: Element, parent: Element, index: int) -> Gtk.Widget:
     dot = '⚫ '
     if parent is not None and parent.tag == 'ol':
-        dot = f'{index+1}. '
+        dot = '{}. '.format(index+1)
     return _make_inline_label(el, initial_text=dot)
 
 
@@ -238,7 +238,7 @@ def make_html_widget(html: str) -> Gtk.Widget:
     except ElementTree.ParseError as e:
         print('Error parsing html,', e, 'for html:')
         print(html)
-        label = AlignedLabel(label=f'Error formatting text:\n\n{html}')
+        label = AlignedLabel(label='Error formatting text:\n\n{}'.format(html))
         label.show()
         return label
     else:

@@ -1,8 +1,8 @@
 style.dark.css.out: style.css
-	$(AM_V_GEN) echo '$$dark: true;' | cat - style.css | scss -s -C --sourcemap=none style.dark.css.out
+	$(AM_V_GEN) echo '$$dark: true;' | cat - style.css | sassc -s style.dark.css.out
 
 style.css.out: style.css
-	$(AM_V_GEN) echo '$$dark: false;' | cat - style.css | scss -s -C --sourcemap=none style.css.out
+	$(AM_V_GEN) echo '$$dark: false;' | cat - style.css | sassc -s style.css.out
 
 resource_files = $(shell $(GLIB_COMPILE_RESOURCES) --sourcedir=$(srcdir) --sourcedir=$(builddir) --generate-dependencies $(builddir)/reddit-is-gtk.gresource.xml)
 reddit-is-gtk.gresource: reddit-is-gtk.gresource.xml style.css.out style.dark.css.out $(resource_files)

@@ -12,7 +12,7 @@
 , autoconf
 , pango
 , atk
-, sass }:
+, sassc }:
 
 let
   py = python3;
@@ -29,7 +29,7 @@ stdenv.mkDerivation rec {
     gnome3.gnome-common
     intltool
     itstool
-    sass
+    sassc
     py.pkgs.pytest
     py.pkgs.pytestcov
   ];
