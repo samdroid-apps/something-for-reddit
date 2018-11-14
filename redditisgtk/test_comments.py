@@ -4,7 +4,8 @@ from unittest.mock import MagicMock
 from gi.repository import Gtk
 
 from redditisgtk import comments
-from redditisgtk.gtktestutil import with_test_mainloop, find_widget
+from redditisgtk.gtktestutil import (with_test_mainloop, find_widget, wait_for,
+                                     get_focused, fake_event)
 
 PERMALINK = '/r/MaliciousCompliance/comments/9vzevr/you_need_a_doctors_note_you_got_it/'
 

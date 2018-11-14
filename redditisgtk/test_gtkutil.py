@@ -1,19 +1,7 @@
 from unittest.mock import MagicMock
 
-from gi.repository import Gdk
-
 from redditisgtk import gtkutil
-
-
-def fake_event(keyval, event_type=Gdk.EventType.KEY_PRESS, ctrl=False):
-    ev = MagicMock()
-    ev.type = event_type
-    ev.keyval = keyval
-    if ctrl:
-        ev.state = Gdk.ModifierType.CONTROL_MASK
-    else:
-        ev.state = 0
-    return ev
+from redditisgtk.gtktestutil import fake_event
 
 
 def test_process_shortcuts():
@@ -25,7 +13,7 @@ def test_process_shortcuts():
         '<Ctrl>k': (k_cb, ['k']),
     }
 
-    gtkutil.process_shortcuts(shortcuts, fake_event('', event_type=None))
+    gtkutil.process_shortcuts(shortcuts, fake_event('a', event_type=None))
     assert not up_cb.called
     assert not k_cb.called
 
@@ -33,9 +21,9 @@ def test_process_shortcuts():
     assert up_cb.called
     assert up_cb.call_args[0] == ('up',)
 
-    gtkutil.process_shortcuts(shortcuts, fake_event(107))
+    gtkutil.process_shortcuts(shortcuts, fake_event('k'))
     assert not k_cb.called
 
-    gtkutil.process_shortcuts(shortcuts, fake_event(107, ctrl=True))
+    gtkutil.process_shortcuts(shortcuts, fake_event('k', ctrl=True))
     assert k_cb.called
     assert k_cb.call_args[0] == ('k',)

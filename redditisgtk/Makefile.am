@@ -17,6 +17,7 @@ app_PYTHON = \
 	mediapreview.py \
 	newmarkdown.py \
 	palettebutton.py \
+	posttopbar.py \
 	readcontroller.py \
 	settings.py \
 	subentry.py \

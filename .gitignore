@@ -78,3 +78,5 @@ Makefile.in
 .coverage
 .flatpak-builder
 build-dir
+flatpak-repo
+htmlcov

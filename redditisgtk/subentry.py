@@ -34,6 +34,9 @@ def clean_sub(sub):
 
     And normalize /u/ -> /user/
     '''
+    if sub.startswith('http://') or sub.startswith('https://'):
+        return sub
+
     if sub.endswith('/'):
         sub = sub[:-1]
     if not sub.startswith('/'):

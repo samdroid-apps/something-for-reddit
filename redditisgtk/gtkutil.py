@@ -39,6 +39,6 @@ def process_shortcuts(shortcuts, event: Gdk.Event):
             try:
                 func(*args)
             except Exception as e:
-                print(e)
+                raise
                 return False
             return True

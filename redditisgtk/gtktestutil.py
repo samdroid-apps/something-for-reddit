@@ -1,8 +1,10 @@
 import time
 import typing
 import functools
+from unittest.mock import MagicMock
 
 from gi.repository import Gtk
+from gi.repository import Gdk
 from gi.repository import GLib
 from gi.repository import Gio
 
@@ -45,6 +47,12 @@ def _iter_all_widgets(root: Gtk.Widget):
             yield from _iter_all_widgets(child)
 
 
+def get_focused(root: Gtk.Widget) -> Gtk.Widget:
+    for widget in _iter_all_widgets(root):
+        if widget.is_focus():
+            return widget
+
+
 def get_label_for_widget(widget: Gtk.Widget):
     my_label = None
     if hasattr(widget, 'get_label'):
@@ -55,6 +63,9 @@ def get_label_for_widget(widget: Gtk.Widget):
         child = widget.get_child()
         if hasattr(child, 'get_label'):
             my_label = child.get_label()
+
+    if not my_label and hasattr(widget, 'get_text'):
+        my_label = widget.get_text()
 
     return my_label
 
@@ -118,3 +129,17 @@ def wait_for(cond: typing.Callable[[], bool], timeout: float= 5):
             raise AssertionError('Timeout expired')
 
         Gtk.main_iteration_do(False)
+
+
+def fake_event(keyval, event_type=Gdk.EventType.KEY_PRESS, ctrl=False):
+    if isinstance(keyval, str):
+        keyval = ord(keyval)
+
+    ev = MagicMock()
+    ev.type = event_type
+    ev.keyval = keyval
+    if ctrl:
+        ev.state = Gdk.ModifierType.CONTROL_MASK
+    else:
+        ev.state = 0
+    return ev

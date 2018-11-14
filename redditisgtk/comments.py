@@ -31,6 +31,7 @@ from redditisgtk.buttons import (ScoreButtonBehaviour, AuthorButtonBehaviour,
                                  TimeButtonBehaviour, SubButtonBehaviour)
 from redditisgtk.gtkutil import process_shortcuts
 from redditisgtk import emptyview
+from redditisgtk import posttopbar
 
 
 ENABLE_PROFILE = 'COMMENTS_PROFILE' in os.environ
@@ -80,8 +81,9 @@ class CommentsView(Gtk.ScrolledWindow):
     def _init_post(self, post):
         self.got_post_data.emit(post)
 
-        self._top = _PostTopBar(self._api, post, self, hideable=False,
-                                refreshable=True, show_subreddit=True)
+        self._top = posttopbar.PostTopBar(
+            self._api, post, self, hideable=False,
+            refreshable=True, show_subreddit=True)
         self._top.get_style_context().add_class('root-comments-bar')
         self._box.add(self._top)
         self._top.show()
@@ -180,7 +182,7 @@ class CommentsView(Gtk.ScrolledWindow):
     def get_original_poster(self):
         return self._post['author']
 
-    def _get_next_row(self, relative_to):
+    def get_next_row(self, relative_to):
         if relative_to == self._top:
             return self._load_full or self._comments.get_children()[0]
         if relative_to == self._load_full:
@@ -189,9 +191,9 @@ class CommentsView(Gtk.ScrolledWindow):
         row = relative_to
         # 1st, try to see if I have a child to descend into
         if isinstance(row, CommentRow) and row.get_sub() is not None:
-            child = row.get_sub().get_children()[0]
-            if child.get_mapped():
-                return child
+            children  = row.get_sub().get_children()
+            if len(children) >= 1 and children[0].get_mapped():
+                return children[0]
 
         # 2nd, try siblings and parents iteratively
         while isinstance(row, CommentRow):
@@ -209,12 +211,12 @@ class CommentsView(Gtk.ScrolledWindow):
 
     def _get_last_child_of(self, row):
         if row.get_sub() is not None:
-            child = row.get_sub().get_children()[-1]
-            if child.get_mapped():
-                return self._get_last_child_of(child)
+            children = row.get_sub().get_children()
+            if len(children) >= 1 and children[-1].get_mapped():
+                return self._get_last_child_of(children[-1])
         return row
 
-    def _get_prev_row(self, row):
+    def get_prev_row(self, row):
         if self._load_full is not None and row == self._load_full:
             return self._top
 
@@ -255,15 +257,14 @@ class CommentsView(Gtk.ScrolledWindow):
                 if 0 <= i + direction < len(kids):
                     row = kids[i + direction]
             else:
-                f = self._get_next_row if direction > 0 else self._get_prev_row
+                f = self.get_next_row if direction > 0 else self.get_prev_row
                 while True:
                     row = f(self._selected)
                     if row is None or row.get_mapped():
                         break
 
             if row is not None:
-                row.grab_focus()
-                self._selected = row
+                self.select_row(row)
             else:
                 # We went too far!
                 self.error_bell()
@@ -291,6 +292,10 @@ class CommentsView(Gtk.ScrolledWindow):
             '<ctrl>r': (self.refresh, []),
         }
         return process_shortcuts(shortcuts, event)
+
+    def select_row(self, row):
+        row.grab_focus()
+        self._selected = row
 
 
 class _CommentsView(Gtk.ListBox):
@@ -332,6 +337,11 @@ class _CommentsView(Gtk.ListBox):
             print('[COMMENTS PROFILE] Done', time.time() - profile.start)
 
     def _add_comments(self, data):
+        '''
+        Add comments from the given data list
+
+        Returns the widget for the first comment added
+        '''
         index = 0
         def do_add_comment():
             nonlocal index
@@ -340,17 +350,25 @@ class _CommentsView(Gtk.ListBox):
                 return
 
             comment_data = data[index]['data']
-            row = CommentRow(self._api, comment_data, self._depth, self._toplevel_cv)
+            if 'body' in comment_data:
+                row = NormalCommentRow(self._api, comment_data, self._depth, self._toplevel_cv)
+            else:
+                row = LoadMoreCommentsRow(self._api, comment_data, self._depth, self._toplevel_cv)
+                row.got_more_comments.connect(self.__got_more_comments_cb)
             row.recurse()
-            row.got_more_comments.connect(self.__got_more_comments_cb)
             self.insert(row, -1)
             row.show()
+
+            if self._first_row is None:
+                self._first_row = row
 
             index += 1
             if index < len(data):
                 GLib.idle_add(do_add_comment)
 
-        do_add_comment()
+            return row
+
+        return do_add_comment()
 
     def do_row_activated(self, row):
         if self._is_first:
@@ -370,12 +388,18 @@ class _CommentsView(Gtk.ListBox):
 
             row.do_activated()
 
-    def __got_more_comments_cb(self, caller_button, more_comments):
-        caller_button.hide()
-        self.remove(caller_button)
-        caller_button.destroy()
+    def __got_more_comments_cb(self, caller_row, more_comments):
+        row = self._add_comments(more_comments)
+        if row is None:
+            # If no comments were added, just select the previous row
+            row = self._toplevel_cv.get_prev_row(caller_row)
 
-        self._add_comments(more_comments)
+        if row is not None:
+            self._toplevel_cv.select_row(row)
+
+        caller_row.hide()
+        self.remove(caller_row)
+        caller_row.destroy()
 
 
 class LoadFullCommentsRow(Gtk.ListBoxRow):
@@ -404,225 +428,28 @@ class LoadFullCommentsRow(Gtk.ListBoxRow):
         self._button.props.label = 'Loading...'
 
 
-class _PostTopBar(Gtk.Bin):
-
-    hide_toggled = GObject.Signal('hide-toggled', arg_types=[bool])
-
-    def __init__(self, api: RedditAPI, data, toplevel_cv, hideable=True,
-                 refreshable=False, show_subreddit=False):
-        Gtk.Bin.__init__(self, can_focus=True)
-        self.add_events(Gdk.EventMask.KEY_PRESS_MASK)
-        self._api = api
-        self.data = data
-        self._toplevel_cv = toplevel_cv
-
-        self._b = Gtk.Builder.new_from_resource(
-            '/today/sam/reddit-is-gtk/post-top-bar.ui')
-        self.add(self._b.get_object('box'))
-        self.get_child().show()
-
-        self.expand = self._b.get_object('expand')
-        self.expand.props.visible = hideable
-        self._b.get_object('refresh').props.visible = refreshable
-
-        self._favorite = self._b.get_object('favorite')
-        self._favorite.props.visible = 'saved' in self.data
-        self._favorite.props.active = self.data.get('saved')
-
-        self._name_button = self._b.get_object('name')
-        self._abb = AuthorButtonBehaviour(
-            self._name_button, self.data,
-            self._toplevel_cv.get_original_poster(),
-            show_flair=True)
-
-        self._score_button = self._b.get_object('score')
-        self._score_button.props.visible = 'score' in data
-        if 'score' in data:
-            self._sbb = ScoreButtonBehaviour(
-                self._api, self._score_button, self.data)
-
-        self._time_button = self._b.get_object('time')
-        self._tbb = TimeButtonBehaviour(self._time_button, self.data)
-
-        self._reply_button = self._b.get_object('reply')
-        self._reply_pb = connect_palette(
-            self._reply_button, self._make_reply_palette, recycle_palette=True)
-
-        self._sub_button = self._b.get_object('sub')
-        self._sub_button.props.visible = show_subreddit
-        if show_subreddit:
-            self._subbb = SubButtonBehaviour(self._sub_button, self.data)
-
-        self._b.connect_signals(self)
-
-        # We need to lazy allocate this list, otherwise we get bogus sizes
-        self._hideables = None
-
-    def do_get_request_mode(self):
-        return Gtk.SizeRequestMode.HEIGHT_FOR_WIDTH
-
-    def do_get_preferred_width(self):
-        minimum, natural = Gtk.Bin.do_get_preferred_width(self)
-        return 0, natural
-
-    def do_get_preferred_height_for_width(self, width):
-        # FIXME:  Worse for performance than the nested ListBoxes??
-        if self._hideables is None:
-            self._hideables = []
-            for child in self._b.get_object('box').get_children():
-                if child.props.visible:
-                    minimum, natural = child.get_preferred_width()
-                    self._hideables.append((child, natural))
-
-        new_width = 0
-        for b, w in self._hideables:
-            new_width += w
-            if new_width > width:
-                b.hide()
-            else:
-                b.show()
-
-        minh, nath = Gtk.Bin.do_get_preferred_height(self)
-        return minh, nath
-
-    def do_event(self, event):
-        def toggle(button):
-            button.props.active = not button.props.active
-
-        def activate(button):
-            button.props.active = True
-
-        shortcuts = {
-            'u': (self._sbb.vote, [+1]),
-            'd': (self._sbb.vote, [-1]),
-            'n': (self._sbb.vote, [0]),
-            'f': (toggle, [self._favorite]),
-            't': (activate, [self._time_button]),
-            'a': (self.get_toplevel().goto_sublist,
-                  ['/u/{}'.format(self.data['author'])]),
-            's': (self.get_toplevel().goto_sublist,
-                  ['/r/{}'.format(self.data['subreddit'])]),
-            'r': (self.show_reply, []),
-            'space': (toggle, [self.expand]),
-            # The ListBoxRow usually eats these shortcuts, but we want
-            # the ListBox to handle them, so we need to pass it up
-            'Up': (self._toplevel_cv.do_event, [event]),
-            'Down': (self._toplevel_cv.do_event, [event]),
-        }
-        return process_shortcuts(shortcuts, event)
-
-    def show_reply(self):
-        if self._reply_button.props.visible:
-            self._reply_button.props.active = True
-        else:
-            self._show_reply_modal()
-
-    def refresh_clicked_cb(self, button):
-        self._toplevel_cv.refresh()
-
-    def read_toggled_cb(self, toggle):
-        if toggle.props.active:
-            self._api.read_message(self.data['name'])
-            self._read.get_style_context().remove_class('unread')
-            self._read.props.active = True
-            self._read.props.sensitive = False
-            self._read.props.label = 'Read'
-
-    def hide_toggled_cb(self, toggle):
-        self.hide_toggled.emit(not toggle.props.active)
-
-    def favorite_toggled_cb(self, button):
-        self._api.set_saved(self.data['name'], button.props.active,
-                                   None)
-
-    def _make_reply_palette(self):
-        popover = Gtk.Popover()
-        contents = _ReplyPopoverContents(self._api, self.data)
-        contents.posted.connect(self.__reply_posted_cb)
-        popover.add(contents)
-        return popover
-
-    def _show_reply_modal(self):
-        dialog = Gtk.Dialog(use_header_bar=True)
-        contents = _ReplyPopoverContents(self._api, self.data,
-                                         header_bar=dialog.get_header_bar())
-        dialog.get_content_area().add(contents)
-        contents.posted.connect(self.__reply_posted_cb)
-
-        dialog.props.transient_for = self.get_toplevel()
-        dialog.show()
-
-    def __reply_posted_cb(self, caller, new_id):
-        self._toplevel_cv.reply_posted(new_id)
-
-
-class _ReplyPopoverContents(Gtk.Box):
-
-    posted = GObject.Signal('posted', arg_types=[str])
-
-    def __init__(self, api: RedditAPI, data, header_bar=None, **kwargs):
-        Gtk.Box.__init__(self, orientation=Gtk.Orientation.VERTICAL)
-        self.data = data
-        self._api = api
-
-        sw = Gtk.ScrolledWindow()
-        sw.set_size_request(500, 300)
-        self.add(sw)
-        self._textview = Gtk.TextView()
-        self._textview.props.wrap_mode = Gtk.WrapMode.WORD
-        self._textview.set_size_request(500, 300)
-        self._textview.connect('event', self.__event_cb)
-        sw.add(self._textview)
-
-        self._done = Gtk.Button(label='Post Reply')
-        self._done.connect('clicked', self.__done_clicked_cb)
-        if header_bar is not None:
-            header_bar.pack_end(self._done)
-            self._done.get_style_context().add_class('suggested-action')
-            self._done.show()
-        else:
-            self.add(self._done)
-
-        self.show_all()
-
-    def __event_cb(self, textview, event):
-        shortcuts = {
-            '<Ctrl>Return': (self.__done_clicked_cb, [None])
-        }
-        return process_shortcuts(shortcuts, event)
-
-    def __done_clicked_cb(self, button):
-        self._done.props.label = 'Sending...'
-        self._done.props.sensitive = False
-        b = self._textview.props.buffer
-        text = b.get_text(b.get_start_iter(), b.get_end_iter(), False)
-        self._api.reply(self.data['name'], text, self.__reply_done_cb)
-
-    def __reply_done_cb(self, data):
-        new_id = data['json']['data']['things'][0]['data']['id']
-        self.posted.emit(new_id)
-
-        parent = self.get_parent()
-        parent.hide()
-        parent.destroy()
-        self.destroy()
-
-
 class CommentRow(Gtk.ListBoxRow):
-
-    refresh = GObject.Signal('refresh')
-    got_more_comments = GObject.Signal('got-more-comments', arg_types=[object])
-
-    def __init__(self, api: RedditAPI, data, depth, toplevel_cv):
+    def __init__(self, data, depth):
         Gtk.ListBoxRow.__init__(self, selectable=False)
         self.add_events(Gdk.EventMask.KEY_PRESS_MASK)
-        self._api = api
+
         self.data = data
         self.depth = depth
+
+    def get_sub(self):
+        return None
+
+
+class NormalCommentRow(CommentRow):
+
+    refresh = GObject.Signal('refresh')
+
+    def __init__(self, api: RedditAPI, data, depth, toplevel_cv):
+        super().__init__(data, depth)
+        self._api = api
         self._toplevel_cv = toplevel_cv
         self._top = None
         self._sub = None
-        self._more_button = None
 
         self._box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.add(self._box)
@@ -631,36 +458,13 @@ class CommentRow(Gtk.ListBoxRow):
     def get_sub(self):
         return self._sub
 
-    def recurse(self):
-        if 'body' in self.data:
-            self._show_normal_comment()
-        else:
-            self._more_button = Gtk.Button.new_with_label(
-                'Show {} more comments...'.format(self.data['count']))
-            self._more_button.connect('clicked', self.__load_more_cb)
-            self._more_button.get_style_context().add_class('load-more')
-            self._box.add(self._more_button)
-            self._more_button.show()
-
-    def do_focus_in_event(self, event):
-        if self._more_button is not None:
-            self._more_button.grab_focus()
-
     def do_event(self, event):
         if self._top is not None:
             return self._top.do_event(event)
 
-    def __load_more_cb(self, button):
-        button.props.sensitive = False
-        self._api.load_more(
-            self._toplevel_cv.get_link_name(),
-            self.data, self.__loaded_more_cb)
-
-    def __loaded_more_cb(self, comments):
-        self.got_more_comments.emit(comments)
-
-    def _show_normal_comment(self):
-        self._top = _PostTopBar(self._api, self.data, self._toplevel_cv)
+    def recurse(self):
+        self._top = posttopbar.PostTopBar(
+            self._api, self.data, self._toplevel_cv)
         self._top.hide_toggled.connect(self.__hide_toggled_cb)
         self._box.add(self._top)
         self._top.show()
@@ -698,3 +502,36 @@ class CommentRow(Gtk.ListBoxRow):
             rc = not self._revealer.props.reveal_child
             self._revealer.props.reveal_child = rc
             self._top.expand.props.active = not rc
+
+
+class LoadMoreCommentsRow(CommentRow):
+
+    got_more_comments = GObject.Signal('got-more-comments', arg_types=[object])
+
+    def __init__(self, api: RedditAPI, data, depth, toplevel_cv):
+        super().__init__(data, depth)
+
+        self._api = api
+        self._toplevel_cv = toplevel_cv
+        self._more_button = None
+
+    def recurse(self):
+        self._more_button = Gtk.Button.new_with_label(
+            'Show {} more comments...'.format(self.data['count']))
+        self._more_button.connect('clicked', self.__load_more_cb)
+        self._more_button.get_style_context().add_class('load-more')
+        self.add(self._more_button)
+        self._more_button.show()
+
+    def do_focus_in_event(self, event):
+        if self._more_button is not None:
+            self._more_button.grab_focus()
+
+    def __load_more_cb(self, button):
+        button.props.sensitive = False
+        self._api.load_more(
+            self._toplevel_cv.get_link_name(),
+            self.data, self.__loaded_more_cb)
+
+    def __loaded_more_cb(self, comments):
+        self.got_more_comments.emit(comments)
