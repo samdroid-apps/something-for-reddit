@@ -290,11 +290,18 @@ popover button.full-width {
     border-radius: 0;
     box-shadow: none;
 
+    image {
+        transition: 0.2s all linear;
+    }
+
     &:checked {
         background: darker($popover-bg);
         border-top: 1px solid black;
         color: white;
-        text-shadow: none;
+
+        image {
+            -gtk-icon-transform: rotate(-180deg);
+        }
     }
     &:hover, &:focus {
         background: lighter($popover-bg);
@@ -315,8 +322,6 @@ popover button.full-width {
 popover revealer {
     button.full-width {
         background: darker($popover-bg);
-        color: white;
-        text-shadow: none;
     }
 
     box {

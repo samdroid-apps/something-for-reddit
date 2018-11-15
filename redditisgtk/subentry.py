@@ -307,8 +307,19 @@ class _ListPalette(VScrollingPopover):
         self.selected.emit(button.props.label)
 
     def _add_expander_sub(self, sub):
-        btn = Gtk.ToggleButton(label=sub, xalign=0)
+        btn_content = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        btn_content.add(Gtk.Label(label=sub, xalign=0))
+        btn_content.add(Gtk.Image.new_from_icon_name('pan-down-symbolic',
+            Gtk.IconSize.BUTTON))
+        btn_content.show_all()
+
+        btn = Gtk.ToggleButton(xalign=0)
+        btn.add(btn_content)
         btn.get_style_context().add_class('full-width')
+        btn.get_style_context().add_class('subentry-revealer-button')
+        # we want to pretend it is a normal button, but this class would get
+        # removed by GTK when we added the custom box content
+        btn.get_style_context().add_class('text-button')
 
         revealer = Gtk.Revealer(
             transition_type=Gtk.RevealerTransitionType.SLIDE_DOWN)
@@ -323,8 +334,7 @@ class _ListPalette(VScrollingPopover):
         self._box.add(btn)
         self._box.add(revealer)
         btn.show()
-        revealer.show()
-        box.show()
+        revealer.show_all()
 
     def __sub_expander_toggled_cb(self, button, revealer):
         revealer.props.reveal_child = button.props.active
