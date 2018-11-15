@@ -23,10 +23,19 @@ from redditisgtk import submit
 from redditisgtk.api import RedditAPI
 
 
-class _SubredditAboutRow(Gtk.ListBoxRow):
+class AboutRow(Gtk.ListBoxRow):
+    '''
+    Abstract base class for AboutRows
+    '''
+
+    def __init__(self, **kwargs):
+        Gtk.ListBoxRow.__init__(self, **kwargs)
+
+
+class _SubredditAboutRow(AboutRow):
 
     def __init__(self, api: RedditAPI, subreddit_name: str):
-        Gtk.ListBoxRow.__init__(self, selectable=False)
+        super().__init__(selectable=False)
 
         self._subreddit_name = subreddit_name
         self._api = api
@@ -65,10 +74,10 @@ class _SubredditAboutRow(Gtk.ListBoxRow):
         expander.add(newmarkdown.make_markdown_widget(markdown))
 
 
-class _UserAboutRow(Gtk.ListBoxRow):
+class _UserAboutRow(AboutRow):
 
     def __init__(self, api: RedditAPI, name: str):
-        Gtk.ListBoxRow.__init__(self, selectable=False)
+        super().__init__(selectable=False)
 
         self._name = name
 

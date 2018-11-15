@@ -151,10 +151,16 @@ class SubList(Gtk.ScrolledWindow):
         return process_shortcuts(shortcuts, event)
 
     def focus(self):
-        s = self._listbox.get_selected_row() or self._first_row
+        s = None
+        if self._listbox is not None:
+            s = self._listbox.get_selected_row()
+        if s is None:
+            s = self._first_row
         s.grab_focus()
 
     def insert_data(self, j):
+        first_inserted_row = None
+
         if 'data' not in j:
             return
 
@@ -171,16 +177,40 @@ class SubList(Gtk.ScrolledWindow):
             row.show()
             if self._first_row is None:
                 self._first_row = row
+            if first_inserted_row is None:
+                first_inserted_row = row
 
         row = MoreItemRow(j['data']['after'])
         row.load_more.connect(self.__load_more_cb)
         self._listbox.insert(row, -1)
         row.show()
+        if first_inserted_row is None:
+            first_inserted_row = row
 
-    def __load_more_cb(self, caller, after):
+        return first_inserted_row
+
+    def __load_more_cb(self, row, after):
+        if row.is_loading_state:
+            # Already loading
+            return
+
+        row.show_loading_state()
+        row.grab_focus()
+
+        def got_data(data):
+            self._listbox.remove(row)
+            row.hide()
+            row.destroy()
+
+            added_row = self.insert_data(data)
+            print('added','added',  added_row)
+            if added_row is not None:
+                # newly created widgets can not be focused until drawn
+                GLib.idle_add(added_row.grab_focus)
+
         self._msg = self._api.get_list(
             '{}?after={}'.format(self._sub, after),
-            self.insert_data
+            got_data,
         )
 
     def __row_selected_cb(self, listbox, row):
@@ -190,6 +220,7 @@ class SubList(Gtk.ScrolledWindow):
 
         if hasattr(row, 'read'):
             row.read()
+
         if isinstance(row, MessageRow):
             if 'context' not in row.data:
                 row.data['context'] = '/r/{}/comments/{}/slug/{}/'.format(
@@ -199,8 +230,14 @@ class SubList(Gtk.ScrolledWindow):
             get_read_controller().read(row.data['name'])
             self._handle_activate(permalink=row.data['context'],
                                   link_first=False)
-        else:
+        elif isinstance(row, SubItemRow):
             self._handle_activate(row.data)
+        elif isinstance(row, MoreItemRow):
+            row.activate()
+        elif isinstance(row, aboutrow.AboutRow):
+            pass
+        else:
+            raise Exception('Unknown type of row activated: {}'.format(row))
 
     def _handle_activate(self, data=None, permalink=None, link_first=True):
         link = None
@@ -223,21 +260,37 @@ class MoreItemRow(Gtk.ListBoxRow):
 
     def __init__(self, after):
         Gtk.ListBoxRow.__init__(self)
+        self.is_loading_state = False
         self._after = after
 
         if after is not None:
-            b = Gtk.Button(label='Load More')
+            self._btn = Gtk.Button(label='Load More')
         else:
-            b = Gtk.Button(label='End of Listing')
-            b.props.sensitive = False
-        b.connect('clicked', self.__clicked_cb)
-        self.add(b)
-        b.show()
+            self._btn = Gtk.Button(
+                label='End of Listing',
+                sensitive=False,
+            )
+        self._btn.connect('clicked', self.__clicked_cb)
+        self.add(self._btn)
+        self._btn.show()
 
     def __clicked_cb(self, button):
-        self.hide()
+        self.activate()
+
+    def activate(self):
         self.load_more.emit(self._after)
-        self.destroy()
+
+    def show_loading_state(self):
+        self.is_loading_state = True
+
+        self._btn.remove(self._btn.get_child())
+        spinner = Gtk.Spinner()
+        spinner.start()
+        self._btn.add(spinner)
+        spinner.show()
+
+        self._btn.props.sensitive = False
+
 
 
 class SubItemRow(Gtk.ListBoxRow):

@@ -33,6 +33,7 @@ def test_message_row_pm(datadir):
     # author:
     assert find_widget(row, label='bambambazooka', kind=Gtk.Button)
 
+
 @with_test_mainloop
 def test_message_row_pm_shortcuts(datadir):
     api = MagicMock()
