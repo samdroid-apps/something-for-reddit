@@ -351,7 +351,6 @@ class MessageRow(Gtk.ListBoxRow):
         self.add_events(Gdk.EventMask.KEY_PRESS_MASK)
         self._api = api
         self.data = data['data']
-        self._msg = None
 
         is_comment_reply = self.data.get('subreddit') is not None
 
@@ -390,9 +389,12 @@ class MessageRow(Gtk.ListBoxRow):
         shortcuts = {
             'a': (self.get_toplevel().goto_sublist,
                   ['/u/{}'.format(self.data['author'])]),
-            's': (self.get_toplevel().goto_sublist,
-                  ['/r/{}'.format(self.data['subreddit'])]),
         }
+        if self.data.get('subreddit'):
+            shortcuts['s'] = (
+                self.get_toplevel().goto_sublist,
+                ['/r/{}'.format(self.data['subreddit'])],
+            )
         return process_shortcuts(shortcuts, event)
 
     def read(self):
