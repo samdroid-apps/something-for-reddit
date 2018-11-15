@@ -117,7 +117,7 @@
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="yalign">0</property>
-                <property name="icon_name">mail-reply-sender-symbolic</property>
+                <property name="icon_name">reddit-mail-reply-sender-symbolic</property>
                 <property name="icon_size">3</property>
               </object>
               <packing>
