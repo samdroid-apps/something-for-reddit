@@ -222,6 +222,9 @@ class _ReplyPopoverContents(Gtk.Box):
         self.posted.emit(new_id)
 
         parent = self.get_parent()
+        if not isinstance(parent, Gtk.Popover):
+            parent = self.get_toplevel()
+            assert isinstance(parent, Gtk.Dialog)
         parent.hide()
         parent.destroy()
         self.destroy()
