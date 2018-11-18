@@ -275,7 +275,7 @@ class RedditWindow(Gtk.Window):
         if len(parts) <= 3:
             # /u/*/*, /r/*, /r/*/*(sorting)
             self.goto_sublist(uri)
-        if parts[2] == 'comments':
+        elif parts[2] == 'comments':
             self.goto_sublist('/r/{}/'.format(parts[1]))
             cv = CommentsView(self._api, permalink=uri)
             cv.got_post_data.connect(self.__cv_got_post_data_cb)
