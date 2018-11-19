@@ -233,7 +233,11 @@ class RedditWindow(Gtk.Window):
         self._right_header.props.show_close_button = True
 
         self._header_paned.add1(self._left_header)
+        self._header_paned.child_set_property(
+            self._left_header, 'shrink', False)
         self._header_paned.add2(self._right_header)
+        self._header_paned.child_set_property(
+            self._right_header, 'shrink', False)
         self._header_paned.show_all()
 
         self._identity = IdentityButton(self._ic)
