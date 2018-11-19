@@ -17,6 +17,7 @@
 
 from gi.repository import Gtk
 from gi.repository import Gdk
+from gi.repository import GdkPixbuf
 
 import subprocess
 from tempfile import mkstemp
@@ -82,11 +83,11 @@ class _ImagePreviewPalette(Gtk.Popover):
         self.add(overlay)
         overlay.show()
 
-        self._image = _RemoteImage(api, uri)
         win_w, win_h = self.get_toplevel().get_size()
-        max_w, max_h = win_w / 2, win_h / 2
-        self._image.set_size_request(min(Gdk.Screen.width() / 3, max_w),
-                                     min(Gdk.Screen.height() / 3, max_h))
+        max_w = min(Gdk.Screen.width(), win_w / 2)
+        max_h = min(Gdk.Screen.height(), win_h / 2)
+
+        self._image = _RemoteImage(api, uri, max_w, max_h)
         overlay.add(self._image)
         self._image.show()
 
@@ -106,10 +107,12 @@ class _ImagePreviewPalette(Gtk.Popover):
 class _RemoteImage(Gtk.Bin):
     # TODO:  Reload on error
 
-    def __init__(self, api: RedditAPI, uri):
+    def __init__(self, api: RedditAPI, uri: str, max_w: float, max_h: float):
         # TODO: this really shouldn't need a reddit api.  Maybe just a soup
         # session?  This feels like a bad DI pattern right now
         Gtk.Bin.__init__(self)
+        self._max_w = max_w
+        self._max_h = max_h
 
         self._spinner = Gtk.Spinner()
         self.add(self._spinner)
@@ -121,6 +124,18 @@ class _RemoteImage(Gtk.Bin):
 
     def __message_done_cb(self, pixbuf):
         old_sr = self.get_size_request()
+
+        # GtkImage can not scale images internally, so we need to
+        # pre-process that
+        scale = min(
+            self._max_w / pixbuf.props.width,
+            self._max_h / pixbuf.props.height)
+        if scale < 1:
+            new_w = pixbuf.props.width * scale
+            new_h = pixbuf.props.height * scale
+            pixbuf = pixbuf.scale_simple(
+                new_w, new_h, GdkPixbuf.InterpType.BILINEAR)
+
         self._image.props.pixbuf = pixbuf
         self.remove(self.get_child())
         self.add(self._image)
