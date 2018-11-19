@@ -208,9 +208,12 @@ class RedditWindow(Gtk.Window):
 
 
     def load_uri_from_label(self, uri):
-        if re.match('https?:\/\/(www\.|np\.)?reddit\.com\/', uri):
+        is_relative = not uri.startswith('http')
+        is_reddit = re.match('https?:\/\/(www\.|np\.)?reddit\.com\/', uri)
+        if is_relative or is_reddit:
             self.goto_reddit_uri(uri)
             return
+
         self._stack.set_visible_child(self._webview_bin)
         self._webview.load_uri(uri)
 
