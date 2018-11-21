@@ -15,6 +15,18 @@ def datadir() -> Path:
 
 
 @fixture
+def json_loader():
+    '''
+    Fixture that injects a json loading function
+    '''
+    def inner(name: str) -> dict:
+        path = datadir() / (name + '.json')
+        with open(path) as f:
+            return json.load(f)
+    return inner
+
+
+@fixture
 def tempdir() -> Path:
     '''
     Fixture that gives you the path of a new temporary directory

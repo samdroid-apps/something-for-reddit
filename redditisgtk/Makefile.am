@@ -22,5 +22,6 @@ app_PYTHON = \
 	settings.py \
 	subentry.py \
 	sublist.py \
+	sublistrows.py \
 	submit.py \
 	webviews.py

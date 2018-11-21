@@ -7,42 +7,59 @@ from redditisgtk import sublist
 from redditisgtk.gtktestutil import (with_test_mainloop, find_widget, wait_for,
                                      fake_event)
 
-@with_test_mainloop
-def test_subitemrow_thumb_from_preview(datadir):
-    api = MagicMock()
-    with open(datadir / 'sublist--thumb-from-previews.json') as f:
-        data = json.load(f)
 
-    row = sublist.SubItemRow(api, data)
-
-    assert api.download_thumb.called
-    (url, cb), _ = api.download_thumb.call_args
-    assert url == 'https://external-preview.redd.it/AxVEZvB8AZsAPFSlrGM3HGDCss0bxYEbNu89NmgUdTg.jpg?width=108&crop=smart&auto=webp&s=a906c3a7241def971591ded4d7f9ff9abe6b050c'
+class FixtureMessageRow(Gtk.Label):
+    def __init__(self, api, data):
+        assert data['win']
+        Gtk.Label.__init__(self, label='message row')
 
 
-@with_test_mainloop
-def test_message_row_pm(datadir):
-    api = MagicMock()
-    with open(datadir / 'sublist--pm.json') as f:
-        data = json.load(f)
+class FixtureLinkRow(Gtk.Label):
+    goto_comments = MagicMock()
 
-    row = sublist.MessageRow(api, data)
+    def __init__(self, api, data):
+        assert data['win']
+        Gtk.Label.__init__(self, label='link row')
 
-    assert find_widget(row, label='re: Blog down')
-    assert find_widget(row, label='thanks a lot!')
-    # author:
-    assert find_widget(row, label='bambambazooka', kind=Gtk.Button)
+
+class FixtureMoreItemsRow(Gtk.Label):
+    load_more = MagicMock()
+
+    def __init__(self, data):
+        assert data == 'win'
+        Gtk.Label.__init__(self, label='more items row')
 
 
 @with_test_mainloop
-def test_message_row_pm_shortcuts(datadir):
+@patch('redditisgtk.aboutrow.get_about_row',
+       return_value=Gtk.Label(label='about row'))
+@patch('redditisgtk.sublistrows.MessageRow', FixtureMessageRow)
+@patch('redditisgtk.sublistrows.LinkRow', FixtureLinkRow)
+@patch('redditisgtk.sublistrows.MoreItemsRow', FixtureMoreItemsRow)
+def test_sublist_create(get_about_row):
     api = MagicMock()
-    toplevel = MagicMock()
-    with open(datadir / 'sublist--pm.json') as f:
-        data = json.load(f)
+    root = sublist.SubList(api, '/r/linux')
 
-    row = sublist.MessageRow(api, data)
-    row.get_toplevel = lambda: toplevel
+    assert find_widget(root, kind=Gtk.Spinner)
+    assert root.get_uri() == '/r/linux'
 
-    row.do_event(fake_event('a'))
-    toplevel.goto_sublist.assert_called_once_with('/u/bambambazooka')
+    (sub, cb), _ = api.get_list.call_args
+    assert sub == '/r/linux'
+    data = {
+        'data': {
+            'children': [
+                {'kind': 't1', 'win': 1},
+                {'kind': 't3', 'win': 1},
+            ],
+            'after': 'win',
+        },
+    }
+    # Load the data
+    cb(data)
+    assert not find_widget(root, kind=Gtk.Spinner, many=True)
+
+    get_about_row.assert_called_with(api, '/r/linux')
+    assert find_widget(root, label='about row', kind=Gtk.Label)
+    assert find_widget(root, kind=FixtureMessageRow)
+    assert find_widget(root, kind=FixtureLinkRow)
+    assert find_widget(root, kind=FixtureMoreItemsRow)

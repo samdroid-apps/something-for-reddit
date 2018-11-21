@@ -16,22 +16,16 @@
 # along with Something for Reddit.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from pprint import pprint
-
 from gi.repository import Gtk
-from gi.repository import Gdk
 from gi.repository import GLib
 from gi.repository import GObject
 
 from redditisgtk.comments import CommentsView
-from redditisgtk.buttons import (ScoreButtonBehaviour, AuthorButtonBehaviour,
-                                 SubButtonBehaviour, TimeButtonBehaviour)
 from redditisgtk.gtkutil import process_shortcuts
-from redditisgtk import newmarkdown
 from redditisgtk.api import RedditAPI
 from redditisgtk.readcontroller import get_read_controller
-from redditisgtk.mediapreview import get_preview_palette
 from redditisgtk import aboutrow
+from redditisgtk import sublistrows
 
 
 class SubList(Gtk.ScrolledWindow):
@@ -98,17 +92,17 @@ class SubList(Gtk.ScrolledWindow):
         self.add(self._listbox)
         self._listbox.show()
 
-        if not self._first_load:
+        if self._first_load:
+            # First load you have to let the view set the size,
+            # otherwise you get the tiny 20px width of the spinner
+            self.set_size_request(-1, -1)
+            self._first_load = False
+        else:
             # If we keep the size request set, the user can't resize the view
             width = self.get_allocated_width()
             self.set_size_request(-1, -1)
             if isinstance(self.get_parent(), Gtk.Paned):
                 self.get_parent().props.position = width
-        else:
-            # First load you have to let the view set the size,
-            # otherwise you get the tiny 20px width of the spinner
-            self.set_size_request(-1, -1)
-            self._first_load = False
 
         self._first_row = None
         row = aboutrow.get_about_row(self._api, self._sub)
@@ -121,31 +115,37 @@ class SubList(Gtk.ScrolledWindow):
         self.insert_data(j)
         self.focus()
 
-    def __listbox_event_cb(self, listbox, event):
-        def move(direction):
-            focused = listbox.get_toplevel().get_focus()
-            if focused.get_parent() == listbox:
-                s = focused
-            else:
-                s = listbox.get_selected_row() or self._first_row
-            row = listbox.get_row_at_index(s.get_index() + direction)
-            if row is not None:
-                row.grab_focus()
-            else:
-                # We went too far!
-                s.error_bell()
-                s.get_style_context().remove_class('angry')
-                s.get_style_context().add_class('angry')
-                GLib.timeout_add(
-                    500,
-                    s.get_style_context().remove_class,
-                    'angry')
+    def _do_move(self, direction: int):
+        focused = self._listbox.get_toplevel().get_focus()
+        if focused.get_parent() == self._listbox:
+            selected_row = focused
+        else:
+            selected_row = self._listbox.get_selected_row()
+            if selected_row is None:
+                selected_row = self._first_row
 
+        new_index = selected_row.get_index() + direction
+        new_row = self._listbox.get_row_at_index(new_index)
+
+        if new_row is not None:
+            new_row.grab_focus()
+        else:
+            # We went too far!
+            s.error_bell()
+            s.get_style_context().remove_class('angry')
+            s.get_style_context().add_class('angry')
+            GLib.timeout_add(
+                500,
+                s.get_style_context().remove_class,
+                'angry')
+
+
+    def __listbox_event_cb(self, listbox, event):
         shortcuts = {
-            'k': (move, [-1]),
-            'j': (move, [+1]),
-            'Up': (move, [-1]),
-            'Down': (move, [+1]),
+            'k': (self._do_move, [-1]),
+            'j': (self._do_move, [+1]),
+            'Up': (self._do_move, [-1]),
+            'Down': (self._do_move, [+1]),
             '0': (listbox.select_row, [self._first_row])
         }
         return process_shortcuts(shortcuts, event)
@@ -166,10 +166,10 @@ class SubList(Gtk.ScrolledWindow):
 
         for post in j['data']['children']:
             if post['kind'] == 't3':
-                row = SubItemRow(self._api, post)
+                row = sublistrows.LinkRow(self._api, post)
                 row.goto_comments.connect(self.__row_goto_comments_cb)
             elif post['kind'] == 't1' or post['kind'] == 't4':
-                row = MessageRow(self._api, post)
+                row = sublistrows.MessageRow(self._api, post)
             else:
                 row = Gtk.Label(label=str(post))
                 row.set_line_wrap(True)
@@ -180,7 +180,7 @@ class SubList(Gtk.ScrolledWindow):
             if first_inserted_row is None:
                 first_inserted_row = row
 
-        row = MoreItemRow(j['data']['after'])
+        row = sublistrows.MoreItemsRow(j['data']['after'])
         row.load_more.connect(self.__load_more_cb)
         self._listbox.insert(row, -1)
         row.show()
@@ -203,7 +203,6 @@ class SubList(Gtk.ScrolledWindow):
             row.destroy()
 
             added_row = self.insert_data(data)
-            print('added','added',  added_row)
             if added_row is not None:
                 # newly created widgets can not be focused until drawn
                 GLib.idle_add(added_row.grab_focus)
@@ -221,7 +220,7 @@ class SubList(Gtk.ScrolledWindow):
         if hasattr(row, 'read'):
             row.read()
 
-        if isinstance(row, MessageRow):
+        if isinstance(row, sublistrows.MessageRow):
             if 'context' not in row.data:
                 row.data['context'] = '/r/{}/comments/{}/slug/{}/'.format(
                     row.data['subreddit'],
@@ -230,9 +229,9 @@ class SubList(Gtk.ScrolledWindow):
             get_read_controller().read(row.data['name'])
             self._handle_activate(permalink=row.data['context'],
                                   link_first=False)
-        elif isinstance(row, SubItemRow):
+        elif isinstance(row, sublistrows.LinkRow):
             self._handle_activate(row.data)
-        elif isinstance(row, MoreItemRow):
+        elif isinstance(row, sublistrows.MoreItemsRow):
             row.activate()
         elif isinstance(row, aboutrow.AboutRow):
             pass
@@ -252,207 +251,3 @@ class SubList(Gtk.ScrolledWindow):
     def __row_goto_comments_cb(self, row):
         row.read()
         self._handle_activate(row.data, link_first=False)
-
-
-class MoreItemRow(Gtk.ListBoxRow):
-
-    load_more = GObject.Signal('load-more', arg_types=[str])
-
-    def __init__(self, after):
-        Gtk.ListBoxRow.__init__(self)
-        self.is_loading_state = False
-        self._after = after
-
-        if after is not None:
-            self._btn = Gtk.Button(label='Load More')
-        else:
-            self._btn = Gtk.Button(
-                label='End of Listing',
-                sensitive=False,
-            )
-        self._btn.connect('clicked', self.__clicked_cb)
-        self.add(self._btn)
-        self._btn.show()
-
-    def __clicked_cb(self, button):
-        self.activate()
-
-    def activate(self):
-        self.load_more.emit(self._after)
-
-    def show_loading_state(self):
-        self.is_loading_state = True
-
-        self._btn.remove(self._btn.get_child())
-        spinner = Gtk.Spinner()
-        spinner.start()
-        self._btn.add(spinner)
-        spinner.show()
-
-        self._btn.props.sensitive = False
-
-
-
-class SubItemRow(Gtk.ListBoxRow):
-
-    goto_comments = GObject.Signal('goto-comments')
-
-    def __init__(self, api: RedditAPI, data):
-        Gtk.ListBoxRow.__init__(self)
-        self.add_events(Gdk.EventMask.KEY_PRESS_MASK)
-        self.get_style_context().add_class('link-row')
-        self.data = data['data']
-        self._msg = None
-        self._api = api
-
-        self._builder = Gtk.Builder.new_from_resource(
-            '/today/sam/reddit-is-gtk/row-link.ui')
-        self._g = self._builder.get_object
-        self.add(self._g('box'))
-
-        read = get_read_controller().is_read(self.data['name'])
-        if read:
-            self.read()
-
-        # Keep a reference so the GC doesn't collect them
-        self._sbb = ScoreButtonBehaviour(self._api, self._g('score'), self.data)
-        self._abb = AuthorButtonBehaviour(self._g('author'), self.data)
-        self._srbb = SubButtonBehaviour(self._g('subreddit'), self.data)
-        self._tbb = TimeButtonBehaviour(self._g('time'), self.data)
-
-        self._g('nsfw').props.visible = self.data.get('over_18')
-        self._g('saved').props.visible = self.data.get('saved')
-        self._g('sticky').props.visible = self.data.get('stickied')
-        if self.data.get('stickied'):
-            self.get_style_context().add_class('sticky')
-
-        if self.data['num_comments']:
-            self._g('comments').props.label = \
-                '{}c'.format(self.data['num_comments'])
-        else:
-            self._g('comments').props.label = 'no c'
-        self._g('comments').connect('clicked', self.__comments_clicked_cb)
-
-        self._g('title').props.label = self.data['title']
-        self._g('domain').props.label = self.data['domain']
-
-        self._fetch_thumbnail()
-        self._preview_palette = None
-
-    def read(self):
-        self.get_style_context().add_class('read')
-        self._g('unread').props.visible = False
-
-    def do_event(self, event):
-        shortcuts = {
-            'u': (self._sbb.vote, [+1]),
-            'd': (self._sbb.vote, [-1]),
-            'n': (self._sbb.vote, [0]),
-            'c': (self.goto_comments.emit, []),
-            'a': (self.get_toplevel().goto_sublist,
-                  ['/u/{}'.format(self.data['author'])]),
-            's': (self.get_toplevel().goto_sublist,
-                  ['/r/{}'.format(self.data['subreddit'])]),
-        }
-        return process_shortcuts(shortcuts, event)
-
-    def __comments_clicked_cb(self, button):
-        self.goto_comments.emit()
-
-    def _fetch_thumbnail(self):
-        # Old style thumbnail data
-        url = self.data.get('thumbnail')
-        if not url or url in ['default', 'self', 'nsfw']:
-            return
-
-        # I think this is new style data
-        preview_images = self.data.get('preview', {}).get('images', [])
-        if preview_images:
-            image = preview_images[0]
-            # choose smallest height
-            thumbs = sorted(image.get('resolutions', []),
-                            key=lambda d: d.get('width'))
-            if thumbs:
-                url = thumbs[0]['url']
-
-        if url.startswith('http'):
-            self._msg = self._api.download_thumb(
-                url, self.__message_done_cb)
-
-    def do_unrealize(self):
-        if self._msg is not None:
-            self._api.cancel(self._msg)
-
-    def __message_done_cb(self, pixbuf):
-        self._msg = None
-        self._g('preview').props.pixbuf = pixbuf
-        self._g('preview-button').show()
-        self._g('preview-button').connect('clicked', self.__image_clicked_cb)
-
-    def __image_clicked_cb(self, button):
-        if self._preview_palette is None:
-            self._preview_palette = get_preview_palette(
-                self._api, self.data, relative_to=button)
-        self._preview_palette.show()
-
-
-class MessageRow(Gtk.ListBoxRow):
-
-    def __init__(self, api: RedditAPI, data):
-        Gtk.ListBoxRow.__init__(self)
-        self.get_style_context().add_class('link-row')
-        self.add_events(Gdk.EventMask.KEY_PRESS_MASK)
-        self._api = api
-        self.data = data['data']
-
-        is_comment_reply = self.data.get('subreddit') is not None
-
-        self._builder = Gtk.Builder.new_from_resource(
-            '/today/sam/reddit-is-gtk/row-comment.ui')
-        self._g = self._builder.get_object
-        self.add(self._g('box'))
-
-        read = not self.data.get('new', True)
-        if read:
-            self.read()
-
-        # Keep a reference so the GC doesn't collect them
-        self._abb = AuthorButtonBehaviour(self._g('author'), self.data)
-        self._tbb = TimeButtonBehaviour(self._g('time'), self.data)
-        if is_comment_reply:
-            self._srbb = SubButtonBehaviour(self._g('subreddit'), self.data)
-        else:
-            self._g('subreddit').props.sensitive = False
-            self._g('subreddit').props.label = 'PM'
-
-        self._g('nsfw').props.visible = self.data.get('over_18')
-        self._g('saved').props.visible = self.data.get('saved')
-
-        self._g('title').props.label = (self.data.get('link_title') or
-                                        self.data['subject'])
-        content = newmarkdown.make_markdown_widget(self.data['body'])
-        self._g('grid').attach(content, 0, 2, 3, 1)
-
-        if is_comment_reply:
-            self._g('type-private-message').props.visible = False
-        else:
-            self._g('type-comment-reply').props.visible = False
-
-    def do_event(self, event):
-        shortcuts = {
-            'a': (self.get_toplevel().goto_sublist,
-                  ['/u/{}'.format(self.data['author'])]),
-        }
-        if self.data.get('subreddit'):
-            shortcuts['s'] = (
-                self.get_toplevel().goto_sublist,
-                ['/r/{}'.format(self.data['subreddit'])],
-            )
-        return process_shortcuts(shortcuts, event)
-
-    def read(self):
-        if 'new' in self.data and self.data['new']:
-            self._api.read_message(self.data['name'])
-            self.data['new'] = False
-        self.get_style_context().add_class('read')
-        self._g('unread').props.visible = False
