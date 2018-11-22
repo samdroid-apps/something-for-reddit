@@ -30,7 +30,10 @@ hicolor_icons_symbolicdir = $(datadir)/icons/hicolor/scalable/actions
 hicolor_icons_symbolic_DATA = \
 	icons/reddit-mail-reply-all-symbolic.svg \
 	icons/reddit-mail-reply-sender-symbolic.svg \
-	icons/reddit-detach-symbolic.svg
+	icons/reddit-detach-symbolic.svg \
+	icons/reddit-upvote-symbolic.svg \
+	icons/reddit-novote-symbolic.svg \
+	icons/reddit-downvote-symbolic.svg
 hicolor_icon_files = \
 	$(hicolor_app_icons_DATA) \
 	$(hicolor_app_icons_symbolic_DATA) \

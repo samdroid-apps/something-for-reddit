@@ -50,12 +50,14 @@ class ScoreButtonBehaviour():
     def _make_score_palette(self):
         bb = Gtk.ButtonBox(orientation=Gtk.Orientation.VERTICAL,
                            layout_style=Gtk.ButtonBoxStyle.EXPAND)
-        upvote = Gtk.RadioToolButton(label='⇧')
+        upvote = Gtk.RadioToolButton(icon_name='reddit-upvote-symbolic')
         upvote.get_style_context().add_class('upvote')
         bb.add(upvote)
-        novote = Gtk.RadioToolButton(label='○', group=upvote)
+        novote = Gtk.RadioToolButton(icon_name='reddit-novote-symbolic',
+                                     group=upvote)
         bb.add(novote)
-        downvote = Gtk.RadioToolButton(label='⇩', group=upvote)
+        downvote = Gtk.RadioToolButton(icon_name='reddit-downvote-symbolic',
+                                       group=upvote)
         downvote.get_style_context().add_class('downvote')
         bb.add(downvote)
         bb.show_all()

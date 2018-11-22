@@ -258,6 +258,14 @@ button {
     }
 }
 
+/* Radio tool buttons are treated separately */
+.upvote button:checked {
+    color: $orange;
+}
+.downvote button:checked {
+    color: $purple;
+}
+
 /*
  * Misc
  */
