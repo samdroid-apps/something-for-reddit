@@ -6,7 +6,7 @@ import sys
 sys.path.insert(1, '@pythondir@')
 
 from gi.repository import Gio
-r = Gio.resource_load('@pkgdatadir@/reddit-is-gtk.gresource')
+r = Gio.resource_load('@pkgdatadir@/today.sam.reddit-is-gtk.gresource')
 Gio.Resource._register(r)
 
 import redditisgtk.main

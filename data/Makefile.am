@@ -4,21 +4,21 @@ style.dark.css.out: style.css
 style.css.out: style.css
 	$(AM_V_GEN) echo '$$dark: false;' | cat - style.css | sassc -s style.css.out
 
-resource_files = $(shell $(GLIB_COMPILE_RESOURCES) --sourcedir=$(srcdir) --sourcedir=$(builddir) --generate-dependencies $(builddir)/reddit-is-gtk.gresource.xml)
-reddit-is-gtk.gresource: reddit-is-gtk.gresource.xml style.css.out style.dark.css.out $(resource_files)
+resource_files = $(shell $(GLIB_COMPILE_RESOURCES) --sourcedir=$(srcdir) --sourcedir=$(builddir) --generate-dependencies $(builddir)/today.sam.reddit-is-gtk.gresource.xml)
+today.sam.reddit-is-gtk.gresource: today.sam.reddit-is-gtk.gresource.xml style.css.out style.dark.css.out $(resource_files)
 	$(AM_V_GEN) $(GLIB_COMPILE_RESOURCES) --target=$@ --sourcedir=$(srcdir) --sourcedir=$(builddir) $<
 
 resourcedir = $(pkgdatadir)
-resource_DATA = reddit-is-gtk.gresource
+resource_DATA = today.sam.reddit-is-gtk.gresource
 
 appsdir = $(datadir)/applications
-apps_DATA = reddit-is-gtk.desktop
+apps_DATA = today.sam.reddit-is-gtk.desktop
 
 @INTLTOOL_DESKTOP_RULE@
 
 appdatadir = $(datadir)/appdata
 appdata_DATA = $(appdata_in_files:.xml.in=.xml)
-appdata_in_files = reddit-is-gtk.appdata.xml.in
+appdata_in_files = today.sam.reddit-is-gtk.appdata.xml.in
 
 @INTLTOOL_XML_RULE@
 
@@ -63,16 +63,16 @@ gschemas.compiled: $(gsettings_SCHEMAS) Makefile
 EXTRA_DIST = \
 	$(resource_files) \
 	$(hicolor_icon_files) \
-	reddit-is-gtk.desktop.in \
-	reddit-is-gtk.appdata.xml.in \
-	reddit-is-gtk.gresource.xml \
+	today.sam.reddit-is-gtk.desktop.in \
+	today.sam.reddit-is-gtk.appdata.xml.in \
+	today.sam.reddit-is-gtk.gresource.xml \
 	today.sam.something-for-reddit.gschema.xml \
 	style.css \
 	$(NULL)
 
 CLEANFILES = \
-	reddit-is-gtk.gresource \
-	reddit-is-gtk.appdata.xml \
+	today.sam.reddit-is-gtk.gresource \
+	today.sam.reddit-is-gtk.appdata.xml \
 	$(apps_DATA) \
 	*.valid \
 	gschemas.compiled \
