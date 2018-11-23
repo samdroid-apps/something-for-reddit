@@ -6,12 +6,22 @@
   "command": "reddit-is-gtk",
 
   "finish-args": [
+    /* Display server */
     "--share=ipc",
     "--socket=x11",
-    "--share=network",
     "--socket=wayland",
+
+    /* DRI for WK2 rendering */
+    "--device=dri",
+
+    /* Access to Reddit */
+    "--share=network",
+
+    /* DConf for some configuration storage */
     "--filesystem=xdg-run/dconf", "--filesystem=~/.config/dconf:ro",
     "--talk-name=ca.desrt.dconf", "--env=DCONF_USER_CONFIG_DIR=.config/dconf",
+
+    /* Audio for WK2 */
     "--socket=pulseaudio"
   ],
   "cleanup": [

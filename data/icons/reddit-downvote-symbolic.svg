@@ -29,7 +29,7 @@
     </rdf:RDF>
   </metadata>
   <sodipodi:namedview
-     inkscape:cy="8.4692854"
+     inkscape:cy="10.803032"
      pagecolor="#555753"
      borderopacity="1"
      showborder="true"
@@ -56,11 +56,11 @@
      inkscape:snap-to-guides="true"
      inkscape:current-layer="layer12"
      inkscape:snap-bbox-midpoints="false"
-     inkscape:zoom="45.254834"
-     inkscape:cx="7.8584399"
+     inkscape:zoom="22.627417"
+     inkscape:cx="1.0511309"
      inkscape:snap-grids="true"
-     inkscape:pageopacity="1"
-     inkscape:pagecheckerboard="true"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="false"
      inkscape:bbox-nodes="true">
     <inkscape:grid
        spacingx="1px"
@@ -102,7 +102,7 @@
        id="g15413"
        style="display:inline;opacity:0.25" />
     <path
-       style="color:#000000;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:medium;line-height:normal;font-family:Sans;-inkscape-font-specification:Sans;text-indent:0;text-align:start;text-decoration:none;text-decoration-line:none;letter-spacing:normal;word-spacing:normal;text-transform:none;writing-mode:lr-tb;direction:ltr;baseline-shift:baseline;text-anchor:start;display:inline;overflow:visible;visibility:visible;fill:#bebebe;fill-opacity:1;stroke:none;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;marker:none;enable-background:accumulate"
+       style="color:#000000;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:medium;line-height:normal;font-family:Sans;-inkscape-font-specification:Sans;text-indent:0;text-align:start;text-decoration:none;text-decoration-line:none;letter-spacing:normal;word-spacing:normal;text-transform:none;writing-mode:lr-tb;direction:ltr;baseline-shift:baseline;text-anchor:start;display:inline;overflow:visible;visibility:visible;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;marker:none;enable-background:accumulate"
        d="m 227.99995,621 -6,-8 h 4 v -6 h 4 v 6 h 4 z"
        id="path15417"
        inkscape:connector-curvature="0" />

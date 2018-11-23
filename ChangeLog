@@ -17,3 +17,4 @@
   would take you to `/r/linux`.  Due to the frontpage changes, this no longer
   happens
 - [PACKAGING] Moved icons from pixmaps to the hicolor directory
+- [PACKAGING] Change SCSS compiler from ruby sass to sassc

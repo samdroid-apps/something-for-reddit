@@ -34,13 +34,20 @@ hicolor_icons_symbolic_DATA = \
 	icons/reddit-upvote-symbolic.svg \
 	icons/reddit-novote-symbolic.svg \
 	icons/reddit-downvote-symbolic.svg
+# FIXME: flatpak doesn't seem to support SVG icons at this point, god knows why
+hicolor_icons_24dir = $(datadir)/icons/hicolor/24x24/actions
+hicolor_icons_24_DATA = \
+	icons/reddit-mail-reply-all-symbolic.symbolic.png \
+	icons/reddit-mail-reply-sender-symbolic.symbolic.png \
+	icons/reddit-detach-symbolic.symbolic.png \
+	icons/reddit-upvote-symbolic.symbolic.png \
+	icons/reddit-novote-symbolic.symbolic.png \
+	icons/reddit-downvote-symbolic.symbolic.png
 hicolor_icon_files = \
 	$(hicolor_app_icons_DATA) \
 	$(hicolor_app_icons_symbolic_DATA) \
-	$(hicolor_icons_symbolic_DATA)
-
-gsettings_SCHEMAS = today.sam.something-for-reddit.gschema.xml
-
+	$(hicolor_icons_symbolic_DATA) \
+	$(hicolor_icons_24_DATA)
 
 install-data-hook: update-icon-cache
 uninstall-hook: update-icon-cache
@@ -53,6 +60,8 @@ update-icon-cache:
 		echo "***   $(gtk_update_hicolor_icon_cache)"; \
 	fi
 
+
+gsettings_SCHEMAS = today.sam.something-for-reddit.gschema.xml
 
 # For uninstalled use
 gschemas.compiled: $(gsettings_SCHEMAS) Makefile

@@ -15,7 +15,10 @@
    inkscape:version="0.92.3 (2405546, 2018-03-11)"
    height="16"
    width="16"
-   viewBox="0 0 16 16">
+   viewBox="0 0 16 16"
+   inkscape:export-filename="/home/sam/something-for-reddit/data/icons/reddit-upvote-symbolic.symbolic.png"
+   inkscape:export-xdpi="144"
+   inkscape:export-ydpi="144">
   <metadata
      id="metadata90">
     <rdf:RDF>
@@ -29,7 +32,7 @@
     </rdf:RDF>
   </metadata>
   <sodipodi:namedview
-     inkscape:cy="8.363645"
+     inkscape:cy="7.363645"
      pagecolor="#555753"
      borderopacity="1"
      showborder="true"
@@ -57,11 +60,12 @@
      inkscape:current-layer="layer12"
      inkscape:snap-bbox-midpoints="false"
      inkscape:zoom="22.627417"
-     inkscape:cx="8.7374085"
+     inkscape:cx="-1.526902"
      inkscape:snap-grids="true"
-     inkscape:pageopacity="1"
-     inkscape:pagecheckerboard="true"
-     inkscape:bbox-nodes="true">
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="false"
+     inkscape:bbox-nodes="true"
+     scale-x="1">
     <inkscape:grid
        spacingx="1px"
        spacingy="1px"
@@ -102,10 +106,11 @@
        id="g15413"
        style="display:inline;opacity:0.25" />
     <path
-       style="color:#000000;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:medium;line-height:normal;font-family:Sans;-inkscape-font-specification:Sans;text-indent:0;text-align:start;text-decoration:none;text-decoration-line:none;letter-spacing:normal;word-spacing:normal;text-transform:none;writing-mode:lr-tb;direction:ltr;baseline-shift:baseline;text-anchor:start;display:inline;overflow:visible;visibility:visible;fill:#bebebe;fill-opacity:1;stroke:none;stroke-width:1;marker:none;enable-background:accumulate;stroke-miterlimit:4;stroke-dasharray:none"
-       d="M 8 1 L 2 9 L 6 9 L 6 15 L 10 15 L 10 9 L 14 9 L 8 1 z "
+       style="color:#000000;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:medium;line-height:normal;font-family:Sans;-inkscape-font-specification:Sans;text-indent:0;text-align:start;text-decoration:none;text-decoration-line:none;letter-spacing:normal;word-spacing:normal;text-transform:none;writing-mode:lr-tb;direction:ltr;baseline-shift:baseline;text-anchor:start;display:inline;overflow:visible;visibility:visible;fill:#000000;fill-opacity:1.0;stroke:none;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;marker:none;enable-background:accumulate"
+       d="M 8,1 2,9 h 4 v 6 h 4 V 9 h 4 z"
        transform="translate(219.99995,606)"
-       id="path15417" />
+       id="path15417"
+       inkscape:connector-curvature="0" />
   </g>
   <g
      inkscape:label="places"
