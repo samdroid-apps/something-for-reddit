@@ -4,9 +4,11 @@
 
 A simple Reddit client for GNOME, built for touch, mouse and VIM keyboards.
 
-![Screenshot 1](http://people.sugarlabs.org/sam/reddit-screenshots/SS1.png)
+![Screenshot of AskReddit](https://raw.githubusercontent.com/samdroid-apps/something-for-reddit/master/screenshots/0.2.1-askreddit.png)
 
-![Screenshot 2](http://people.sugarlabs.org/sam/reddit-screenshots/SS2.png)
+![Screenshot of the content view](https://raw.githubusercontent.com/samdroid-apps/something-for-reddit/master/screenshots/0.2.1-dankmemes.png)
+
+![Screenshot of the dark view](https://raw.githubusercontent.com/samdroid-apps/something-for-reddit/master/screenshots/0.2.1-dark.png)
 
 # Features
 
