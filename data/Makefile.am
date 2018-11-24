@@ -20,6 +20,9 @@ appdatadir = $(datadir)/appdata
 appdata_DATA = $(appdata_in_files:.xml.in=.xml)
 appdata_in_files = reddit-is-gtk.appdata.xml.in
 
+metainfodir = $(datadir)/metainfo
+metainfo_DATA = reddit-is-gtk.appdata.xml
+
 @INTLTOOL_XML_RULE@
 
 hicolor_app_iconsdir = $(datadir)/icons/hicolor/scalable/apps
