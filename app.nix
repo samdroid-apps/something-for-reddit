@@ -16,9 +16,11 @@
 
 let
   py = python3;
+  # VERSION:
+  version = "0.2.1";
 in
 stdenv.mkDerivation rec {
-  name = "something-for-reddit-0.2";
+  name = "something-for-reddit-${version}";
 
   src = ./.;
 
