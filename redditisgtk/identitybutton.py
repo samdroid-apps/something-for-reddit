@@ -137,29 +137,37 @@ class SignInWindow(Gtk.Window):
                     scope=('edit history identity mysubreddits privatemessages'
                            ' submit subscribe vote read save')))
             ))
+        self._web.connect('notify::uri', self.__notify_uri_cb)
         self.add(self._web)
         self.show_all()
 
     def __uri_scheme_cb(self, request):
-        uri = urllib.parse.urlparse(request.get_uri())
-        d = urllib.parse.parse_qs(uri.query)
+        # WebKit now has a security measure that doesn't allow a http(s) site
+        # to redirect to a non-http(s) uri scheme.  So this only actually gets
+        # called for the old versions of webkit
+        pass
 
-        self._show_label()
+    def __notify_uri_cb(self, webview, pspec):
+        uri = urllib.parse.urlparse(webview.props.uri)
 
-        if d['state'][0] != self._state:
-            self._label.set_markup(
-                'Reddit did not return the same state in OAuth flow')
-            self._close.show()
-            return
+        if uri.scheme == 'redditgtk':
+            self._show_label()
 
-        if d.get('code'):
-            self._ic.sign_in_got_code(d['code'][0], self.__done_cb)
-            self._label.set_markup('Going down the OAuth flow')
-            self._spinner.show()
-        else:
-            self._label.set_markup(
-                'Reddit OAuth Error {}'.format(d['error']))
-            self._close.show()
+            d = urllib.parse.parse_qs(uri.query)
+            if d['state'][0] != self._state:
+                self._label.set_markup(
+                    'Reddit did not return the same state in OAuth flow')
+                self._close.show()
+                return
+
+            if d.get('code'):
+                self._ic.sign_in_got_code(d['code'][0], self.__done_cb)
+                self._label.set_markup('Going down the OAuth flow')
+                self._spinner.show()
+            else:
+                self._label.set_markup(
+                    'Reddit OAuth Error {}'.format(d['error']))
+                self._close.show()
 
     def __done_cb(self):
         self.destroy()
