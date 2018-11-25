@@ -1,7 +1,7 @@
 AC_PREREQ(2.63)
 # VERSION:
 AC_INIT([something-for-reddit],
-        [0.2.1],
+        [0.2.2],
         [https://github.com/samdroid-apps/something-for-reddit/issues],
         [something-for-reddit],
         [https://github.com/samdroid-apps/something-for-reddit])

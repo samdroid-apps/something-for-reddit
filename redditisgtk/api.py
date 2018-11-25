@@ -29,7 +29,7 @@ from gi.repository import GObject
 from gi.repository import GdkPixbuf
 
 # VERSION:
-USER_AGENT = 'GNU:something-for-reddit:v0.2.1 (by /u/samtoday)'
+USER_AGENT = 'GNU:something-for-reddit:v0.2.2 (by /u/samtoday)'
 PREPEND_SUBS = ['/', '/r/all', '/message/inbox']
 DEFAULT_SUBS = ['/r/gnome', '/r/gnu+linux']
 SPECIAL_SUBS = [

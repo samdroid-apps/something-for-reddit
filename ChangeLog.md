@@ -1,4 +1,12 @@
+# 0.2.2 - “The Bugfix Release ⓇⒺⒹⓊⓍ”
+
+26/Nov/2018
+
+- Fixes sign in issues on newer versions of webkit (#61, #58)
+
 # 0.2.1 - “The Bugfix Release”
+
+25/Nov/2018
 
 It has been great to come back and revitalize this app after 2 years of
 neglect.  I'm excited about how far this app can be improved, and think this

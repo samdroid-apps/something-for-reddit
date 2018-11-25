@@ -17,7 +17,7 @@
 let
   py = python3;
   # VERSION:
-  version = "0.2.1";
+  version = "0.2.2";
 in
 stdenv.mkDerivation rec {
   name = "something-for-reddit-${version}";

@@ -355,7 +355,7 @@ class Application(Gtk.Application):
             website='https://github.com/samdroid-apps/something-for-reddit',
             website_label='Git Repo and Issue Tracker on GitHub',
             # VERSION:
-            version='0.2.1 - “The Bugfix Release”',
+            version='0.2.2 - “The Bugfix Release ⓇⒺⒹⓊⓍ”',
             transient_for=self._w,
             modal=True)
         about_dialog.present()
